@@ -34,6 +34,13 @@ npx skills@latest add anzchy/skills --list
 |-------|--------|-------------|
 | [jack-prompt-master](./skills/productivity/jack-prompt-master) | `/jack-prompt-master <draft>` | Tournament-based meta-prompting. Iteratively refines a prompt across multiple rounds using parallel Claude + Codex candidate generation, an LLM-as-judge with a 7-criterion rubric, and a synthesizer. Best for high-stakes coding prompts. |
 | [jack-loop-prompt](./skills/productivity/jack-loop-prompt) | `/jack-loop-prompt <rough prompt>` | Rewrites a rough long-running-task prompt into a paste-ready prompt with binary done-criteria, a project-type–matched self-verification loop, and a final adversarial review stage. Use before a `/goal`, `/loop`, or `/workflow` run. |
+| [jack-html-preview](./skills/productivity/jack-html-preview) | `/jack-html-preview <path-or-url>` | Turns a folder, repo, or Markdown file into ONE self-contained interactive HTML that explains it end-to-end (collapsible tree, click-to-explain nodes, flow diagram), styled in the Claude/Anthropic design language. |
+
+### Writing
+
+| Skill | Invoke | Description |
+|-------|--------|-------------|
+| [jack-dissect-author-mind](./skills/writing/jack-dissect-author-mind) | `/jack-dissect-author-mind <text or path>` | Dissects a Chinese passage by part of speech — circling nouns (concrete vs abstract), adjectives, verbs, adverbs — to "climb into the author's mind." Renders a color-annotated HTML and infers the author's education level and perceptual acuity from the distribution. Method from Li Xiaolai's *The Truth About Writing*, Lesson 1. |
 
 ## When to use which skill
 
@@ -59,6 +66,13 @@ skills/
     jack-loop-prompt/
       SKILL.md
       reference/       # supporting reference docs
+    jack-html-preview/
+      SKILL.md
+      reference/
+  writing/
+    jack-dissect-author-mind/
+      SKILL.md
+      README.md
 docs/                  # planning docs (not installed)
 ```
 
@@ -99,6 +113,13 @@ npx skills@latest add anzchy/skills
 |------|---------|------|
 | [jack-prompt-master](./skills/productivity/jack-prompt-master) | `/jack-prompt-master <草稿>` | 基于锦标赛的元提示词优化。通过多轮 Claude + Codex 并行候选生成、7 条标准的 LLM 裁判评分、合成器综合最优版本，迭代精炼提示词。适合对质量要求极高的编程提示词。 |
 | [jack-loop-prompt](./skills/productivity/jack-loop-prompt) | `/jack-loop-prompt <粗糙描述>` | 将粗糙的长任务描述改写为可直接粘贴的精炼提示词，包含二元完成标准、与项目类型匹配的自我验证循环，以及最终的对抗性审查阶段。在启动 `/goal`、`/loop` 或 `/workflow` 前使用。 |
+| [jack-html-preview](./skills/productivity/jack-html-preview) | `/jack-html-preview <路径或URL>` | 把一个文件夹、代码仓库或 Markdown 文件转成一个自包含的交互式 HTML，端到端讲清其结构与运行机制（可折叠目录树、点击讲解节点、流程图），采用 Claude/Anthropic 设计语言。 |
+
+### 写作 (Writing)
+
+| 技能 | 调用方式 | 描述 |
+|------|---------|------|
+| [jack-dissect-author-mind](./skills/writing/jack-dissect-author-mind) | `/jack-dissect-author-mind <文本或路径>` | 按词性拆解一段中文——圈名词（分具体/抽象）、划形容词、标动词与副词——以"钻进作者的脑子"。生成彩色标注 HTML，并据词性分布反推作者的受教育程度与感知能力。方法源自李笑来《写作的真相》第一课。 |
 
 ### 使用场景
 

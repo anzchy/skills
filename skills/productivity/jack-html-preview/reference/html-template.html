@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!--
+  jack-html-preview scaffold.
+  This is a STARTING POINT, not a fill-in-the-blanks form. Copy it, then:
+    - Replace every {{...}} placeholder with real content from the mapping step.
+    - Add/remove tree nodes, explanation panels, and flow-diagram nodes to fit the
+      actual input. A 3-file CLI and a 200-file monorepo should not look identical.
+    - Keep ALL CSS and JS inline. No <link>, no <script src>, no web fonts loaded over
+      the network — fonts fall back to the system stack so the file works fully offline.
+  The CSS variables below are lifted from reference/claude-design-spec.md. Stay faithful
+  to them: paper background, charcoal text, leaf-shaped (asymmetric) radii, restrained
+  orange accent, serif for display headings, generous line-height.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}} — Preview</title>
+<style>
+:root{
+  --bg-primary:#FAF9F5; --bg-secondary:#F5F4F0; --bg-tertiary:#E8E6DC; --bg-dark:#191918;
+  --text-primary:#141413; --text-body:#30302E; --text-secondary:#5E5D59; --text-tertiary:#8A8985;
+  --text-inverse:#FAF9F5;
+  --accent-orange:#DA7756; --accent-terracotta:#C4653A; --accent-rust:#B85A3B;
+  --border:#E8E6DC;
+  --illust-blue:#5B8FA8; --illust-sage:#7A9B8A; --illust-sand:#D4C8B8;
+  --sans:"Anthropic Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --serif:"Anthropic Serif",Georgia,"Times New Roman",serif;
+  --dur-fast:150ms; --dur-normal:200ms; --ease:cubic-bezier(0.4,0,0.2,1);
+  --ease-out:cubic-bezier(0,0,0.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg-primary);color:var(--text-body);
+  font-family:var(--sans);font-size:18px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{color:var(--text-primary);line-height:1.2;margin:0 0 .5em}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5vw,52px)}
+h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3.5vw,32px)}
+h3{font-size:22px;font-weight:600}
+a{color:var(--text-primary);text-decoration:none}
+.container{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,64px)}
+
+/* hero / summary */
+.hero{padding:64px 0 32px;border-bottom:1px solid var(--border)}
+.kicker{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--accent-rust);margin-bottom:12px}
+.lead{font-size:clamp(19px,2.4vw,23px);line-height:1.5;color:var(--text-secondary);max-width:760px}
+
+.section{padding:48px 0;border-bottom:1px solid var(--border)}
+.section:last-child{border-bottom:none}
+
+/* layout: tree on the left, detail panel on the right */
+.explorer{display:grid;grid-template-columns:340px 1fr;gap:40px;align-items:start}
+@media(max-width:820px){.explorer{grid-template-columns:1fr}}
+
+/* collapsible tree */
+.tree{background:var(--bg-secondary);border-radius:0 16px 16px 16px;padding:16px;
+  position:sticky;top:16px}
+.tree ul{list-style:none;margin:0;padding-left:18px}
+.tree>ul{padding-left:0}
+.node{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:0 8px 8px 8px;
+  cursor:pointer;font-size:15px;color:var(--text-body);
+  transition:background var(--dur-fast) var(--ease)}
+.node:hover{background:var(--bg-tertiary)}
+.node.active{background:var(--accent-orange);color:#fff}
+.node .caret{width:12px;display:inline-block;transition:transform var(--dur-fast) var(--ease);
+  color:var(--text-tertiary);font-size:10px}
+.node.active .caret{color:#fff}
+.node.collapsed .caret{transform:rotate(-90deg)}
+.node .icon{font-size:13px}
+.children.hidden{display:none}
+
+/* detail / explanation panel */
+.panel{background:var(--bg-primary);border:1px solid var(--border);
+  border-radius:0 16px 16px 16px;padding:28px 32px;min-height:240px}
+.panel .path{font-size:13px;color:var(--text-tertiary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  margin-bottom:8px}
+.panel h3{margin-bottom:14px}
+.panel p{margin:0 0 14px;color:var(--text-body)}
+.panel .empty{color:var(--text-tertiary);font-style:italic}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--bg-tertiary);color:var(--text-secondary);margin:0 6px 6px 0}
+
+/* end-to-end flow diagram (pure HTML/CSS, no libs) */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
+.flow-step{flex:1;min-width:170px;background:var(--bg-secondary);
+  border-radius:0 16px 16px 16px;padding:18px 20px}
+.flow-step .num{font-size:12px;font-weight:700;color:var(--accent-rust);letter-spacing:.06em}
+.flow-step h4{margin:6px 0 6px;font-size:16px;color:var(--text-primary)}
+.flow-step p{margin:0;font-size:14px;color:var(--text-secondary);line-height:1.5}
+.flow-arrow{align-self:center;color:var(--text-tertiary);font-size:22px}
+@media(max-width:820px){.flow{flex-direction:column}.flow-arrow{transform:rotate(90deg)}}
+
+.walkthrough ol{padding-left:22px}
+.walkthrough li{margin-bottom:14px}
+
+footer{background:var(--bg-dark);color:rgba(250,249,245,.6);font-size:13px;
+  padding:32px 0;margin-top:0}
+footer .container{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+.fade-in{animation:fadeIn .3s var(--ease-out) backwards}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="kicker">{{KICKER e.g. CODEBASE WALKTHROUGH / GITHUB REPO / MARKDOWN DOC}}</div>
+    <h1>{{TITLE}}</h1>
+    <!-- "what this does" — ONE paragraph, plain language, no jargon. -->
+    <p class="lead">{{ONE_PARAGRAPH_WHAT_THIS_DOES}}</p>
+  </div>
+</header>
+
+<!-- HOW IT WORKS: narrated walkthrough, entry point -> output -->
+<section class="section walkthrough">
+  <div class="container">
+    <h2>How it works</h2>
+    <ol>
+      <li>{{STEP_1 — what happens first, which file/section is the entry point}}</li>
+      <li>{{STEP_2 — the core transformation / main logic}}</li>
+      <li>{{STEP_3 — how the output is produced}}</li>
+      <!-- add as many steps as the real flow needs -->
+    </ol>
+  </div>
+</section>
+
+<!-- END-TO-END FLOW DIAGRAM -->
+<section class="section">
+  <div class="container">
+    <h2>End-to-end flow</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="num">ENTRY</div><h4>{{ENTRY_NAME}}</h4><p>{{ENTRY_DESC}}</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="num">CORE</div><h4>{{CORE_NAME}}</h4><p>{{CORE_DESC}}</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="num">OUTPUT</div><h4>{{OUTPUT_NAME}}</h4><p>{{OUTPUT_DESC}}</p></div>
+      <!-- add/remove steps to match the real path -->
+    </div>
+  </div>
+</section>
+
+<!-- INTERACTIVE EXPLORER: collapsible tree + click-to-explain panel -->
+<section class="section">
+  <div class="container">
+    <h2>{{STRUCTURE_HEADING e.g. "Structure" / "Modules" / "Sections"}}</h2>
+    <div class="explorer">
+      <nav class="tree" id="tree">
+        <ul>
+          <!--
+            Each node: <li><div class="node" data-id="X"><span class="caret">▾</span>
+              <span class="icon">📁/📄</span><span>name</span></div><ul class="children">...</ul></li>
+            Leaf nodes (no children) omit the caret and the nested <ul>.
+            data-id links the node to its explanation in NODE_DATA below.
+          -->
+          {{TREE_NODES}}
+        </ul>
+      </nav>
+      <div class="panel fade-in" id="panel">
+        <p class="empty">Select a node on the left to read what it does.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span>{{TITLE}}</span>
+    <span>Generated by jack-html-preview · self-contained · opens offline</span>
+  </div>
+</footer>
+
+<script>
+// Plain-language explanation for every node, keyed by data-id.
+// Fill from the mapping step. Keep explanations jargon-light and concrete.
+const NODE_DATA = {
+  // "src/index.ts": {title:"index.ts", path:"src/index.ts", role:"Entry point",
+  //   tags:["entry","cli"], body:"<p>Parses argv and dispatches to the command router...</p>"},
+  {{NODE_DATA}}
+};
+
+const panel = document.getElementById('panel');
+const tree = document.getElementById('tree');
+
+// caret toggles collapse; the whole node row selects + shows the panel
+tree.addEventListener('click', e=>{
+  const node = e.target.closest('.node');
+  if(!node) return;
+  if(e.target.classList.contains('caret')){
+    node.classList.toggle('collapsed');
+    const kids = node.parentElement.querySelector('.children');
+    if(kids) kids.classList.toggle('hidden');
+    return;
+  }
+  document.querySelectorAll('.node.active').forEach(n=>n.classList.remove('active'));
+  node.classList.add('active');
+  render(node.dataset.id);
+});
+
+function render(id){
+  const d = NODE_DATA[id];
+  panel.classList.remove('fade-in'); void panel.offsetWidth; panel.classList.add('fade-in');
+  if(!d){ panel.innerHTML = '<p class="empty">No description for this node.</p>'; return; }
+  const tags = (d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
+  panel.innerHTML =
+    (d.path?`<div class="path">${d.path}</div>`:'') +
+    `<h3>${d.title||id}</h3>` + tags +
+    (d.role?`<p><strong>${d.role}</strong></p>`:'') +
+    (d.body||'');
+}
+</script>
+</body>
+</html>
