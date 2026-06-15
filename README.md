@@ -1,93 +1,65 @@
 # jack-cheng-skills
 
-Personal Claude Code skill hub by [@anzchy](https://github.com/anzchy) — productivity skills for high-quality AI-assisted coding.
+A Claude Code **plugin marketplace** by [@anzchy](https://github.com/anzchy) — productivity skills for AI-assisted coding, plus reading & writing skills distilled from Li Xiaolai's 《写作的真相》.
 
 <p align="center">
   <a href="https://github.com/anzchy/skills/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/anzchy/skills?style=for-the-badge&logo=github" /></a>
   <a href="https://github.com/anzchy/skills/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/anzchy/skills?style=for-the-badge&logo=github" /></a>
   <a href="https://github.com/anzchy/skills/issues"><img alt="Issues" src="https://img.shields.io/github/issues/anzchy/skills?style=for-the-badge&logo=github" /></a>
-  <a href="https://github.com/anzchy/skills/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/anzchy/skills?style=for-the-badge&logo=git" /></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge" /></a>
 </p>
 
 **English** | [中文](#中文)
 
+## Plugins
+
+| Plugin | Category | What's inside |
+|--------|----------|---------------|
+| [anzchy-skills](./anzchy-skills) | productivity | `jack-prompt-master` · `jack-loop-prompt` · `jack-html-preview` |
+| [writing-truth](./writing-truth) | writing | `dissect-author-mind` (L1) · `logic-template-lens` (L4) · `rhetoric-lens` (L5) — from 《写作的真相》 |
+
+Plugin skills are namespaced as `/<plugin>:<skill>`, e.g. `/writing-truth:rhetoric-lens`.
+
 ## Install
 
 ```bash
-npx skills@latest add anzchy/skills
+# add this repo as a marketplace, then install the plugin(s) you want
+/plugin marketplace add anzchy/jack-cheng-skills
+/plugin install writing-truth
+/plugin install anzchy-skills
 ```
 
 After install, restart your Claude Code session so the new skills are picked up.
-
-To list available skills without installing:
-
-```bash
-npx skills@latest add anzchy/skills --list
-```
-
-## Skills
-
-### Productivity
-
-| Skill | Invoke | Description |
-|-------|--------|-------------|
-| [jack-prompt-master](./skills/productivity/jack-prompt-master) | `/jack-prompt-master <draft>` | Tournament-based meta-prompting. Iteratively refines a prompt across multiple rounds using parallel Claude + Codex candidate generation, an LLM-as-judge with a 7-criterion rubric, and a synthesizer. Best for high-stakes coding prompts. |
-| [jack-loop-prompt](./skills/productivity/jack-loop-prompt) | `/jack-loop-prompt <rough prompt>` | Rewrites a rough long-running-task prompt into a paste-ready prompt with binary done-criteria, a project-type–matched self-verification loop, and a final adversarial review stage. Use before a `/goal`, `/loop`, or `/workflow` run. |
-| [jack-html-preview](./skills/productivity/jack-html-preview) | `/jack-html-preview <path-or-url>` | Turns a folder, repo, or Markdown file into ONE self-contained interactive HTML that explains it end-to-end (collapsible tree, click-to-explain nodes, flow diagram), styled in the Claude/Anthropic design language. |
-
-### Writing
-
-| Skill | Invoke | Description |
-|-------|--------|-------------|
-| [jack-dissect-author-mind](./skills/writing/jack-dissect-author-mind) | `/jack-dissect-author-mind <text or path>` | Dissects a Chinese passage by part of speech — circling nouns (concrete vs abstract), adjectives, verbs, adverbs — to "climb into the author's mind." Renders a color-annotated HTML and infers the author's education level and perceptual acuity from the distribution. Method from Li Xiaolai's *The Truth About Writing*, Lesson 1. |
-
-## When to use which skill
-
-```
-Rough idea → /jack-loop-prompt  → polished /goal prompt  → paste into agent
-Weak prompt → /jack-prompt-master → tournament-refined prompt → paste into agent
-```
-
-- Use `/jack-loop-prompt` when you have a rough task description and want Claude to self-verify as it works.
-- Use `/jack-prompt-master` when you have a draft prompt and want maximum quality through multi-round competition.
 
 ## Repository structure
 
 ```
 .claude-plugin/
-  plugin.json          # manifest read by the `skills` CLI
-skills/
-  productivity/
-    jack-prompt-master/
-      SKILL.md         # skill entrypoint (frontmatter + body)
-      README.md
-      references/      # supporting prompts / scripts
-    jack-loop-prompt/
-      SKILL.md
-      reference/       # supporting reference docs
-    jack-html-preview/
-      SKILL.md
-      reference/
-  writing/
-    jack-dissect-author-mind/
-      SKILL.md
-      README.md
-docs/                  # planning docs (not installed)
+  marketplace.json       # marketplace manifest, lists the plugins below
+anzchy-skills/           # plugin: productivity
+  .claude-plugin/plugin.json
+  skills/productivity/
+    jack-prompt-master/  (README.md, SKILL.md, references/)
+    jack-loop-prompt/    (SKILL.md, reference/)
+    jack-html-preview/   (SKILL.md, reference/)
+  README.md
+writing-truth/           # plugin: reading & writing (《写作的真相》)
+  .claude-plugin/plugin.json
+  skills/
+    dissect-author-mind/ (SKILL.md, README.md)   # 第一课
+    logic-template-lens/ (SKILL.md, README.md)   # 第四课
+    rhetoric-lens/       (SKILL.md, README.md)    # 第五课
+  knowledge/
+  README.md
+  CLAUDE.md
+docs/                    # planning docs (not installed)
 ```
 
-## Adding a new skill
+## Adding a new plugin
 
-1. Create `skills/<category>/<skill-name>/SKILL.md` with frontmatter:
-   ```yaml
-   ---
-   name: <skill-name>
-   description: <one-line trigger description>
-   version: 0.1.0
-   ---
-   ```
-2. Append the skill path to `.claude-plugin/plugin.json`.
-3. Commit and push — `npx skills add anzchy/skills` pulls the latest `main`.
+1. Create `<plugin-name>/.claude-plugin/plugin.json` and a `skills/` (or `commands/`, `agents/`) directory.
+2. Append the plugin to `.claude-plugin/marketplace.json` with its `source` path.
+3. Commit and push.
 
 ## License
 
@@ -97,33 +69,23 @@ MIT
 
 ## 中文
 
-个人 Claude Code 技能集，作者 [@anzchy](https://github.com/anzchy)，专注于提升 AI 辅助编程质量的生产力技能。
+[@anzchy](https://github.com/anzchy) 的 Claude Code **插件市场**：AI 辅助编程的生产力技能，外加一组提炼自李笑来《写作的真相》的阅读/写作技能。
+
+### 插件列表
+
+| 插件 | 类别 | 内含 |
+|------|------|------|
+| [anzchy-skills](./anzchy-skills) | 生产力 | `jack-prompt-master`、`jack-loop-prompt`、`jack-html-preview` |
+| [writing-truth](./writing-truth) | 写作 | `dissect-author-mind`（第一课）、`logic-template-lens`（第四课）、`rhetoric-lens`（第五课） |
+
+插件内 skill 以 `/<插件>:<skill>` 命名空间调用，如 `/writing-truth:rhetoric-lens`。
 
 ### 安装
 
 ```bash
-npx skills@latest add anzchy/skills
+/plugin marketplace add anzchy/jack-cheng-skills
+/plugin install writing-truth
+/plugin install anzchy-skills
 ```
 
 安装后重启 Claude Code 会话，新技能即可生效。
-
-### 技能列表
-
-| 技能 | 调用方式 | 描述 |
-|------|---------|------|
-| [jack-prompt-master](./skills/productivity/jack-prompt-master) | `/jack-prompt-master <草稿>` | 基于锦标赛的元提示词优化。通过多轮 Claude + Codex 并行候选生成、7 条标准的 LLM 裁判评分、合成器综合最优版本，迭代精炼提示词。适合对质量要求极高的编程提示词。 |
-| [jack-loop-prompt](./skills/productivity/jack-loop-prompt) | `/jack-loop-prompt <粗糙描述>` | 将粗糙的长任务描述改写为可直接粘贴的精炼提示词，包含二元完成标准、与项目类型匹配的自我验证循环，以及最终的对抗性审查阶段。在启动 `/goal`、`/loop` 或 `/workflow` 前使用。 |
-| [jack-html-preview](./skills/productivity/jack-html-preview) | `/jack-html-preview <路径或URL>` | 把一个文件夹、代码仓库或 Markdown 文件转成一个自包含的交互式 HTML，端到端讲清其结构与运行机制（可折叠目录树、点击讲解节点、流程图），采用 Claude/Anthropic 设计语言。 |
-
-### 写作 (Writing)
-
-| 技能 | 调用方式 | 描述 |
-|------|---------|------|
-| [jack-dissect-author-mind](./skills/writing/jack-dissect-author-mind) | `/jack-dissect-author-mind <文本或路径>` | 按词性拆解一段中文——圈名词（分具体/抽象）、划形容词、标动词与副词——以"钻进作者的脑子"。生成彩色标注 HTML，并据词性分布反推作者的受教育程度与感知能力。方法源自李笑来《写作的真相》第一课。 |
-
-### 使用场景
-
-```
-粗糙想法 → /jack-loop-prompt  → 精炼 /goal 提示词  → 粘贴到 agent
-弱提示词 → /jack-prompt-master → 锦标赛精炼提示词 → 粘贴到 agent
-```

@@ -143,7 +143,7 @@ Apply the same preamble strip to B's output.
 
 Dispatch one `Task` with the system prompt at `references/judge-prompt.md` and pass: rubric, both candidates, threshold. The judge must emit strict JSON per the schema in `references/judge-prompt.md`.
 
-**Validate every judge response with ****`jq -e`****:**
+**Validate every judge response with ********`jq -e`********:**
 
 ```bash
 jq -e '
@@ -261,7 +261,9 @@ If `.prompts/` was fallback-tmpdir'd at checkpoint time, the FINAL.md goes to th
 **Step 2 — Print to the conversation:**
 
 1. **Final prompt** as a fenced markdown block (copy-paste ready). No auto-execution.
+
 2. **Saved-to path** — one line: `✅ Saved to <FINAL_PATH>` (so the user knows the file exists without scrolling).
+
 3. **Score history table:**
 
    ```

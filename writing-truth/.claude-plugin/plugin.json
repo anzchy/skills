@@ -1,0 +1,13 @@
+{
+  "name": "writing-truth",
+  "version": "0.1.0",
+  "description": "Reading & writing skills distilled from Li Xiaolai's 《写作的真相》(The Truth About Writing): dissect an author's mind by part of speech (L1), expose the logic skeleton via juxtaposition/progression/turn (L4), and work the rhetorical layer — concretization, parallelism, analogy, metaphor (L5).",
+  "author": { "name": "anzchy", "url": "https://github.com/anzchy" },
+  "license": "MIT",
+  "keywords": ["writing", "reading", "rhetoric", "logic", "李笑来", "写作的真相", "类比", "并列递进转折", "词性拆解"],
+  "skills": [
+    "./skills/dissect-author-mind",
+    "./skills/logic-template-lens",
+    "./skills/rhetoric-lens"
+  ]
+}

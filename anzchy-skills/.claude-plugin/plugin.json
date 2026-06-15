@@ -3,7 +3,6 @@
   "skills": [
     "./skills/productivity/jack-prompt-master",
     "./skills/productivity/jack-loop-prompt",
-    "./skills/productivity/jack-html-preview",
-    "./skills/writing/jack-dissect-author-mind"
+    "./skills/productivity/jack-html-preview"
   ]
 }
