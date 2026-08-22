@@ -1,6 +1,6 @@
 {
   "name": "anzchy-skills",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Jack Cheng's agent skills: question diagnosis before prompting, tournament-based meta-prompting, loop-prompt rewriting, Claude-native code and plan audits, GitHub issue auto-fix, conventional commits / PRs / releases, and one-file interactive HTML explainers.",
   "author": {
     "name": "anzchy",
@@ -32,6 +32,7 @@
     "./skills/engineering/gh-commit",
     "./skills/engineering/gh-pr",
     "./skills/engineering/gh-release",
-    "./skills/productivity/jack-html-preview"
+    "./skills/productivity/jack-html-preview",
+    "./skills/misc/songy-course-exporter"
   ]
 }

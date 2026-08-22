@@ -7,8 +7,8 @@
   "plugins": [
     {
       "name": "anzchy-skills",
-      "version": "0.2.0",
-      "description": "Twelve productivity skills for AI-assisted coding: question diagnosis before prompting, tournament-based meta-prompting, rough-prompt-to-loop rewriting, Claude-native code and plan audits, GitHub issue auto-fix, conventional commits / PRs / releases, one-file interactive HTML explainers, and a Songy course exporter.",
+      "version": "0.2.1",
+      "description": "Thirteen productivity skills for AI-assisted coding: question diagnosis before prompting, tournament-based meta-prompting, rough-prompt-to-loop rewriting, Claude-native code and plan audits, GitHub issue auto-fix, conventional commits / PRs / releases, one-file interactive HTML explainers, and a Songy course exporter.",
       "source": "./anzchy-skills",
       "category": "productivity",
       "keywords": [
