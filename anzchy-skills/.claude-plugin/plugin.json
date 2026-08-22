@@ -4,6 +4,10 @@
     "./skills/productivity/jack-meta-think",
     "./skills/productivity/jack-prompt-master",
     "./skills/productivity/jack-loop-prompt",
-    "./skills/productivity/jack-html-preview"
+    "./skills/productivity/jack-html-preview",
+    "./skills/productivity/jack-audit-branches",
+    "./skills/productivity/jack-audit-fable",
+    "./skills/productivity/jack-auto-fix",
+    "./skills/productivity/jack-review-plan-fable"
   ]
 }

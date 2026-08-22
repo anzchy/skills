@@ -1,14 +1,26 @@
 {
   "name": "jack-cheng-marketplace",
-  "owner": { "name": "anzchy", "url": "https://github.com/anzchy" },
+  "owner": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
   "plugins": [
     {
       "name": "anzchy-skills",
       "version": "0.1.0",
-      "description": "Productivity skills for AI-assisted coding: tournament-based meta-prompting, rough-prompt-to-loop rewriting, and one-file interactive HTML explainers.",
+      "description": "Productivity skills for AI-assisted coding: question diagnosis before prompting, tournament-based meta-prompting, rough-prompt-to-loop rewriting, Claude-native code and plan audits, GitHub issue auto-fix, and one-file interactive HTML explainers.",
       "source": "./anzchy-skills",
       "category": "productivity",
-      "keywords": ["prompt", "meta-prompting", "loop", "html-preview", "提示词"]
+      "keywords": [
+        "prompt",
+        "meta-prompting",
+        "loop",
+        "audit",
+        "code-review",
+        "html-preview",
+        "提示词",
+        "提问"
+      ]
     },
     {
       "name": "writing-truth",
@@ -16,7 +28,14 @@
       "description": "Reading & writing skills from Li Xiaolai's 《写作的真相》: dissect-author-mind (L1), logic-template-lens (L4), rhetoric-lens (L5).",
       "source": "./writing-truth",
       "category": "writing",
-      "keywords": ["writing", "reading", "rhetoric", "logic", "李笑来", "写作的真相"]
+      "keywords": [
+        "writing",
+        "reading",
+        "rhetoric",
+        "logic",
+        "李笑来",
+        "写作的真相"
+      ]
     }
   ]
 }
