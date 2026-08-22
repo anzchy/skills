@@ -20,11 +20,12 @@ Given a rough draft prompt, run a multi-round tournament that:
 
 | Skill | Shape | Use when |
 |---|---|---|
+| `jack-meta-think` | Upstream question diagnosis + interview | You have a suspicion or a frustration, not a draft — the premise itself needs checking. Any domain, not just coding |
 | `/prompt-enhance` | One-shot, in-line | Quick polish, low-stakes |
 | `prompt-master` | One-shot, 9-dim extraction | Structured single rewrite |
 | `jack-prompt-master` | Multi-round tournament + Codex co-author + judge + synth | High-stakes coding prompt where output quality matters more than 30s of latency |
 
-All three coexist. None auto-deprecates the others.
+All coexist. None auto-deprecates the others, and there is no auto-chaining: `jack-meta-think` fixes *what* you are asking, `jack-prompt-master` fixes *how* you word it. Each emits a copy-paste block you route yourself.
 
 ## Install (project scope, for testing)
 
