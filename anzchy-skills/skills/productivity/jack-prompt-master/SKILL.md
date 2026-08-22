@@ -305,8 +305,9 @@ Load on demand:
 
 ## Distinctness vs other prompt skills
 
+- `jack-meta-think` (upstream, domain-general): diagnoses whether the question is aimed at the truth or at agreement — embedded conclusions, missing timeline, missing ruled-out factors. This skill assumes the aim is already correct and only optimizes the wording; if the draft's premise is unverified, run `/jack-meta-think` first.
 - `/prompt-enhance` (legacy, in `~/.claude/CLAUDE.md`): one-shot enhancement, quick polish.
 - `prompt-master` (skill at `~/.claude/skills/prompt-master/`): one-shot 9-dim intent extraction → single prompt.
 - `jack-prompt-master` (this skill): multi-round tournament with Codex co-author, judged with rubric, synthesized between rounds.
 
-All three coexist. No auto-deprecation, no auto-redirect. Pick based on stakes.
+All coexist. No auto-deprecation, no auto-redirect, no auto-chaining. Pick based on stakes — and on whether the question or the wording is what needs work.
