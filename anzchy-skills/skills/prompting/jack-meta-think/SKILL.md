@@ -1,7 +1,7 @@
 ---
 name: jack-meta-think
 description: Diagnoses the QUESTION before any prompt is written. Scans a raw ask for embedded conclusions, evaluative language, missing timeline, missing identifiers and missing ruled-out factors, then interactively resolves what only the asker can answer (what are you actually trying to find out) and rewrites the ask as a neutral, open-ended question. Domain-general — works for debugging, medical, purchase, relationship and career questions alike, not just coding. Use when the user has a rough ask, a suspicion, or a frustration rather than a draft prompt. Trigger keywords - "我该怎么问", "这个问题这样问对吗", "帮我想清楚我要问什么", "/jack-meta-think", "提问诊断", "diagnose my question". Distinct from /jack-prompt-master, which polishes an already-well-aimed coding prompt.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # jack-meta-think
@@ -75,6 +75,8 @@ Options: `验证 X` / `弄清原因（推荐）` / `X 是我确认过的事实�
 
 Fires on asks shaped like 「怎么才能节食减肥」— method fixed, goal unexamined. Do not fire it on every ask; asked reflexively it reads as stalling.
 
+**If the ask is in the investment / M&A / due-diligence domain**, load `references/case-investment-cross-border-ma.md` and take interview questions from its §2 追问库 (动机穿透 → 硬约束 → 价格时间线 → …) instead of inventing generic ones. The domain has a fixed counterparty, so 「对手方为什么在这个时点做这件事」 and 「谁会受损、他有什么工具」 outrank the C4–C7 gaps.
+
 **Then fill the C4/C5/C6/C7 gaps** with concrete, answerable questions — 具体型号是什么 / 之前什么时候还是正常的 / 你自己试过什么、结果如何. Never more than what the rewrite actually needs.
 
 Every AUQ call includes an escape option: `跳过，直接按现有信息改写`. Honor it immediately — do not re-ask.
@@ -103,6 +105,7 @@ Load on demand:
 
 - `references/checklist.md` — C1–C10 criteria: 原则 / 判定信号 / 反例特征 / 改写动作, with the source passage for each.
 - `references/rewrite-template.md` — the structured-question template plus two worked examples (coding + 生活).
+- `references/case-investment-cross-border-ma.md` — domain case library for 投资 / 并购: 12 questions a fund partner asked about a cross-border acquisition, each mapped to the thinking move behind it and to C1–C10, plus an investment-domain 追问库 and worked example C (是/否 → What/Why).
 
 ## Distinctness vs other prompt skills
 
