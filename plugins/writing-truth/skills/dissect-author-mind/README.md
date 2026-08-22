@@ -16,10 +16,10 @@
 
 ## Render path
 
-- 优先调用 `/anzchy-skills:jack-html-preview` 按 Claude 设计语言渲染交互式自包含 HTML(可折叠章节树 / 点图例按词性高亮 / 方法流程图)。
+- 优先调用 `/jack-html-preview:jack-html-preview` 按 Claude 设计语言渲染交互式自包含 HTML(可折叠章节树 / 点图例按词性高亮 / 方法流程图)。
 - 若该技能不可用,回退到直接生成单文件 HTML,保证彩色标注一定可用。
 
-> 依赖:首选渲染路径需要同 marketplace 的 `anzchy-skills` 插件中的 `jack-html-preview`;两个插件都安装时体验最佳,缺失则自动回退到直接生成 HTML。
+> 依赖:首选渲染路径需要同 marketplace 的 `jack-html-preview` 插件;两个插件都安装时体验最佳,缺失则自动回退到直接生成 HTML。
 
 ## Invoke
 

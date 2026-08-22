@@ -1,0 +1,19 @@
+{
+  "name": "jack-git",
+  "version": "0.1.0",
+  "description": "Conventional Commits, pull requests and GitHub releases with the gh CLI: gh-commit, gh-pr, gh-release.",
+  "author": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
+  "homepage": "https://github.com/anzchy/skills",
+  "repository": "https://github.com/anzchy/skills",
+  "license": "MIT",
+  "keywords": [
+    "git",
+    "github",
+    "commit",
+    "pr",
+    "release"
+  ]
+}

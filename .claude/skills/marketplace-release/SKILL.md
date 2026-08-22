@@ -36,7 +36,7 @@ no release).
 >    then git tag) and **users only receive updates when that version is
 >    bumped**. So every release that touches a plugin's skills MUST bump that
 >    plugin's `plugin.json` `version` and the matching `marketplace.json`
->    entry, and the repo tag should equal the `anzchy-skills` plugin version.
+>    entry; the repo tag equals the marketplace-level `version`.
 >
 > Releasing here means: bump affected `SKILL.md` versions, bump the affected
 > plugin's `plugin.json` + `marketplace.json` version, record the CHANGELOG,
@@ -125,13 +125,13 @@ git log ${RANGE} --no-merges --pretty='%h %s'
 | Artifact | Version source | "Owns" these paths |
 |---|---|---|
 | Repo / release | git tag + `CHANGELOG.md` heading | everything (the tag always bumps) |
-| Each plugin | `<plugin>/.claude-plugin/plugin.json` `version` **and** the matching entry in `.claude-plugin/marketplace.json` (keep them equal) | everything under `<plugin>/` (`anzchy-skills/`, `writing-truth/`) |
-| Each skill | `<plugin>/skills/[<category>/]<name>/SKILL.md` `version:` frontmatter | that skill's directory — `SKILL.md`, its `README.md`, and its `reference/` or `references/` dir |
+| Each plugin | `plugins/<plugin>/.claude-plugin/plugin.json` `version` **and** the matching entry in `.claude-plugin/marketplace.json` (keep them equal) | everything under `plugins/<plugin>/` |
+| Each skill | `plugins/<plugin>/skills/<name>/SKILL.md` (or a single-skill plugin's root `SKILL.md`) `version:` frontmatter | that skill's directory — `SKILL.md`, its `README.md`, and its `reference/` or `references/` dir |
 
-> Layout: plugins live at `anzchy-skills/` and `writing-truth/`; skills are
-> nested (`anzchy-skills/skills/prompting/jack-ask/SKILL.md`) — discovery is
-> recursive, so nesting is fine. Three version layers, bumped independently
-> by what changed:
+> Layout: every plugin lives under `plugins/<name>/` (`marketplace.json`
+> `metadata.pluginRoot` = `./plugins`); skills are auto-discovered from each
+> plugin's `skills/` (single-skill plugins keep `SKILL.md` at the root).
+> Three version layers, bumped independently by what changed:
 >
 > - **Skill** `version:` frontmatter — bump only the skills that changed;
 >   respect each skill's own cadence, don't force-sync to each other.
@@ -140,17 +140,18 @@ git log ${RANGE} --no-merges --pretty='%h %s'
 >   This is the field that gates `/plugin` updates, so never skip it when a
 >   skill inside the plugin changed. Also append a new skill's path to the
 >   `skills` array (auto-discovery would find it, but keep the list complete).
-> - **Repo tag / CHANGELOG** — by default equal to the `anzchy-skills` plugin
->   version (`v` prefix).
+> - **Marketplace `version` in `marketplace.json` = repo tag / CHANGELOG** —
+>   bump by the highest change class across all plugins; the tag is that
+>   number with a `v` prefix.
 >
 > There is no `package.json` — nothing else to track. Validate after editing:
-> `claude plugin validate . && claude plugin validate ./anzchy-skills && claude plugin validate ./writing-truth`.
+> `claude plugin validate . && for p in plugins/*/; do claude plugin validate $p; done`.
 
 **0.3 — Map commits → owning artifact.** For each changed path, attribute it to
 the narrowest owning artifact above. A commit can touch several skills. Any
-edit under `skills/<category>/<name>/` → that skill. A **new** skill directory
-also means appending its path to `.claude-plugin/plugin.json` (structural, in
-the same Step 0.6 commit) — flag this in the proposal.
+edit under `plugins/<plugin>/skills/<name>/` → that skill and its plugin. A
+**new** plugin directory also means appending an entry to
+`.claude-plugin/marketplace.json` (structural, same Step 0.6 commit) — flag it.
 
 **0.4 — Classify per artifact and propose a bump** (Conventional Commits):
 

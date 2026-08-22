@@ -1,34 +1,86 @@
 {
   "name": "jack-cheng-marketplace",
+  "version": "0.2.2",
   "owner": {
     "name": "anzchy",
     "url": "https://github.com/anzchy"
   },
+  "description": "Jack Cheng's Claude Code plugins: small, install-what-you-need plugins for prompting, code review, git shipping and HTML explainers, plus reading & writing skills from 《写作的真相》.",
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
   "plugins": [
     {
-      "name": "anzchy-skills",
-      "version": "0.2.1",
-      "description": "Thirteen productivity skills for AI-assisted coding: question diagnosis before prompting, tournament-based meta-prompting, rough-prompt-to-loop rewriting, Claude-native code and plan audits, GitHub issue auto-fix, conventional commits / PRs / releases, one-file interactive HTML explainers, and a Songy course exporter.",
-      "source": "./anzchy-skills",
+      "name": "jack-prompting",
+      "version": "0.1.0",
+      "description": "Work on the prompt before any code: jack-ask (router), jack-meta-think (diagnose the question), jack-prompt-master (tournament meta-prompting), jack-loop-prompt (paste-ready long-run prompts).",
+      "source": "./plugins/jack-prompting",
       "category": "productivity",
       "keywords": [
         "prompt",
         "meta-prompting",
         "loop",
-        "audit",
-        "code-review",
-        "git",
-        "github",
-        "html-preview",
         "提示词",
         "提问"
       ]
     },
     {
-      "name": "writing-truth",
+      "name": "jack-engineering",
       "version": "0.1.0",
+      "description": "Claude-native code and plan audits (jack-audit-fable, jack-review-plan-fable), GitHub issue auto-fix (jack-auto-fix), remote branch cleanup (jack-audit-branches).",
+      "source": "./plugins/jack-engineering",
+      "category": "productivity",
+      "keywords": [
+        "audit",
+        "code-review",
+        "plan-review",
+        "github"
+      ]
+    },
+    {
+      "name": "jack-git",
+      "version": "0.1.0",
+      "description": "Conventional Commits, pull requests and GitHub releases with the gh CLI: gh-commit, gh-pr, gh-release.",
+      "source": "./plugins/jack-git",
+      "category": "productivity",
+      "keywords": [
+        "git",
+        "github",
+        "commit",
+        "pr",
+        "release"
+      ]
+    },
+    {
+      "name": "jack-html-preview",
+      "version": "0.1.0",
+      "description": "Turn a folder, repo, or Markdown file into one self-contained interactive HTML explainer.",
+      "source": "./plugins/jack-html-preview",
+      "category": "productivity",
+      "keywords": [
+        "html",
+        "preview",
+        "explainer"
+      ]
+    },
+    {
+      "name": "songy-course-exporter",
+      "version": "0.1.0",
+      "description": "Export a Songy web course from a course URL or the open authenticated Songy page.",
+      "source": "./plugins/songy-course-exporter",
+      "category": "utility",
+      "keywords": [
+        "songy",
+        "export",
+        "course"
+      ],
+      "defaultEnabled": false
+    },
+    {
+      "name": "writing-truth",
+      "version": "0.1.1",
       "description": "Reading & writing skills from Li Xiaolai's 《写作的真相》: dissect-author-mind (L1), logic-template-lens (L4), rhetoric-lens (L5).",
-      "source": "./writing-truth",
+      "source": "./plugins/writing-truth",
       "category": "writing",
       "keywords": [
         "writing",
@@ -39,6 +91,5 @@
         "写作的真相"
       ]
     }
-  ],
-  "description": "Jack Cheng's Claude Code plugins: agent skills for prompting, code review and shipping, plus reading and writing skills from 《写作的真相》."
+  ]
 }

@@ -1,0 +1,18 @@
+{
+  "name": "jack-engineering",
+  "version": "0.1.0",
+  "description": "Claude-native code and plan audits (jack-audit-fable, jack-review-plan-fable), GitHub issue auto-fix (jack-auto-fix), remote branch cleanup (jack-audit-branches).",
+  "author": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
+  "homepage": "https://github.com/anzchy/skills",
+  "repository": "https://github.com/anzchy/skills",
+  "license": "MIT",
+  "keywords": [
+    "audit",
+    "code-review",
+    "plan-review",
+    "github"
+  ]
+}

@@ -33,7 +33,7 @@ rhetoric-lens         → 修辞层：具象 / 排比 / 类比 / 隐喻
 
 ## 依赖说明
 
-`dissect-author-mind` 的首选渲染路径会调用 `anzchy-skills` 插件里的 `jack-html-preview`（命名空间 `/anzchy-skills:jack-html-preview`）。若未安装该插件，会自动回退到"直接生成自包含 HTML"，功能不受影响。
+`dissect-author-mind` 的首选渲染路径会调用 `jack-html-preview` 插件（命名空间 `/jack-html-preview:jack-html-preview`）。若未安装该插件，会自动回退到"直接生成自包含 HTML"，功能不受影响。
 
 ## License
 

@@ -15,19 +15,28 @@ A Claude Code **plugin marketplace** by [@anzchy](https://github.com/anzchy) —
 
 | Plugin | Category | What's inside |
 |--------|----------|---------------|
-| [anzchy-skills](./anzchy-skills) | productivity | 12 skills in 3 buckets — [prompting](./anzchy-skills/skills/prompting) · [engineering](./anzchy-skills/skills/engineering) · [productivity](./anzchy-skills/skills/productivity) |
-| [writing-truth](./writing-truth) | writing | `dissect-author-mind` (L1) · `logic-template-lens` (L4) · `rhetoric-lens` (L5) — from 《写作的真相》 |
+| [jack-prompting](./plugins/jack-prompting) | productivity | `jack-ask` (router) · `jack-meta-think` · `jack-prompt-master` · `jack-loop-prompt` — work on the prompt before any code |
+| [jack-engineering](./plugins/jack-engineering) | productivity | `jack-audit-fable` · `jack-review-plan-fable` · `jack-auto-fix` · `jack-audit-branches` — review and audit code and plans |
+| [jack-git](./plugins/jack-git) | productivity | `gh-commit` · `gh-pr` · `gh-release` — ship with the `gh` CLI |
+| [jack-html-preview](./plugins/jack-html-preview) | productivity | one-file interactive HTML explainer for a folder, repo, or Markdown file |
+| [songy-course-exporter](./plugins/songy-course-exporter) | utility | export a Songy course (personal tool, installed disabled by default) |
+| [writing-truth](./plugins/writing-truth) | writing | `dissect-author-mind` (L1) · `logic-template-lens` (L4) · `rhetoric-lens` (L5) — from 《写作的真相》 |
 
-Plugin skills are namespaced as `/<plugin>:<skill>`, e.g. `/writing-truth:rhetoric-lens`.
+Plugins are small on purpose — install only the ones you want. Skills are namespaced as `/<plugin>:<skill>`, e.g. `/jack-prompting:jack-meta-think`, `/writing-truth:rhetoric-lens`. Not sure which skill? `/jack-prompting:jack-ask <your ask>` routes across all of them.
 
 ## Install
 
 ```bash
 # add this repo as a marketplace, then install the plugin(s) you want
-/plugin marketplace add anzchy/jack-cheng-skills
-/plugin install writing-truth
-/plugin install anzchy-skills
+/plugin marketplace add anzchy/skills
+/plugin install jack-prompting@jack-cheng-marketplace
+/plugin install jack-engineering@jack-cheng-marketplace
+/plugin install jack-git@jack-cheng-marketplace
+/plugin install jack-html-preview@jack-cheng-marketplace
+/plugin install writing-truth@jack-cheng-marketplace
 ```
+
+Or, without the plugin system: `npx skills@latest add anzchy/skills` installs every skill as plain skills.
 
 After install, restart your Claude Code session so the new skills are picked up.
 
@@ -35,41 +44,29 @@ After install, restart your Claude Code session so the new skills are picked up.
 
 ```
 .claude-plugin/
-  marketplace.json       # marketplace manifest, lists the plugins below
-anzchy-skills/           # plugin: productivity
-  .claude-plugin/plugin.json   # the contract: lists exactly which skills ship
-  skills/
-    prompting/           # work on the prompt, before any code
-      jack-ask/  jack-meta-think/  jack-prompt-master/  jack-loop-prompt/
-    engineering/         # review, audit, commit, PR, release
-      jack-audit-fable/  jack-review-plan-fable/  jack-auto-fix/
-      jack-audit-branches/  gh-commit/  gh-pr/  gh-release/
-    productivity/        # daily non-code workflow
-      jack-html-preview/
-    misc/                # on disk, NOT in plugin.json, so not installed
-      songy-course-exporter/
-  README.md
-writing-truth/           # plugin: reading & writing (《写作的真相》)
-  .claude-plugin/plugin.json
-  skills/
-    dissect-author-mind/ (SKILL.md, README.md)   # 第一课
-    logic-template-lens/ (SKILL.md, README.md)   # 第四课
-    rhetoric-lens/       (SKILL.md, README.md)    # 第五课
-  knowledge/
-  README.md
-  CLAUDE.md
-docs/                    # planning docs (not installed)
+  marketplace.json       # marketplace manifest; metadata.pluginRoot = ./plugins
+plugins/
+  jack-prompting/        # .claude-plugin/plugin.json + skills/{jack-ask,jack-meta-think,jack-prompt-master,jack-loop-prompt}
+  jack-engineering/      # skills/{jack-audit-fable,jack-review-plan-fable,jack-auto-fix,jack-audit-branches}
+  jack-git/              # skills/{gh-commit,gh-pr,gh-release}
+  jack-html-preview/     # single-skill plugin: SKILL.md at the plugin root
+  songy-course-exporter/ # skills/songy-course-exporter (defaultEnabled: false)
+  writing-truth/         # skills/{dissect-author-mind,logic-template-lens,rhetoric-lens} + knowledge/
+docs/                    # planning docs and reference texts (not installed)
+CHANGELOG.md
 ```
 
-## Skill buckets
+## Design
 
-Inside a plugin, skills are grouped into buckets by what they act on — `prompting/`, `engineering/`, `productivity/` — plus a `misc/` staging area. The directory is a convention for humans; **`plugin.json` is the contract.** Promoting a skill means adding its path there, and a skill in `misc/` never ships. Each bucket carries a README listing its skills and whether each one is user-invoked or model-invoked.
+- **One plugin per install intent.** A plugin is the smallest unit a user can enable, so each plugin groups skills someone would want together and nothing else. A personal tool (`songy-course-exporter`) ships as its own plugin, disabled by default.
+- **Skills are auto-discovered** from each plugin's `skills/` directory (recursively); `plugin.json` carries `name`, `version` and metadata only.
+- **Three version layers**, bumped independently: each skill's `version:` frontmatter, each plugin's `plugin.json` `version` (mirrored in `marketplace.json` — this is what gates `/plugin` updates), and the marketplace `version` / repo tag.
 
 ## Adding a new plugin
 
-1. Create `<plugin-name>/.claude-plugin/plugin.json` and a `skills/` (or `commands/`, `agents/`) directory.
-2. Append the plugin to `.claude-plugin/marketplace.json` with its `source` path.
-3. Commit and push.
+1. Create `plugins/<plugin-name>/.claude-plugin/plugin.json` (`name`, `version: 0.1.0`, `description`) and a `skills/<skill>/SKILL.md` (or put a single `SKILL.md` at the plugin root).
+2. Append the plugin to `.claude-plugin/marketplace.json` with `source: ./plugins/<plugin-name>` and the same `version`.
+3. `claude plugin validate . && claude plugin validate ./plugins/<plugin-name>`, then release with `/marketplace-release`.
 
 ## License
 
@@ -85,17 +82,26 @@ MIT
 
 | 插件 | 类别 | 内含 |
 |------|------|------|
-| [anzchy-skills](./anzchy-skills) | 生产力 | 12 个 skill，分 3 个 bucket：[prompting](./anzchy-skills/skills/prompting)、[engineering](./anzchy-skills/skills/engineering)、[productivity](./anzchy-skills/skills/productivity) |
-| [writing-truth](./writing-truth) | 写作 | `dissect-author-mind`（第一课）、`logic-template-lens`（第四课）、`rhetoric-lens`（第五课） |
+| [jack-prompting](./plugins/jack-prompting) | 生产力 | `jack-ask`（路由）、`jack-meta-think`、`jack-prompt-master`、`jack-loop-prompt` —— 写代码之前先把提示词做对 |
+| [jack-engineering](./plugins/jack-engineering) | 生产力 | `jack-audit-fable`、`jack-review-plan-fable`、`jack-auto-fix`、`jack-audit-branches` —— 审代码、审计划 |
+| [jack-git](./plugins/jack-git) | 生产力 | `gh-commit`、`gh-pr`、`gh-release` —— 用 `gh` CLI 提交 / PR / 发布 |
+| [jack-html-preview](./plugins/jack-html-preview) | 生产力 | 把目录、仓库或 Markdown 变成单文件交互式 HTML 讲解页 |
+| [songy-course-exporter](./plugins/songy-course-exporter) | 工具 | 导出 Songy 课程（个人工具，默认不启用） |
+| [writing-truth](./plugins/writing-truth) | 写作 | `dissect-author-mind`（第一课）、`logic-template-lens`（第四课）、`rhetoric-lens`（第五课） |
 
-插件内 skill 以 `/<插件>:<skill>` 命名空间调用，如 `/writing-truth:rhetoric-lens`。
+插件刻意拆得很小，只装你需要的。skill 以 `/<插件>:<skill>` 调用，如 `/jack-prompting:jack-meta-think`、`/writing-truth:rhetoric-lens`。不知道该用哪个？`/jack-prompting:jack-ask <你的需求>` 会跨插件路由。
 
 ### 安装
 
 ```bash
-/plugin marketplace add anzchy/jack-cheng-skills
-/plugin install writing-truth
-/plugin install anzchy-skills
+/plugin marketplace add anzchy/skills
+/plugin install jack-prompting@jack-cheng-marketplace
+/plugin install jack-engineering@jack-cheng-marketplace
+/plugin install jack-git@jack-cheng-marketplace
+/plugin install jack-html-preview@jack-cheng-marketplace
+/plugin install writing-truth@jack-cheng-marketplace
 ```
+
+不用插件系统也可以：`npx skills@latest add anzchy/skills` 会把所有 skill 作为普通 skill 安装。
 
 安装后重启 Claude Code 会话，新技能即可生效。

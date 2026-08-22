@@ -1,0 +1,17 @@
+{
+  "name": "jack-html-preview",
+  "version": "0.1.0",
+  "description": "Turn a folder, repo, or Markdown file into one self-contained interactive HTML explainer.",
+  "author": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
+  "homepage": "https://github.com/anzchy/skills",
+  "repository": "https://github.com/anzchy/skills",
+  "license": "MIT",
+  "keywords": [
+    "html",
+    "preview",
+    "explainer"
+  ]
+}

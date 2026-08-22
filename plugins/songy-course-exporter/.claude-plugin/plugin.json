@@ -1,0 +1,17 @@
+{
+  "name": "songy-course-exporter",
+  "version": "0.1.0",
+  "description": "Export a Songy web course from a course URL or the open authenticated Songy page.",
+  "author": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
+  "homepage": "https://github.com/anzchy/skills",
+  "repository": "https://github.com/anzchy/skills",
+  "license": "MIT",
+  "keywords": [
+    "songy",
+    "export",
+    "course"
+  ]
+}
