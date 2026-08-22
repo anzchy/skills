@@ -21,17 +21,17 @@
     "提问"
   ],
   "skills": [
-    "./skills/productivity/jack-meta-think",
-    "./skills/productivity/jack-prompt-master",
-    "./skills/productivity/jack-loop-prompt",
-    "./skills/productivity/jack-html-preview",
-    "./skills/productivity/jack-audit-branches",
-    "./skills/productivity/jack-audit-fable",
-    "./skills/productivity/jack-auto-fix",
-    "./skills/productivity/jack-review-plan-fable",
-    "./skills/productivity/gh-commit",
-    "./skills/productivity/gh-pr",
-    "./skills/productivity/gh-release",
-    "./skills/productivity/songy-course-exporter"
+    "./skills/prompting/jack-ask",
+    "./skills/prompting/jack-meta-think",
+    "./skills/prompting/jack-prompt-master",
+    "./skills/prompting/jack-loop-prompt",
+    "./skills/engineering/jack-audit-fable",
+    "./skills/engineering/jack-review-plan-fable",
+    "./skills/engineering/jack-auto-fix",
+    "./skills/engineering/jack-audit-branches",
+    "./skills/engineering/gh-commit",
+    "./skills/engineering/gh-pr",
+    "./skills/engineering/gh-release",
+    "./skills/productivity/jack-html-preview"
   ]
 }

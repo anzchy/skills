@@ -2,23 +2,42 @@
 
 Productivity skills for high-quality AI-assisted coding by [@anzchy](https://github.com/anzchy). Part of the `jack-cheng-marketplace`.
 
-**Status:** v0.1.0 — Claude Code plugin.
+**Status:** v0.2.0 — Claude Code plugin.
 
-## Skills
+## Layout
 
-| Skill | Invoke | Description |
-|-------|--------|-------------|
-| [jack-prompt-master](./skills/productivity/jack-prompt-master) | `/anzchy-skills:jack-prompt-master <draft>` | Tournament-based meta-prompting. Iteratively refines a prompt across multiple rounds using parallel Claude + Codex candidate generation, an LLM-as-judge with a 7-criterion rubric, and a synthesizer. Best for high-stakes coding prompts. |
-| [jack-loop-prompt](./skills/productivity/jack-loop-prompt) | `/anzchy-skills:jack-loop-prompt <rough prompt>` | Rewrites a rough long-running-task prompt into a paste-ready prompt with binary done-criteria, a project-type–matched self-verification loop, and a final adversarial review stage. Use before a `/goal`, `/loop`, or `/workflow` run. |
-| [jack-html-preview](./skills/productivity/jack-html-preview) | `/anzchy-skills:jack-html-preview <path-or-url>` | Turns a folder, repo, or Markdown file into ONE self-contained interactive HTML that explains it end-to-end (collapsible tree, click-to-explain nodes, flow diagram), styled in the Claude/Anthropic design language. |
+Skills live in **buckets** under `skills/`. The bucket is a staging convention for humans; the contract is `.claude-plugin/plugin.json`, which lists exactly what ships. A skill in `misc/` is on disk but not in the manifest, so it is not installed.
 
-## When to use which
+| Bucket | What lives there | Shipped |
+|---|---|---|
+| [`skills/prompting/`](./skills/prompting) | Work on the prompt before any code | yes |
+| [`skills/engineering/`](./skills/engineering) | Review, audit, commit, PR, release | yes |
+| [`skills/productivity/`](./skills/productivity) | Daily non-code workflow | yes |
+| [`skills/misc/`](./skills/misc) | Kept around, not promoted | no |
+
+Each bucket has its own README listing every skill in it, grouped by whether you have to type it or the model can reach for it.
+
+## Not sure which one?
 
 ```
-Rough idea  → /anzchy-skills:jack-loop-prompt   → polished /goal prompt        → paste into agent
-Weak prompt → /anzchy-skills:jack-prompt-master → tournament-refined prompt     → paste into agent
-A repo/dir  → /anzchy-skills:jack-html-preview  → one-file interactive explainer
+/anzchy-skills:jack-ask <your rough ask>
 ```
+
+`jack-ask` reads the ask and hands back one skill name and the exact command. It routes; it never does the work.
+
+## The chain
+
+```
+Muddled question → /anzchy-skills:jack-meta-think   → a neutral, answerable question
+Weak wording     → /anzchy-skills:jack-prompt-master → tournament-refined prompt
+Long autonomous  → /anzchy-skills:jack-loop-prompt   → paste-ready /goal prompt
+A plan           → /anzchy-skills:jack-review-plan-fable → buildability review
+Code that exists → /anzchy-skills:jack-audit-fable   → 9-dimension audit
+Ready to ship    → /anzchy-skills:gh-commit → gh-pr → gh-release
+A repo/dir       → /anzchy-skills:jack-html-preview  → one-file interactive explainer
+```
+
+Nothing auto-chains. Every step hands you output and stops.
 
 ## Note
 
