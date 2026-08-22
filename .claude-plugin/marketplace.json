@@ -39,5 +39,6 @@
         "写作的真相"
       ]
     }
-  ]
+  ],
+  "description": "Jack Cheng's Claude Code plugins: agent skills for prompting, code review and shipping, plus reading and writing skills from 《写作的真相》."
 }
