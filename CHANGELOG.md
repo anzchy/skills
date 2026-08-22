@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-22
+
+### Changed
+- anzchy-skills plugin version 0.2.0 → 0.2.1 in `plugin.json` and `marketplace.json`, so `/plugin` users receive the jack-meta-think 0.2.0 update; the repo tag now tracks the plugin version.
+- anzchy-skills: `songy-course-exporter` registered in the `plugin.json` skills list; marketplace description updated to thirteen skills.
+
+### Documentation
+- marketplace-release skill: release flow now bumps plugin manifest versions per the official Claude Code plugin docs.
+
+---
+
 ## [0.1.0] - 2026-08-22
 
 First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
@@ -26,5 +37,6 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/anzchy/skills/compare/v0.1.0...v0.2.1
 [0.1.0]: https://github.com/anzchy/skills/releases/tag/v0.1.0
