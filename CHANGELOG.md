@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-08-22
+
+### Changed
+- **Breaking:** the single `anzchy-skills` plugin is split into install-what-you-need plugins under `plugins/`: `jack-prompting`, `jack-engineering`, `jack-git`, `jack-html-preview`, `songy-course-exporter` (disabled by default); `writing-truth` moves to `plugins/writing-truth`. Skill namespaces change from `/anzchy-skills:<skill>` to `/<plugin>:<skill>` — reinstall with `/plugin install <plugin>@jack-cheng-marketplace`.
+- `marketplace.json` now sets `metadata.pluginRoot` and carries a marketplace `version` (= repo tag). New plugins start at 0.1.0.
+- jack-ask 0.2.0: routes across all jack-* plugins, prints the namespaced command plus an install hint when the plugin is missing.
+- writing-truth 0.1.1 / dissect-author-mind 0.1.1: call `/jack-html-preview:jack-html-preview` instead of the old namespace.
+
+### Documentation
+- README rewritten for the multi-plugin layout; per-plugin READMEs; marketplace-release skill updated.
+
+---
+
 ## [0.2.1] - 2026-08-22
 
 ### Changed
@@ -37,6 +50,7 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/anzchy/skills/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/anzchy/skills/compare/v0.1.0...v0.2.1
 [0.1.0]: https://github.com/anzchy/skills/releases/tag/v0.1.0
