@@ -1,0 +1,4 @@
+interface:
+  display_name: "Songy Course Exporter"
+  short_description: "Export Songy course audio and text notes"
+  default_prompt: "Use $songy-course-exporter to export the current Songy course into one audio file and a Markdown notes file."

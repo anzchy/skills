@@ -15,7 +15,7 @@ A Claude Code **plugin marketplace** by [@anzchy](https://github.com/anzchy) —
 
 | Plugin | Category | What's inside |
 |--------|----------|---------------|
-| [anzchy-skills](./anzchy-skills) | productivity | `jack-prompt-master` · `jack-loop-prompt` · `jack-html-preview` |
+| [anzchy-skills](./anzchy-skills) | productivity | 12 skills in 3 buckets — [prompting](./anzchy-skills/skills/prompting) · [engineering](./anzchy-skills/skills/engineering) · [productivity](./anzchy-skills/skills/productivity) |
 | [writing-truth](./writing-truth) | writing | `dissect-author-mind` (L1) · `logic-template-lens` (L4) · `rhetoric-lens` (L5) — from 《写作的真相》 |
 
 Plugin skills are namespaced as `/<plugin>:<skill>`, e.g. `/writing-truth:rhetoric-lens`.
@@ -37,11 +37,17 @@ After install, restart your Claude Code session so the new skills are picked up.
 .claude-plugin/
   marketplace.json       # marketplace manifest, lists the plugins below
 anzchy-skills/           # plugin: productivity
-  .claude-plugin/plugin.json
-  skills/productivity/
-    jack-prompt-master/  (README.md, SKILL.md, references/)
-    jack-loop-prompt/    (SKILL.md, reference/)
-    jack-html-preview/   (SKILL.md, reference/)
+  .claude-plugin/plugin.json   # the contract: lists exactly which skills ship
+  skills/
+    prompting/           # work on the prompt, before any code
+      jack-ask/  jack-meta-think/  jack-prompt-master/  jack-loop-prompt/
+    engineering/         # review, audit, commit, PR, release
+      jack-audit-fable/  jack-review-plan-fable/  jack-auto-fix/
+      jack-audit-branches/  gh-commit/  gh-pr/  gh-release/
+    productivity/        # daily non-code workflow
+      jack-html-preview/
+    misc/                # on disk, NOT in plugin.json, so not installed
+      songy-course-exporter/
   README.md
 writing-truth/           # plugin: reading & writing (《写作的真相》)
   .claude-plugin/plugin.json
@@ -54,6 +60,10 @@ writing-truth/           # plugin: reading & writing (《写作的真相》)
   CLAUDE.md
 docs/                    # planning docs (not installed)
 ```
+
+## Skill buckets
+
+Inside a plugin, skills are grouped into buckets by what they act on — `prompting/`, `engineering/`, `productivity/` — plus a `misc/` staging area. The directory is a convention for humans; **`plugin.json` is the contract.** Promoting a skill means adding its path there, and a skill in `misc/` never ships. Each bucket carries a README listing its skills and whether each one is user-invoked or model-invoked.
 
 ## Adding a new plugin
 
@@ -75,7 +85,7 @@ MIT
 
 | 插件 | 类别 | 内含 |
 |------|------|------|
-| [anzchy-skills](./anzchy-skills) | 生产力 | `jack-prompt-master`、`jack-loop-prompt`、`jack-html-preview` |
+| [anzchy-skills](./anzchy-skills) | 生产力 | 12 个 skill，分 3 个 bucket：[prompting](./anzchy-skills/skills/prompting)、[engineering](./anzchy-skills/skills/engineering)、[productivity](./anzchy-skills/skills/productivity) |
 | [writing-truth](./writing-truth) | 写作 | `dissect-author-mind`（第一课）、`logic-template-lens`（第四课）、`rhetoric-lens`（第五课） |
 
 插件内 skill 以 `/<插件>:<skill>` 命名空间调用，如 `/writing-truth:rhetoric-lens`。

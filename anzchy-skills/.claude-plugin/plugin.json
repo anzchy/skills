@@ -1,8 +1,37 @@
 {
   "name": "anzchy-skills",
+  "version": "0.2.0",
+  "description": "Jack Cheng's agent skills: question diagnosis before prompting, tournament-based meta-prompting, loop-prompt rewriting, Claude-native code and plan audits, GitHub issue auto-fix, conventional commits / PRs / releases, and one-file interactive HTML explainers.",
+  "author": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
+  "homepage": "https://github.com/anzchy/skills",
+  "repository": "https://github.com/anzchy/skills",
+  "license": "MIT",
+  "keywords": [
+    "prompt",
+    "meta-prompting",
+    "loop",
+    "audit",
+    "code-review",
+    "git",
+    "github",
+    "提示词",
+    "提问"
+  ],
   "skills": [
-    "./skills/productivity/jack-prompt-master",
-    "./skills/productivity/jack-loop-prompt",
+    "./skills/prompting/jack-ask",
+    "./skills/prompting/jack-meta-think",
+    "./skills/prompting/jack-prompt-master",
+    "./skills/prompting/jack-loop-prompt",
+    "./skills/engineering/jack-audit-fable",
+    "./skills/engineering/jack-review-plan-fable",
+    "./skills/engineering/jack-auto-fix",
+    "./skills/engineering/jack-audit-branches",
+    "./skills/engineering/gh-commit",
+    "./skills/engineering/gh-pr",
+    "./skills/engineering/gh-release",
     "./skills/productivity/jack-html-preview"
   ]
 }
