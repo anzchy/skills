@@ -1,6 +1,7 @@
 {
   "name": "anzchy-skills",
   "skills": [
+    "./skills/productivity/jack-meta-think",
     "./skills/productivity/jack-prompt-master",
     "./skills/productivity/jack-loop-prompt",
     "./skills/productivity/jack-html-preview"
