@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-08-23
+
+### Changed
+- **Breaking (jack-prompt-master 0.1.1):** the Claude↔Codex tournament is replaced by a 2+1 self-refinement flow. Round 1 is an inline Claude rewrite against the 9-dimension intent block and 7-criterion rubric; Round 2 is a mandatory "Grill yourself" adversarial review in an isolated Fable subagent that quotes evidence per criterion and rewrites to v2 (strict JSON validated with `jq`, one retry then degrade); Round 3 is an optional, user-gated Codex critique plus inline synthesis (`JPM_CODEX_ROUND`). The `MAX_ITER`, `PASS_THRESHOLD`, `JUDGE_RETRY` and synthesizer knobs are gone. Typical cost drops to ~12k–28k tokens when stopping at v2, versus ~40k–125k before.
+- jack-prompting plugin 0.1.1 — bump so `/plugin update` delivers the new jack-prompt-master.
+
+### Added
+- `CLAUDE.md` at the repo root: all version bumps in this repo move the number by `0.0.1` only, regardless of change class.
+- jack-prompt-master: `references/grill-prompt.md`.
+
+### Removed
+- jack-prompt-master: `references/judge-prompt.md`, `references/heuristic.sh`, `references/fallback-voice.md` — no longer dispatched by the new flow.
+
+---
+
 ## [0.2.2] - 2026-08-22
 
 ### Changed
@@ -50,7 +65,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/anzchy/skills/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/anzchy/skills/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/anzchy/skills/compare/v0.1.0...v0.2.1
 [0.1.0]: https://github.com/anzchy/skills/releases/tag/v0.1.0
