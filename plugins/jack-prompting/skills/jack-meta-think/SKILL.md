@@ -22,7 +22,7 @@ A tournament, a rubric, and a synthesizer will happily polish a false premise in
 
 ## When NOT to invoke
 
-- The draft's aim is already correct and only the wording needs work → `/jack-prompt-master` (multi-round tournament, coding, high stakes) or `/prompt-enhance` (one-shot polish).
+- The draft's aim is already correct and only the wording needs work → `/jack-prompt-master` (two-round self-refinement, coding, high stakes) or `/prompt-enhance` (one-shot polish).
 - The user wants the answer, not a better question. Do not hijack a straightforward request into a Socratic session — say once that the premise looks unverified, then answer.
 
 ## Output disposition (explicit)
@@ -110,7 +110,7 @@ Load on demand:
 ## Distinctness vs other prompt skills
 
 - `jack-meta-think` (this skill): upstream, domain-general. Fixes what you are asking.
-- `jack-prompt-master`: downstream, coding-only, multi-round tournament. Fixes how you word it.
+- `jack-prompt-master`: downstream, coding-only, two-round self-refinement (+ optional Codex round). Fixes how you word it.
 - `/prompt-enhance`, `prompt-master`: one-shot wording polish.
 
 No auto-chaining in either direction. Each ships a copy-paste block; the user routes it.

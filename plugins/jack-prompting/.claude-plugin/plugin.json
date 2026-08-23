@@ -1,7 +1,7 @@
 {
   "name": "jack-prompting",
   "version": "0.1.1",
-  "description": "Work on the prompt before any code: jack-ask (router), jack-meta-think (diagnose the question), jack-prompt-master (tournament meta-prompting), jack-loop-prompt (paste-ready long-run prompts).",
+  "description": "Work on the prompt before any code: jack-ask (router), jack-meta-think (diagnose the question), jack-prompt-master (two-round self-refinement meta-prompting), jack-loop-prompt (paste-ready long-run prompts).",
   "author": {
     "name": "anzchy",
     "url": "https://github.com/anzchy"

@@ -16,4 +16,4 @@ Reachable only when you type them (`disable-model-invocation: true`).
 ## Model-invoked
 
 - **[jack-meta-think](./skills/jack-meta-think/SKILL.md)**: Diagnose the question before the prompt. Scans a raw ask for embedded conclusions, evaluative language, missing timeline and missing ruled-out factors, then interviews you for what only you can answer, and rewrites the ask as a neutral open question. Domain-general.
-- **[jack-prompt-master](./skills/jack-prompt-master/SKILL.md)**: Tournament-based meta-prompting. Multiple rounds of parallel Claude + Codex candidates, judged on a binary 7-criterion rubric with quoted evidence, synthesized between rounds. For high-stakes coding prompts.
+- **[jack-prompt-master](./skills/jack-prompt-master/SKILL.md)**: Two-round self-refinement meta-prompting. Round 1 rewrites the draft inline against a 9-dimension intent block and a binary 7-criterion rubric; Round 2 grills it in an isolated Fable subagent that quotes evidence per criterion and rewrites to v2; an optional, user-gated Round 3 adds a Codex critique plus synthesis. For high-stakes coding prompts.
