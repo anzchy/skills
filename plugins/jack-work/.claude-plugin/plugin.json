@@ -1,0 +1,20 @@
+{
+  "name": "jack-work",
+  "version": "0.1.0",
+  "description": "Knowledge-work skills for research and consulting output: interview-notes incrementally syncs raw interview transcripts into a consolidated Q&A memo, strictly additively.",
+  "author": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
+  "homepage": "https://github.com/anzchy/skills",
+  "repository": "https://github.com/anzchy/skills",
+  "license": "MIT",
+  "keywords": [
+    "interview",
+    "transcript",
+    "memo",
+    "notes",
+    "访谈纪要",
+    "会议纪要"
+  ]
+}
