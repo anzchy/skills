@@ -2,7 +2,7 @@
 
 Two-round self-refinement (plus an optional Codex round) for high-stakes coding prompts. Inspired by Garry Tan's *Metaprompting* essay and Claude Code's [adversarial-review guidance](https://code.claude.com/docs/en/best-practices.md#add-an-adversarial-review-step).
 
-**Status:** v0.2.0 — project-scope, manual install. See `docs/plans/20260512-plan-prompt-master.md` for the full design.
+**Status:** v0.1.2 — project-scope, manual install. See `docs/plans/20260512-plan-prompt-master.md` for the full design.
 
 ## What it does
 
