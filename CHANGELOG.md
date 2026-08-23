@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-08-23
+
+### Added
+- **jack-work plugin 0.1.0 — `interview-notes`.** New plugin for knowledge-work output: incrementally syncs raw interview transcripts into one consolidated Q&A memo, strictly additively (never rewrites existing entries). Ships a Chinese profile (`references/profile-zh.md`) and zh fixtures under `docs/fixtures/interview-notes/`. Install with `/plugin install jack-work@jack-cheng-marketplace`.
+
+### Changed
+- **jack-prompt-master 0.1.3 — self-contained.** Phase 2 intent extraction no longer invokes the user-scope `~/.claude/skills/prompt-master` skill; the 9-dimension intent table now ships inside the plugin as `references/intent-dimensions.md`, so the skill works wherever the `jack-prompting` plugin is installed. `jack-prompting` plugin 0.1.2 → 0.1.3.
+- `.gitignore` now excludes `.prompts/` run checkpoints and nlpm history.
+
+---
+
 ## [0.2.4] - 2026-08-23
 
 ### Added
@@ -82,7 +93,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/anzchy/skills/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/anzchy/skills/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/anzchy/skills/compare/v0.2.1...v0.2.2
