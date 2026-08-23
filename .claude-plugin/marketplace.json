@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "jack-prompting",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "description": "Work on the prompt before any code: jack-ask (router), jack-meta-think (diagnose the question), jack-prompt-master (two-round self-refinement meta-prompting), jack-loop-prompt (paste-ready long-run prompts).",
       "source": "./plugins/jack-prompting",
       "category": "productivity",
