@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-08-23
+
+### Added
+- **jack-prompt-master 0.1.2 — task classification, reconnaissance and an interview gate.** Phase 2 now classifies the draft as *implementation* (7 rubric criteria) or *diagnosis* (9 criteria), runs bounded project-local reconnaissance on the paths the draft names, and opens a decision-impact-gated interview (`JPM_INTERVIEW=ask|auto`) only when an answer would change the prompt.
+- Reference material under `docs/references/`: the 和菜头 article on directing AI repair work, and a comparison of its questioning approach against Claude Code prompt best practices. Plan notes for the jack-loop-prompt refinement under `docs/plans/`.
+
+### Changed
+- jack-prompt-master Round 1 enforces a hard **provenance rule** — no invented defaults; every concrete fact in the rewritten prompt must be one the recon step observed.
+- jack-prompt-master Round 2 adds an **intent gate** (`intent_drift`), and the `jq` envelope check is parametrised on the criterion count so it works for both task classes.
+- Rubric reworked: `provenance` replaces `role_clarity`; `timeline_repro` and `ruled_out` apply to diagnosis prompts; `verifiability` now requires an actually-observed test command.
+- jack-prompting plugin 0.1.2 — bump so `/plugin update` delivers the new jack-prompt-master.
+
+### Documentation
+- The jack-prompting plugin description, its README skill blurb, and jack-meta-think's two cross-references all described jack-prompt-master as a "tournament" with parallel Claude + Codex candidates. They now describe the two-round self-refinement flow with the optional Codex round.
+
+---
+
 ## [0.2.3] - 2026-08-23
 
 ### Changed
@@ -65,7 +82,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/anzchy/skills/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/anzchy/skills/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/anzchy/skills/compare/v0.1.0...v0.2.1
