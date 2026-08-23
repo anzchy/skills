@@ -1,7 +1,7 @@
 ---
 name: jack-prompt-master
 description: Two-round meta-prompting skill that refines a coding prompt — Round 1 is an inline Claude rewrite using 9-dimension intent extraction and a 7-criterion rubric; Round 2 is a mandatory "Grill yourself" adversarial review in a fresh, isolated Fable subagent that quotes evidence per criterion and rewrites to v2; Round 3 is an optional, user-gated Codex critique + synthesis. Use this skill when the user wants to elevate a rough or high-stakes prompt for downstream coding tasks. Trigger keywords - "tournament prompt", "iteratively refine prompt", "meta-prompting", "/jack-prompt-master", "improve this prompt with multiple rounds". Distinct from one-shot /prompt-enhance.
-version: 0.2.0
+version: 0.1.1
 ---
 
 # jack-prompt-master
