@@ -1,18 +1,22 @@
 ---
 name: jack-prompt-master
-description: Tournament-based meta-prompting skill that iteratively refines a prompt across multiple rounds using parallel Claude + Codex candidate generation, an LLM-as-judge with binary 7-criterion rubric and quoted evidence, and a synthesizer that composes the next version from the best parts of each. Use this skill when the user wants to elevate a rough or high-stakes prompt for downstream coding tasks. Trigger keywords - "tournament prompt", "iteratively refine prompt", "meta-prompting", "/jack-prompt-master", "improve this prompt with multiple rounds". Distinct from one-shot /prompt-enhance.
-version: 0.1.0
+description: Two-round meta-prompting skill that refines a coding prompt — Round 1 is an inline Claude rewrite using 9-dimension intent extraction and a 7-criterion rubric; Round 2 is a mandatory "Grill yourself" adversarial review in a fresh, isolated Fable subagent that quotes evidence per criterion and rewrites to v2; Round 3 is an optional, user-gated Codex critique + synthesis. Use this skill when the user wants to elevate a rough or high-stakes prompt for downstream coding tasks. Trigger keywords - "tournament prompt", "iteratively refine prompt", "meta-prompting", "/jack-prompt-master", "improve this prompt with multiple rounds". Distinct from one-shot /prompt-enhance.
+version: 0.2.0
 ---
 
 # jack-prompt-master
 
-Tournament-based meta-prompting for high-stakes coding prompts. Runs **inline** within a single skill invocation (not via `/loop`).
+Two-round self-refinement (plus an optional Codex round) for high-stakes coding prompts. Runs **inline** within a single skill invocation (not via `/loop`).
 
 ## When to invoke
 
 - User types `/jack-prompt-master <draft>` or asks for a "tournament", "multi-round refinement", "meta-prompting" pass on a prompt.
 - The draft is for a coding task and quality matters more than speed.
-- For quick polish, use `/prompt-enhance` (one-shot) instead — this skill costs \~40k–125k tokens per run.
+- For quick polish, use `/prompt-enhance` (one-shot) instead — this skill costs roughly 15k–35k tokens per run (more if the Codex round is taken).
+
+## Why 2+1 rounds
+
+Most of the gain comes from one strong rewrite plus one independent critique. A reviewer in a **fresh context** that only sees the artifact + criteria catches more than the author re-reading its own reasoning (see code.claude.com/docs/en/best-practices.md#add-an-adversarial-review-step). Codex is an opt-in hedge, not a default.
 
 ## Output disposition (explicit)
 
@@ -22,8 +26,7 @@ This skill produces a **copy-paste prompt block**. It does NOT auto-execute the 
 
 | Knob                | Default                    | Env override                 |
 | ------------------- | -------------------------- | ---------------------------- |
-| MAX_ITER           | heuristic (2/3/5)          | `JPM_MAX_ITER`               |
-| PASS_THRESHOLD     | 6 of 7                     | `JPM_PASS_THRESHOLD` (5/6/7) |
+| JPM_CODEX_ROUND    | ask                        | `JPM_CODEX_ROUND` (ask/yes/no) |
 | CONTEXT_INGEST     | ON if `./CLAUDE.md` exists | `JPM_CONTEXT` (on/off)       |
 | CONTEXT_BYTE_CAP  | 6000 bytes                 | `JPM_CONTEXT_CAP`            |
 | CODEX_MODEL        | gpt-5.4                    | `JPM_CODEX_MODEL`            |
@@ -32,8 +35,6 @@ This skill produces a **copy-paste prompt block**. It does NOT auto-execute the 
 | PROMPTS_DIR        | `./.prompts/`              | `JPM_PROMPTS_DIR`            |
 | GITIGNORE_PROMPT   | ask once per project       | `JPM_GITIGNORE`              |
 | DRAFT_MAX_BYTES   | 50000                      | `JPM_DRAFT_MAX`              |
-| JUDGE_RETRY_COUNT | 1                          | `JPM_JUDGE_RETRY`            |
-| SYNTH_RETRY_COUNT | 1                          | `JPM_SYNTH_RETRY`            |
 
 AskUserQuestion answers always override env. Validate at Phase 0; abort on out-of-range.
 
@@ -46,11 +47,11 @@ Run these BEFORE Phase 0a. Abort cleanly on any failure with a clear message —
    ```bash
    command -v jq >/dev/null || { echo "ABORT: jq missing — brew install jq / apt install jq"; exit 1; }
    command -v sha256sum >/dev/null || command -v shasum >/dev/null || { echo "ABORT: neither sha256sum nor shasum on PATH"; exit 1; }
-   command -v codex >/dev/null || echo "WARN: codex not on PATH — fallback voice will be used every round"
+   command -v codex >/dev/null && echo "CODEX_AVAILABLE=1" || echo "CODEX_AVAILABLE=0 — Round 3 (Codex consult) will be skipped"
    command -v gtimeout >/dev/null || command -v timeout >/dev/null || echo "WARN: no timeout wrapper — relying on codex internal timeout"
    ```
 
-2. **Task tool probe**: dispatch one `Task` call with `subagent_type: general-purpose` asking the agent to reply with the single word `ok`. If the call errors or returns empty, abort: "ABORT: Task tool / general-purpose sub-agent unavailable."
+2. **Agent tool probe**: dispatch one `Agent` call with `subagent_type: general-purpose` asking the agent to reply with the single word `ok`. If the call errors or returns empty, abort: "ABORT: Agent tool / general-purpose sub-agent unavailable."
 
 3. **Config validation**: read all `JPM_*` env vars; range-check each against the Configuration table above. Out-of-range → abort with the offending knob name.
 
@@ -66,108 +67,108 @@ If `$ARGUMENTS` is non-empty:
 - Write the draft verbatim to a tmpfile: `DRAFT_FILE=$(mktemp /tmp/jpm-draft-XXXXXXXX.txt)` and `printf '%s' "$ARGUMENTS" > "$DRAFT_FILE"`. Never inline a multi-line draft into shell args (it shell-mangles).
 - Byte-check: if `wc -c < "$DRAFT_FILE"` > `DRAFT_MAX_BYTES`, warn and offer truncation at 10k chars via AUQ.
 
-## Phase 1 — Heuristic + MAX\_ITER + PASS\_THRESHOLD selection
+## Phase 1 — Context-ingest opt-in
 
-1. Run `bash references/heuristic.sh "$DRAFT_FILE"`. Capture stdout as `HEURISTIC_JSON`.
-2. Parse `recommended_max_iter` with `jq`. On any parse failure: default to 3, warn the user, continue.
-3. Call `AskUserQuestion` (one call, two questions):
-   - **Q1 (Header: "Rounds")** — "MAX\_ITER (max tournament rounds)?" Options: `2 / 3 / 5 / 7`. The option matching `recommended_max_iter` gets the `(recommended)` label.
-   - **Q2 (Header: "Pass bar")** — "Pass threshold (criteria that must pass)?" Options: `5 of 7 / 6 of 7 (recommended) / 7 of 7`.
-4. If `./CLAUDE.md` exists, run an additional AUQ for **CONTEXT\_INGEST**: "Adapt this prompt to the current project? Detected: `./CLAUDE.md` (N lines)." Options: `Yes, adapt (recommended)` / `No, keep portable` / `Yes but show me what's ingested first`. If user picks "show me first", `cat` the ingest preview then re-ask.
+If `./CLAUDE.md` exists (and `JPM_CONTEXT` is not `off`), run one AUQ for **CONTEXT\_INGEST**: "Adapt this prompt to the current project? Detected: `./CLAUDE.md` (N lines)." Options: `Yes, adapt (recommended)` / `No, keep portable` / `Yes but show me what's ingested first`. If user picks "show me first", `cat` the ingest preview then re-ask.
+
+No round-count or pass-threshold questions — the round structure is fixed (2 + optional Codex).
 
 ## Phase 2 — Intent extraction + Context ingest + Resume check
 
-1. **Intent extraction (semantic, NOT heuristic):** invoke the workflow at `~/.claude/skills/prompt-master/SKILL.md` against `$DRAFT_FILE`. Produce a structured intent block over the 9 dimensions (task / target\_tool / output\_format / constraints / input / context / audience / success\_criteria / examples). The Phase 1 keyword heuristic is purely for bucketing — Phase 2 is the real extraction.
+1. **Intent extraction (semantic):** invoke the workflow at `~/.claude/skills/prompt-master/SKILL.md` against `$DRAFT_FILE`. Produce a structured intent block over the 9 dimensions (task / target\_tool / output\_format / constraints / input / context / audience / success\_criteria / examples).
 2. **Context ingest** (if user opted in at Phase 1): run `bash references/context-ingest.sh > $CONTEXT_FILE`. The script reads `./CLAUDE.md` then `./AGENTS.md` (priority order), truncates at 6000 bytes on the last newline within the byte window, emits a `<project-context>...</project-context>` fenced block. If both files missing, emit empty file and flip `scope: portable`. Compute `CONTEXT_SHA256=$(sha256sum "$CONTEXT_FILE" | cut -d' ' -f1)`; if context is empty, set `CONTEXT_SHA256=none`.
 3. **Compute resume key:** normalize the draft (collapse runs of whitespace, strip leading/trailing blank lines), then `DRAFT_SHA256=$(printf '%s' "$NORM_DRAFT" | sha256sum | cut -d' ' -f1)`. The resume key is the tuple `(DRAFT_SHA256, scope, CONTEXT_SHA256)`.
 4. **Resume scan:** `ls .prompts/*.json 2>/dev/null` and parse each sidecar with `jq` to find a tuple match.
-   - If a match exists and `terminal: false`: AUQ "Resume from latest? Found `<filename>` — round k winner scored N/7. Continue to round k+1 / Start fresh (archive existing) / Show me the latest file first."
+   - If a match exists and `terminal: false` (i.e. a run stopped after Round 1 or Round 2): AUQ "Resume from latest? Found `<filename>` — round k scored N/7. Continue to round k+1 / Start fresh (archive existing) / Show me the latest file first."
    - If a match exists and `terminal: true`: AUQ "Found a completed run for this exact draft (round k, score N/7). Show the final prompt / Start fresh (archive existing) / Open the file." NEVER offer "continue from round k+1" on a terminal checkpoint.
    - On "Start fresh": move existing `.prompts/*.{md,json}` to `.prompts/archive/` (create archive dir; on filename collision append `.dup-$(date +%s)`).
    - Stale tuple (no match): skip the AUQ entirely; do NOT archive prior files.
-5. **Seed construction:** the seed passed to candidates in round 1 = `<intent block>\n<context block (if any)>\n<draft>`. On resume from round k, seed = `<intent>\n<context>\n<synth output from .prompts/round-k.md>` — but only read from disk at Phase 2 startup. During an active run, in-memory state is the source of truth.
+5. **Seed construction:** the seed for Round 1 = `<intent block>\n<context block (if any)>\n<draft>`. On resume from round k, the seed is the "Final prompt" section of `.prompts/round-k.md` — but only read from disk at Phase 2 startup. During an active run, in-memory state is the source of truth.
 
-## Phase 3 — Tournament loop
+## Phase 3 — Round 1: inline self-refinement (main context, no subagent)
 
-For each `k` from 1..MAX\_ITER:
+Claude Code rewrites the draft into **v1** directly in the main context:
 
-### Parallel Dispatch Contract (READ BEFORE EVERY ROUND)
+- Inputs: the seed (9-dimension intent block + project context + draft) and the 7 criteria in `references/rubric.md`.
+- Write v1 so that every criterion would PASS with a quotable span. Preserve the draft's underlying task intent — do not pivot to a different task.
+- Output v1 only. No preamble ("Sure", "Here's", …), no `scope:` line, no frontmatter, no commentary.
 
-Round k MUST emit a **single assistant message** containing two `tool_use` blocks:
+Print v1 as a fenced block, then write the Round 1 checkpoint (see "Checkpoint write" below) with `source=claude-inline`, `terminal=false`. No score is assigned in Round 1 — `score_v1` comes from the Round 2 grill.
 
-1. `Task` (subagent\_type: `general-purpose`) — Candidate A (Claude "rigorous engineer" voice)
-2. `Bash` — Codex exec (Candidate B); OR a second `Task` with `references/fallback-voice.md` as system prompt if `codex` is not on PATH or known broken from a prior round.
+## Phase 4 — Round 2: "Grill yourself" in an isolated context (mandatory)
 
-Splitting A and B across two assistant messages **serializes** them and doubles round latency. At MAX\_ITER=7 this turns a 42-min budget into \~70+ min. The judge dispatch goes in the **next** assistant message, after both candidate results return.
+Dispatch **ONE** `Agent` call:
 
-**Concrete shape:**
+- `subagent_type: general-purpose`, `model: fable`.
+- **NOT `fork`.** The reviewer must not inherit conversation history — it sees only the artifact + criteria, which is the whole point of the adversarial review.
+- The prompt is the full text of `references/grill-prompt.md` with the placeholders filled: seed (intent block + project context + v1) and the 7 rubric criteria (paste `references/rubric.md` sections 1–7). The prompt contains the literal heading `## Grill yourself`.
 
-```
-[round-k assistant message]
-  tool_use: Task   (Candidate A — Claude sub-agent)
-  tool_use: Bash   (Candidate B — codex exec)
+**Grill protocol** (enforced by `references/grill-prompt.md`): for each of the 7 criteria, the subagent asks itself the hardest question a skeptical senior engineer would ask, quotes the exact v1 text that answers it or marks FAIL with the missing piece, then rewrites v1 into **v2** fixing every FAIL. It returns strict JSON:
 
-[round-k results return together]
-
-[next assistant message]
-  tool_use: Task   (Judge — rates both)
-
-[judge result returns]
-
-[if not early-stop, next assistant message]
-  tool_use: Task   (Synthesizer)
+```json
+{
+  "verdicts": [ { "criterion": "...", "verdict": "PASS|FAIL", "quote": "...", "fix": "..." } ],
+  "score_v1": 0,
+  "score_v2": 0,
+  "v2": "<prompt>"
+}
 ```
 
-### Candidate A (Claude sub-agent, voice = rigorous engineer)
-
-Dispatch via `Task` with `subagent_type: general-purpose`. Self-contained prompt: paste seed + voice instructions + "Output the refined prompt only. Do not start with 'Sure', 'Here's', 'Okay', or any preamble. Do not emit a `scope:` line."
-
-After receiving the result, strip preamble regex `^(Sure|Here'?s|Okay|Got it)[^\n]*\n` from the start.
-
-If empty: retry once with same prompt; on second empty, mark candidate as `<empty>` and let the judge see it (it will FAIL all criteria).
-
-### Candidate B (Codex via Bash)
-
-Use the pattern in `references/codex-call.md`. Critical bits:
-
-- Write seed to `PROMPT_FILE` via `mktemp`.
-- Pipe via **stdin** (`codex exec -`), not argv — avoids ARG\_MAX.
-- Wrap with `gtimeout 300` (macOS) or `timeout 300` (Linux); detect at runtime.
-- Capture stdout → TMPOUT (candidate), stderr → TMPERR (diagnostics).
-- Exit semantics: 0 = success (unless TMPOUT is empty — also failure), 124 = timeout, other = failure.
-- On any failure: fall back to a second `Task` dispatch using `references/fallback-voice.md` ("contrarian senior engineer") and mark this round's `B_source = claude-fallback`.
-
-Apply the same preamble strip to B's output.
-
-### Judge (next assistant message, single Task)
-
-Dispatch one `Task` with the system prompt at `references/judge-prompt.md` and pass: rubric, both candidates, threshold. The judge must emit strict JSON per the schema in `references/judge-prompt.md`.
-
-**Validate every judge response with ********`jq -e`********:**
+**Validate with `jq -e`** (write the raw reply to `grill_output.json` first; strip surrounding markdown fences if present):
 
 ```bash
 jq -e '
-  (.verdicts | length == 14)
+  (.verdicts | length == 7)
   and (.verdicts | map(select(.quote == "" or .quote == null)) | length == 0)
   and (.verdicts | map(.verdict) | all(. == "PASS" or . == "FAIL"))
-  and (.score_A | type == "number") and (.score_A >= 0) and (.score_A <= 7)
-  and (.score_B | type == "number") and (.score_B >= 0) and (.score_B <= 7)
-  and (.winner == "A" or .winner == "B" or .winner == "tie")
-' < judge_output.json > /dev/null
+  and (.score_v1 | type == "number") and (.score_v1 >= 0) and (.score_v1 <= 7)
+  and (.score_v2 | type == "number") and (.score_v2 >= 0) and (.score_v2 <= 7)
+  and (.v2 | type == "string") and ((.v2 | length) > 0)
+' < grill_output.json > /dev/null
 ```
 
-On `jq -e` non-zero: retry ONCE with reminder "Emit valid JSON only, matching the schema exactly. No commentary." On second failure: regex-extract `score_A` / `score_B` / `winner` and flag the round's confidence as "degraded" in the output.
+On `jq -e` non-zero: retry ONCE (same prompt) with the reminder "Emit valid JSON only, matching the schema exactly. No commentary." On second failure: regex-extract `score_v1` / `score_v2` / `v2` from the reply and flag the round's confidence as **"degraded"** in the output and FINAL.md caveats.
 
-If `JPM_JUDGE_FIXTURE` env var is set, skip the Task call and read the JSON from that path verbatim (test harness only).
+Apply the preamble strip `^(Sure|Here'?s|Okay|Got it)[^\n]*\n` to `v2`. If `v2` is empty after strip, retry once; on second empty, keep v1 as v2 and mark degraded.
 
-### Round decision
+**Print:**
 
-- **Early stop:** if `max(score_A, score_B) >= PASS_THRESHOLD`, the winner becomes the final prompt. Write the checkpoint with `terminal: true` and `early_stop: true`. Exit loop.
-- **Both fail all:** if `max(score_A, score_B) == 0`, do NOT call the synthesizer. Return the higher-scoring candidate (A on tie) with a caveat banner: `⚠️ Both candidates failed all criteria. Returning best of bad options.` Write checkpoint with `terminal: true`. Exit loop.
-- **Continue:** dispatch the Synthesizer (next assistant message, `Task` with `references/synthesizer-prompt.md`). Inputs: candidate A, candidate B, judge JSON. Output: v(k+1) prompt only. Apply preamble strip + length check.
-  - Synth empty / preamble-only after strip → retry once with stricter prompt. If retry also fails → use higher-scoring candidate as next round's seed. Never crash the loop on synth failure.
+1. v2 as a fenced block.
+2. The 7-row verdict table: `| criterion | verdict (v1) | quote | fix |`.
+3. One line: `score_v1 → score_v2`, e.g. `4/7 → 7/7`.
 
-### Checkpoint write (every round, after the decision)
+Write the Round 2 checkpoint with `source=fable-grill`, `score=score_v2`. Set `terminal=true` if Codex is unavailable or `JPM_CODEX_ROUND=no` (no Round 3 possible); otherwise `terminal=false`, and re-persist Round 2 with `terminal=true` if the user stops at the Round 3 gate.
+
+## Phase 4a — Round 3: optional Codex consult (user-gated)
+
+**Gate.** Resolve `JPM_CODEX_ROUND`:
+
+- If `codex` is not on PATH (`CODEX_AVAILABLE=0` from Phase 0): skip the question entirely and print one line — `ℹ️ Codex not on PATH — skipping optional Round 3; v2 is final.` Proceed to Phase 5.
+- If `JPM_CODEX_ROUND=no`: skip the question; v2 is final.
+- If `JPM_CODEX_ROUND=yes`: skip the question; run Round 3.
+- Otherwise (`ask`, the default) — one `AskUserQuestion` (Header: "Round 3"): **"v2 scored N/7. Consult Codex for a 3rd round?"** Options:
+  1. `Stop here — use v2 (recommended when ≥6/7)`
+  2. `Yes, Codex critique + synthesize v3`
+  3. `Show v2 full text first` → print v2 in full, then re-ask with options 1–2 only.
+
+**Never run Codex without this answer** (or an explicit `JPM_CODEX_ROUND=yes`).
+
+**If yes:**
+
+1. Send v2 + the rubric to Codex using the Bash pattern in `references/codex-call.md` (stdin via `codex exec -`, `gtimeout`/`timeout` wrapper, exit-code semantics). The instruction at the top of `PROMPT_FILE` asks Codex for (a) a per-criterion critique of v2 and (b) its own v3 candidate, in that order, separated by the literal line `---CANDIDATE---`.
+2. Exit 0 with non-empty stdout → Claude Code synthesizes the final **v3 inline** (main context, no subagent) from v2 + Codex's critique + Codex's candidate, following `references/synthesizer-prompt.md`. Apply the preamble strip. Self-score v3 against the rubric (quote-then-verdict, same 7 criteria) to obtain `score_v3`.
+3. Exit 124 / non-zero / empty stdout → **keep v2 as final** and print the degraded-hedge caveat:
+
+   ```
+   ⚠️  Cross-model hedge was degraded — Codex unavailable or failed (exit N).
+       v2 is final. Re-run with Codex available for a stronger Round 3.
+   ```
+
+   Do NOT dispatch a Claude fallback voice in place of Codex — the point of Round 3 is the cross-model hedge; without Codex it is skipped, not simulated.
+
+Write the Round 3 checkpoint with `source=codex-synth`, `score=score_v3`, `terminal=true`. If Codex failed, write no Round 3 checkpoint; instead re-persist Round 2 with `terminal=true`.
+
+## Checkpoint write (every round)
 
 Call `bash references/prompts-persist.sh` with the round artifact via stdin (markdown body) + sidecar JSON args. The script writes BOTH a human-readable `.md` and a sidecar `.json` — you must pass the markdown body to its stdin.
 
@@ -180,39 +181,30 @@ Call `bash references/prompts-persist.sh` with the round artifact via stdin (mar
 ## Project context (ingested)
 <truncated CLAUDE.md / AGENTS.md content, or "none">
 
-## Candidate A (Claude)
-<full A output>
+## Round input
+<the seed / prior-round prompt this round started from>
 
-## Candidate B (codex or claude-fallback)
-<full B output>
+## Round output
+<v1 | v2 | v3>
 
-## Judge verdicts
-<judge JSON, pretty-printed>
+## Verdicts
+<Round 1: "n/a — scored in Round 2" | Round 2: grill JSON pretty-printed | Round 3: Codex critique + self-score>
 
-## Synthesized v(k+1) (seed for next round)
-<synth output, or "n/a — early stop" or "n/a — both failed">
-
-## Final prompt (this round's winner or synth)
-<the actual final-prompt text — winner of early-stop OR synth of continuing round>
+## Final prompt (this round's result)
+<the round's output prompt text — the prompt the user receives if the run stops here>
 ```
 
-The "Final prompt" section is mandatory on every checkpoint. On early-stop or terminal rounds, this is the prompt the user receives. The body is NOT optional — never invoke `prompts-persist.sh` with empty stdin.
+The "Final prompt" section is mandatory on every checkpoint. The body is NOT optional — never invoke `prompts-persist.sh` with empty stdin.
+
+**Sidecar fields** (all required): `round`, `date`, `draft_sha256`, `draft_word_count`, `scope`, `context_sha256`, `source` (`claude-inline` / `fable-grill` / `codex-synth`), `score` (0–7; Round 1 writes `0` — it is scored by the Round 2 grill), `terminal` (`true` on the last round written, else `false`).
 
 Other persist-script behavior:
 
 - Creates `.prompts/` if missing; on EROFS or chmod, falls back to `$TMPDIR/.prompts-$$/` and informs the user (skip resume next time).
 - First-run-per-project: AUQ asks whether to add `.prompts/` to `.gitignore`. Remember the answer in `~/.gstack/projects/<slug>/.prompts-gitignore-prompted`.
-- Writes `YYYY-MM-DD_HHMMSS_round-k.md` (human, with body above) + `YYYY-MM-DD_HHMMSS_round-k.json` (sidecar with frontmatter fields for resume).
+- Writes `YYYY-MM-DD_HHMMSS_round-k.md` + `YYYY-MM-DD_HHMMSS_round-k.json`.
 
 In-memory state remains the source of truth for the next round's seed. Disk is checkpoint-only.
-
-## Phase 4 — Max-iter exit (no early stop)
-
-If the loop completes MAX\_ITER rounds without `score >= PASS_THRESHOLD`:
-
-- Pick the highest-scoring candidate across all rounds (not just the last).
-- Print the failing criteria with the judge's verbatim quoted reasons so the user can fix manually.
-- Mark the final checkpoint `terminal: true`, `early_stop: false`.
 
 ## Phase 5 — Output
 
@@ -230,10 +222,10 @@ draft_sha256: $DRAFT_SHA256
 scope: $SCOPE
 rounds_run: $ROUNDS_RUN
 final_score: $FINAL_SCORE
-exit_reason: $EXIT_REASON   # early_stop | max_iter | both_failed
+exit_reason: $EXIT_REASON   # stop_after_v2 | codex_synth | codex_unavailable | codex_failed
 ---
 
-# Final prompt — jack-prompt-master tournament
+# Final prompt — jack-prompt-master
 
 $FINAL_PROMPT_BODY
 
@@ -241,8 +233,8 @@ $FINAL_PROMPT_BODY
 
 ## Score history
 
-| round | score_A | score_B | B_source | winner | synth_score |
-|-------|---------|---------|----------|--------|-------------|
+| round | score | source |
+|-------|-------|--------|
 $SCORE_HISTORY_ROWS
 
 ## Criteria flips
@@ -267,21 +259,22 @@ If `.prompts/` was fallback-tmpdir'd at checkpoint time, the FINAL.md goes to th
 3. **Score history table:**
 
    ```
-   | round | score_A | score_B | B_source         | winner | synth_score |
-   |-------|---------|---------|------------------|--------|-------------|
-   | 1     | 4       | 5       | codex            | B      | 5           |
-   | 2     | 6       | 6       | codex            | A      | —           |
+   | round | score | source        |
+   |-------|-------|---------------|
+   | 1     | 4     | claude-inline |
+   | 2     | 7     | fable-grill   |
+   | 3     | 7     | codex-synth   |
    ```
 
-   `B_source ∈ {codex, claude-fallback}`. `synth_score` is the score the synthesizer's output would get if scored (skip column if early-stop).
+   `source ∈ {claude-inline, fable-grill, codex-synth}`. Round 1's score is `score_v1` as assessed by the Round 2 grill. Round 3 row appears only if Codex synthesis ran.
 
-4. **Criteria flips** — one line per criterion that flipped PASS↔FAIL across rounds (auditability).
+4. **Criteria flips** — one line per criterion that flipped PASS↔FAIL between v1 and v2 (and v2 → v3 if applicable), for auditability.
 
-5. **Caveat banner** (only if any round's `B_source == claude-fallback`):
+5. **Caveat banner** (only if Round 3 was requested but Codex failed, or Round 2 was flagged degraded):
 
    ```
-   ⚠️  Cross-model hedge was degraded in rounds {X, Y} — Codex unavailable.
-       Re-run when Codex is available for a stronger tournament.
+   ⚠️  Cross-model hedge was degraded — Codex unavailable or failed.
+       Re-run when Codex is available for a stronger Round 3.
    ```
 
 6. **Scope tag** (parent-owned, not generated by sub-agents): if `scope: project`, print:
@@ -295,11 +288,9 @@ If `.prompts/` was fallback-tmpdir'd at checkpoint time, the FINAL.md goes to th
 Load on demand:
 
 - `references/rubric.md` — 7 binary criteria with PASS/FAIL examples per criterion.
-- `references/judge-prompt.md` — judge sub-agent system prompt + JSON schema + retry instructions.
-- `references/synthesizer-prompt.md` — synthesizer sub-agent system prompt + worked example.
+- `references/grill-prompt.md` — Round 2 subagent prompt ("Grill yourself" protocol + JSON schema + retry instructions).
+- `references/synthesizer-prompt.md` — Round 3 inline synthesis guidance (v2 + Codex critique/candidate → v3) + worked example.
 - `references/codex-call.md` — codex exec bash invocation pattern (stdin, gtimeout, exit codes).
-- `references/fallback-voice.md` — "contrarian senior engineer" voice for when Codex is unavailable.
-- `references/heuristic.sh` — Phase 1 bash draft-complexity scorer (word\_count, dims\_present, ambiguity\_markers, recommended\_max\_iter).
 - `references/context-ingest.sh` — reads CLAUDE.md / AGENTS.md, truncates to 6000 bytes on line boundary.
 - `references/prompts-persist.sh` — writes round artifact + sidecar JSON to `.prompts/`; handles archive, gitignore prompt, read-only fallback.
 
@@ -308,6 +299,6 @@ Load on demand:
 - `jack-meta-think` (upstream, domain-general): diagnoses whether the question is aimed at the truth or at agreement — embedded conclusions, missing timeline, missing ruled-out factors. This skill assumes the aim is already correct and only optimizes the wording; if the draft's premise is unverified, run `/jack-meta-think` first.
 - `/prompt-enhance` (legacy, in `~/.claude/CLAUDE.md`): one-shot enhancement, quick polish.
 - `prompt-master` (skill at `~/.claude/skills/prompt-master/`): one-shot 9-dim intent extraction → single prompt.
-- `jack-prompt-master` (this skill): multi-round tournament with Codex co-author, judged with rubric, synthesized between rounds.
+- `jack-prompt-master` (this skill): rewrite → isolated adversarial grill → optional Codex hedge, scored with a rubric at each step.
 
 All coexist. No auto-deprecation, no auto-redirect, no auto-chaining. Pick based on stakes — and on whether the question or the wording is what needs work.

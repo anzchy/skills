@@ -1,8 +1,8 @@
 # Rubric — 7 binary criteria, quote-then-score
 
-Every criterion is binary: **PASS** or **FAIL**. The judge MUST quote a verbatim span from the candidate before assigning a verdict. No quote → invalid → re-judge.
+Every criterion is binary: **PASS** or **FAIL**. The reviewer (Round 2 grill, Round 3 self-score) MUST quote a verbatim span from the prompt before assigning a verdict. No quote → invalid → re-review.
 
-A candidate's **score** = number of PASS verdicts (0–7). The skill's pass threshold defaults to 6 of 7.
+A prompt's **score** = number of PASS verdicts (0–7). 6 of 7 is the informal "good enough to stop" bar offered at the Round 3 gate.
 
 ---
 
@@ -57,13 +57,12 @@ A candidate's **score** = number of PASS verdicts (0–7). The skill's pass thre
 
 ---
 
-## Judge protocol summary
+## Review protocol summary
 
-1. For each candidate (A and B), for each of the 7 criteria:
-   1. Find a verbatim quote from the candidate's prompt that addresses (or fails to address) the criterion.
-   2. If no relevant span exists, quote the closest candidate text and verdict FAIL.
-   3. Output: `{candidate, criterion, quote, verdict, why}`.
-2. Total: 7 criteria × 2 candidates = **14 verdicts**. Length must be exactly 14.
-3. `score_A` = count of A's PASS verdicts (0–7). `score_B` = count of B's PASS verdicts (0–7).
-4. `winner` = whichever has higher score; `tie` if equal.
-5. `early_stop` = true iff `max(score_A, score_B) >= threshold`.
+1. For each of the 7 criteria:
+   1. Find a verbatim quote from the prompt that addresses (or fails to address) the criterion.
+   2. If no relevant span exists, quote the closest text and verdict FAIL.
+   3. Output: `{criterion, verdict, quote, fix}`.
+2. Total: **7 verdicts**. Length must be exactly 7.
+3. `score` = count of PASS verdicts (0–7).
+4. In Round 2 this is applied to v1 (`score_v1`) and then to the rewritten v2 (`score_v2`); in Round 3 to the synthesized v3 (`score_v3`).

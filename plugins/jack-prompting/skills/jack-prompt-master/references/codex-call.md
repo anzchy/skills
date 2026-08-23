@@ -1,6 +1,6 @@
-# Codex call pattern (Candidate B)
+# Codex call pattern (Round 3, optional)
 
-Copied from `~/.claude/skills/office-hours/` Phase 3.5. Reuse this pattern verbatim in the skill's Bash dispatch for Candidate B.
+Copied from `~/.claude/skills/office-hours/` Phase 3.5. Reuse this pattern verbatim in the skill's Bash dispatch for the user-gated Round 3 Codex consult. Never run this before the Round 3 AskUserQuestion (or `JPM_CODEX_ROUND=yes`) has been answered.
 
 ## Bash pattern
 
@@ -11,19 +11,22 @@ TMPOUT=$(mktemp /tmp/jpm-codex-out-XXXXXXXX)
 PROMPT_FILE=$(mktemp /tmp/jpm-codex-prompt-XXXXXXXX.txt)
 trap 'rm -f "$TMPERR" "$TMPOUT" "$PROMPT_FILE"' EXIT
 
-# Write seed to PROMPT_FILE
-#   Seed = <intent block> + <project-context block (if any)> + <draft or last synth>
-#   + voice instruction: "Refine this draft into a stronger coding prompt. Output the prompt only."
+# Write the Round 3 request to PROMPT_FILE
+#   = <voice instructions> + <rubric> + <intent block> + <project-context block (if any)> + <v2>
 cat > "$PROMPT_FILE" <<EOF
 ${VOICE_INSTRUCTIONS}
+
+<rubric>
+${RUBRIC_CRITERIA_1_TO_7}
+</rubric>
 
 ${INTENT_BLOCK}
 
 ${CONTEXT_BLOCK}
 
-<draft>
-${DRAFT_OR_SYNTH}
-</draft>
+<v2>
+${V2_PROMPT}
+</v2>
 EOF
 
 # Pick timeout wrapper (macOS uses gtimeout from Homebrew coreutils)
@@ -56,35 +59,39 @@ CODEX_EXIT=$?
 
 | Exit | Meaning | Skill response |
 |---|---|---|
-| 0 | success — but check `wc -c < "$TMPOUT" == 0` for empty | empty → treat as failure → fallback |
-| 124 | gtimeout/timeout fired (5 min exceeded) | fallback |
-| anything else | codex error (auth, network, etc.) | fallback |
+| 0 | success — but check `wc -c < "$TMPOUT" == 0` for empty | empty → treat as failure → keep v2 |
+| 124 | gtimeout/timeout fired (5 min exceeded) | keep v2 |
+| anything else | codex error (auth, network, etc.) | keep v2 |
 
 **Empty output despite exit 0** is also a failure (codex returned without writing anything).
 
-## Fallback path
+## Failure path
 
-On any failure:
+On any failure (exit 124, non-zero exit, or empty stdout):
 
 1. Read `$TMPERR` for diagnostics; log first line for user visibility.
-2. Dispatch a second `Task` (subagent_type: general-purpose) with the system prompt at `references/fallback-voice.md` ("contrarian senior engineer").
-3. Mark `B_source = claude-fallback` for this round. The output's score history table will surface this.
-4. Print the degraded-hedge caveat banner at Phase 5 if any round fell back.
+2. **Keep v2 as the final prompt.** Do not substitute a Claude voice for Codex — Round 3 exists for the cross-model hedge; without Codex it is skipped, not simulated.
+3. Print the degraded-hedge caveat banner at Phase 5 and set `exit_reason: codex_failed`.
 
 ## Preflight gate
 
-Before the first round, run `command -v codex` once. If missing, skip the codex call every round and go straight to the fallback Task dispatch — but still print the caveat banner so the user knows the tournament was Claude-vs-Claude.
+At Phase 0, run `command -v codex` once. If missing, the Round 3 AskUserQuestion is skipped entirely and the skill prints one line saying so; v2 is final.
 
-## Voice instructions for Candidate B (Codex)
+## Voice instructions for Round 3 (Codex)
 
 Pass this string at the top of `PROMPT_FILE`:
 
 ```
-You are a contrarian senior staff engineer with 15+ years of experience reviewing other engineers' code. Your job is to refine the draft prompt below into a sharper coding prompt that another LLM will execute. Take a stance independent of what the previous reviewer might say. Output only the refined prompt — no commentary, no preamble, no "Here is the refined prompt:" intro.
+You are a contrarian senior staff engineer with 15+ years of experience reviewing other engineers' code. Below is v2 of a coding prompt that another LLM will execute, plus the 7-criterion rubric it is judged by. Do two things, in this order:
 
-Hard rules:
-- Output the prompt text and nothing else.
+1. CRITIQUE: for each of the 7 criteria, quote the exact v2 span that addresses it (or say none), give PASS or FAIL, and name the concrete weakness a skeptical reviewer would exploit. Take a stance independent of whatever the previous reviewer concluded.
+2. Then emit the literal line ---CANDIDATE--- followed by your own rewritten v3 candidate that fixes every weakness you found.
+
+Hard rules for the candidate section:
+- Output the prompt text and nothing else after ---CANDIDATE---.
 - Do not emit a `scope:` line.
 - Do not wrap in markdown fences.
-- Do not include explanations of your choices.
+- Do not include explanations of your choices after the separator.
 ```
+
+The parent splits stdout on `---CANDIDATE---`: everything before is the critique, everything after is Codex's candidate. If the separator is missing, treat the whole output as the critique and synthesize v3 from v2 + critique only.

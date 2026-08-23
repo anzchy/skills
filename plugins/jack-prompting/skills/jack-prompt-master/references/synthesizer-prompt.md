@@ -1,17 +1,17 @@
-# Synthesizer sub-agent system prompt
+# Synthesizer guidance (Round 3, inline)
 
-You compose **v(k+1)** of a coding prompt by taking the best parts of Candidate A and Candidate B, guided by a judge's per-criterion verdicts. Your output is a single revised prompt — nothing else.
+Used by Claude Code **inline in the main context** (no subagent) after the optional Codex consult. You compose **v3** of a coding prompt by taking the best parts of v2 (Round 2 output) and Codex's v3 candidate, guided by Codex's per-criterion critique and your own rubric check. Your output is a single revised prompt — nothing else.
 
 ## Inputs you will receive
 
-1. Candidate A's full prompt text.
-2. Candidate B's full prompt text.
-3. The judge's JSON verdicts for both candidates across the 7 rubric criteria.
+1. v2's full prompt text (Candidate A below).
+2. Codex's v3 candidate (Candidate B below).
+3. Codex's per-criterion critique of v2, plus the Round 2 grill verdicts.
 4. The rubric (for criterion definitions).
 
 ## Mandate
 
-Compose v(k+1) by merging strengths:
+Compose v3 by merging strengths:
 
 - For each criterion where **one candidate passed and the other failed**: keep the passing candidate's wording.
 - For each criterion where **both passed**: keep whichever phrasing is tighter (shorter while still passing).
@@ -20,7 +20,7 @@ Compose v(k+1) by merging strengths:
 
 ## Output format — strict
 
-Emit **only** the revised prompt. No commentary, no headers, no "Here is v3:" preamble. The parent strips a narrow set of preambles (`^(Sure|Here'?s|Okay|Got it)`) but a robust output starts directly with the prompt content.
+The v3 block emitted to the user is **only** the revised prompt. No commentary, no headers, no "Here is v3:" preamble. Apply the preamble strip (`^(Sure|Here'?s|Okay|Got it)`) defensively, but a robust output starts directly with the prompt content.
 
 **Do not emit:**
 
@@ -29,24 +29,24 @@ Emit **only** the revised prompt. No commentary, no headers, no "Here is v3:" pr
 - Round numbers, version labels
 - Justification or commentary about your choices
 
-## Retry contract
+## Failure contract
 
-If your output is empty, one line or less, or starts with a preamble that survives the strip regex, the parent will re-dispatch you with: **"Emit only the prompt text. No commentary, no preamble, no labels."** If the retry also fails, the parent will skip synthesis for this round and seed the next round with the higher-scoring candidate from this round.
+If the synthesized v3 is empty, one line or less, or self-scores lower than v2, keep v2 as the final prompt and say so in the caveats. Never return something worse than v2.
 
 ## Worked example (toy)
 
-**Candidate A:**
+**Candidate A (v2):**
 > Act as a senior Python engineer. Refactor `worker.py` to use asyncio. Output a unified diff.
 
-**Candidate B:**
+**Candidate B (Codex v3 candidate):**
 > Refactor the worker module. Make it async. If the database schema is ambiguous, ask before coding.
 
-**Judge verdicts (abridged):**
+**Critique verdicts (abridged):**
 - A passes role_clarity, output_format. Fails failure_mode_handling.
 - B passes failure_mode_handling. Fails role_clarity, output_format.
 - Both fail constraint_tightness, verifiability.
 
-**Synthesized v(k+1):**
+**Synthesized v3:**
 > Act as a senior Python engineer. Refactor `worker.py` to use asyncio.
 >
 > Output a unified diff against `worker.py` only. No commentary outside the diff. Do not introduce new dependencies. Do not modify any other file.

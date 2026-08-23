@@ -13,15 +13,16 @@
 #
 # Required sidecar fields:
 #   round, date, draft_sha256, draft_word_count, scope, context_sha256,
-#   max_iter, pass_threshold, B_source, score_A, score_B, winner,
-#   early_stop, terminal
+#   source, score, terminal
+#
+#   source ∈ {claude-inline, fable-grill, codex-synth}
+#   score  = 0–7 (Round 1 writes 0; it is scored by the Round 2 grill)
 #
 # Usage:
 #   bash prompts-persist.sh \
 #     round=2 date=2026-05-12T19:39:12Z draft_sha256=8f4e... \
 #     draft_word_count=142 scope=project context_sha256=a91b... \
-#     max_iter=3 pass_threshold=6 B_source=codex \
-#     score_A=5 score_B=6 winner=B early_stop=false terminal=false \
+#     source=fable-grill score=6 terminal=false \
 #     < round-body.md
 #
 # Output to stdout: the path of the written .md file.
@@ -51,7 +52,7 @@ for arg in "$@"; do
 done
 
 # Validate required fields.
-for key in round date draft_sha256 draft_word_count scope context_sha256 max_iter pass_threshold B_source score_A score_B winner early_stop terminal; do
+for key in round date draft_sha256 draft_word_count scope context_sha256 source score terminal; do
   if [ -z "${F[$key]:-}" ]; then
     printf 'ERROR: missing required field: %s\n' "$key" >&2
     exit 1
@@ -76,13 +77,8 @@ draft_sha256: ${F[draft_sha256]}
 draft_word_count: ${F[draft_word_count]}
 scope: ${F[scope]}
 context_sha256: ${F[context_sha256]}
-max_iter: ${F[max_iter]}
-pass_threshold: ${F[pass_threshold]}
-B_source: ${F[B_source]}
-score_A: ${F[score_A]}
-score_B: ${F[score_B]}
-winner: ${F[winner]}
-early_stop: ${F[early_stop]}
+source: ${F[source]}
+score: ${F[score]}
 terminal: ${F[terminal]}
 ---
 
@@ -98,13 +94,8 @@ if command -v jq >/dev/null 2>&1; then
     --argjson draft_word_count "${F[draft_word_count]}" \
     --arg scope "${F[scope]}" \
     --arg context_sha256 "${F[context_sha256]}" \
-    --argjson max_iter "${F[max_iter]}" \
-    --argjson pass_threshold "${F[pass_threshold]}" \
-    --arg B_source "${F[B_source]}" \
-    --argjson score_A "${F[score_A]}" \
-    --argjson score_B "${F[score_B]}" \
-    --arg winner "${F[winner]}" \
-    --argjson early_stop "${F[early_stop]}" \
+    --arg source "${F[source]}" \
+    --argjson score "${F[score]}" \
     --argjson terminal "${F[terminal]}" \
     --arg md_path "$MD_PATH" \
     '{
@@ -114,13 +105,8 @@ if command -v jq >/dev/null 2>&1; then
       draft_word_count: $draft_word_count,
       scope: $scope,
       context_sha256: $context_sha256,
-      max_iter: $max_iter,
-      pass_threshold: $pass_threshold,
-      B_source: $B_source,
-      score_A: $score_A,
-      score_B: $score_B,
-      winner: $winner,
-      early_stop: $early_stop,
+      source: $source,
+      score: $score,
       terminal: $terminal,
       md_path: $md_path
     }' > "$JSON_PATH"
