@@ -1,7 +1,7 @@
 ---
 name: jack-prompt-master
-description: Two-round meta-prompting skill that refines a coding prompt — Round 1 is an inline Claude rewrite using 9-dimension intent extraction and a 7-criterion rubric; Round 2 is a mandatory "Grill yourself" adversarial review in a fresh, isolated Fable subagent that quotes evidence per criterion and rewrites to v2; Round 3 is an optional, user-gated Codex critique + synthesis. Use this skill when the user wants to elevate a rough or high-stakes prompt for downstream coding tasks. Trigger keywords - "tournament prompt", "iteratively refine prompt", "meta-prompting", "/jack-prompt-master", "improve this prompt with multiple rounds". Distinct from one-shot /prompt-enhance.
-version: 0.1.1
+description: Two-round meta-prompting skill that refines a coding prompt — Phase 2 classifies the task, runs bounded repo reconnaissance on paths the draft names, and asks the user only decision-changing questions; Round 1 is an inline Claude rewrite under a provenance rule (no invented defaults) against a 7- or 9-criterion rubric; Round 2 is a mandatory "Grill yourself" adversarial review in a fresh, isolated Fable subagent that quotes evidence per criterion and rewrites to v2; Round 3 is an optional, user-gated Codex critique + synthesis. Use this skill when the user wants to elevate a rough or high-stakes prompt for downstream coding tasks. Trigger keywords - "tournament prompt", "iteratively refine prompt", "meta-prompting", "/jack-prompt-master", "improve this prompt with multiple rounds". Distinct from one-shot /prompt-enhance.
+version: 0.2.0
 ---
 
 # jack-prompt-master
@@ -27,6 +27,9 @@ This skill produces a **copy-paste prompt block**. It does NOT auto-execute the 
 | Knob                | Default                    | Env override                 |
 | ------------------- | -------------------------- | ---------------------------- |
 | JPM_CODEX_ROUND    | ask                        | `JPM_CODEX_ROUND` (ask/yes/no) |
+| JPM_INTERVIEW      | ask                        | `JPM_INTERVIEW` (ask/auto)   |
+| JPM_RECON          | on                         | `JPM_RECON` (on/off)         |
+| JPM_RECON_CAP      | 4000 bytes                 | `JPM_RECON_CAP`              |
 | CONTEXT_INGEST     | ON if `./CLAUDE.md` exists | `JPM_CONTEXT` (on/off)       |
 | CONTEXT_BYTE_CAP  | 6000 bytes                 | `JPM_CONTEXT_CAP`            |
 | CODEX_MODEL        | gpt-5.4                    | `JPM_CODEX_MODEL`            |
@@ -37,6 +40,8 @@ This skill produces a **copy-paste prompt block**. It does NOT auto-execute the 
 | DRAFT_MAX_BYTES   | 50000                      | `JPM_DRAFT_MAX`              |
 
 AskUserQuestion answers always override env. Validate at Phase 0; abort on out-of-range.
+
+`JPM_INTERVIEW=auto` never asks the user back: missing decisions are written into the prompt as labelled assumptions or open questions instead. Use it for unattended runs.
 
 ## Phase 0 — Pre-flight checks
 
@@ -73,24 +78,43 @@ If `./CLAUDE.md` exists (and `JPM_CONTEXT` is not `off`), run one AUQ for **CONT
 
 No round-count or pass-threshold questions — the round structure is fixed (2 + optional Codex).
 
-## Phase 2 — Intent extraction + Context ingest + Resume check
+## Phase 2 — Intent extraction + Recon + Interview + Context ingest + Resume check
 
-1. **Intent extraction (semantic):** invoke the workflow at `~/.claude/skills/prompt-master/SKILL.md` against `$DRAFT_FILE`. Produce a structured intent block over the 9 dimensions (task / target\_tool / output\_format / constraints / input / context / audience / success\_criteria / examples).
+1. **Intent extraction (semantic):** invoke the workflow at `~/.claude/skills/prompt-master/SKILL.md` against `$DRAFT_FILE`. Produce a structured intent block over the 9 dimensions (task / target\_tool / output\_format / constraints / input / context / audience / success\_criteria / examples). Mark each dimension `user-stated` or `unspecified` — never fill an unspecified dimension with a guessed value at this stage.
+
+1a. **Task classification:** set `TASK_CLASS`:
+   - `diagnosis` — the draft is about something that is broken, failing, flaky, slow, or "why does X happen" (fix / debug / investigate / root-cause).
+   - `implementation` — everything else (add / build / refactor / migrate / write tests / review).
+   Print one line: `Task class: diagnosis (9 criteria)` or `Task class: implementation (7 criteria)`. `N_CRITERIA` = 9 or 7. When unsure, pick `implementation`.
+
+1b. **Reconnaissance (bounded, project-local):** skip if `JPM_RECON=off`. Otherwise, for each file path, directory, symbol, or command name that appears **in the draft text** (not guessed), and only inside the workspace root (`git rev-parse --show-toplevel` or `$PWD`):
+   - Path exists → record its size, language, and the imports/top-level symbols relevant to the task (`rg`/`head`, never more than ~2k bytes per file).
+   - Path missing → record `MISSING: <path>`.
+   - Symbol → `rg -n --max-count 5 '<symbol>'` and record file:line hits.
+   - Always check manifests once: `package.json` `scripts` block, `Makefile` targets, `pyproject.toml`/`Cargo.toml`/`go.mod` presence, CI config filenames. Record the **verbatim test/build/lint commands** found, or `NO_TEST_COMMAND_OBSERVED`.
+   - Never read `node_modules/`, `vendor/`, `dist/`, `.git/`, `.env*`, or any file matching `*secret*|*key*|*.pem`. Hard cap total recon output at `JPM_RECON_CAP` bytes; truncate with `…[recon truncated]`.
+   Every recorded fact is prefixed `observed <file>[:line]:` so it can be cited downstream. Write to `RECON_FILE`; if nothing was recorded, write `none`. Recon facts are a snapshot — v-prompts that cite them must still tell the downstream agent to re-verify before relying on them.
+
+1c. **Interview (decision-impact gated):** from the intent block's `unspecified` dimensions and the recon results, list the decisions where **different plausible answers would lead to materially different implementations** (e.g. retry policy values, idempotency rules, breaking-change tolerance, which of two existing patterns to follow, target runtime). Ignore unspecified dimensions that do not change the work (audience, examples). Then:
+   - `JPM_INTERVIEW=ask` (default) and the list is non-empty → one `AskUserQuestion` with at most **3** questions (the highest-impact ones), each with 2–4 concrete options plus "Let the prompt leave this as an open question". Record answers as `user-stated` in `INTERVIEW_FILE`.
+   - `JPM_INTERVIEW=auto`, or the list is empty → write `none` to `INTERVIEW_FILE`. Every such decision MUST surface in the prompt as a labelled `assumption` or an explicit `open question` for the downstream agent — never as an unlabelled value.
+
 2. **Context ingest** (if user opted in at Phase 1): run `bash references/context-ingest.sh > $CONTEXT_FILE`. The script reads `./CLAUDE.md` then `./AGENTS.md` (priority order), truncates at 6000 bytes on the last newline within the byte window, emits a `<project-context>...</project-context>` fenced block. If both files missing, emit empty file and flip `scope: portable`. Compute `CONTEXT_SHA256=$(sha256sum "$CONTEXT_FILE" | cut -d' ' -f1)`; if context is empty, set `CONTEXT_SHA256=none`.
 3. **Compute resume key:** normalize the draft (collapse runs of whitespace, strip leading/trailing blank lines), then `DRAFT_SHA256=$(printf '%s' "$NORM_DRAFT" | sha256sum | cut -d' ' -f1)`. The resume key is the tuple `(DRAFT_SHA256, scope, CONTEXT_SHA256)`.
 4. **Resume scan:** `ls .prompts/*.json 2>/dev/null` and parse each sidecar with `jq` to find a tuple match.
-   - If a match exists and `terminal: false` (i.e. a run stopped after Round 1 or Round 2): AUQ "Resume from latest? Found `<filename>` — round k scored N/7. Continue to round k+1 / Start fresh (archive existing) / Show me the latest file first."
-   - If a match exists and `terminal: true`: AUQ "Found a completed run for this exact draft (round k, score N/7). Show the final prompt / Start fresh (archive existing) / Open the file." NEVER offer "continue from round k+1" on a terminal checkpoint.
+   - If a match exists and `terminal: false` (i.e. a run stopped after Round 1 or Round 2): AUQ "Resume from latest? Found `<filename>` — round k scored N/7 (or N/9). Continue to round k+1 / Start fresh (archive existing) / Show me the latest file first."
+   - If a match exists and `terminal: true`: AUQ "Found a completed run for this exact draft (round k, score N/7 or N/9). Show the final prompt / Start fresh (archive existing) / Open the file." NEVER offer "continue from round k+1" on a terminal checkpoint.
    - On "Start fresh": move existing `.prompts/*.{md,json}` to `.prompts/archive/` (create archive dir; on filename collision append `.dup-$(date +%s)`).
    - Stale tuple (no match): skip the AUQ entirely; do NOT archive prior files.
-5. **Seed construction:** the seed for Round 1 = `<intent block>\n<context block (if any)>\n<draft>`. On resume from round k, the seed is the "Final prompt" section of `.prompts/round-k.md` — but only read from disk at Phase 2 startup. During an active run, in-memory state is the source of truth.
+5. **Seed construction:** the seed for Round 1 = `<intent block>\n<recon block>\n<interview block>\n<context block (if any)>\n<draft>`. On resume from round k, the seed is the "Final prompt" section of `.prompts/round-k.md` — but only read from disk at Phase 2 startup. During an active run, in-memory state is the source of truth.
 
 ## Phase 3 — Round 1: inline self-refinement (main context, no subagent)
 
 Claude Code rewrites the draft into **v1** directly in the main context:
 
-- Inputs: the seed (9-dimension intent block + project context + draft) and the 7 criteria in `references/rubric.md`.
-- Write v1 so that every criterion would PASS with a quotable span. Preserve the draft's underlying task intent — do not pivot to a different task.
+- Inputs: the seed (intent block + recon facts + interview answers + project context + draft), `TASK_CLASS`, and the active criteria in `references/rubric.md` (1–7, or 1–9 for `diagnosis`).
+- Write v1 so that every active criterion would PASS with a quotable span. Preserve the draft's underlying task intent — do not pivot to a different task.
+- **Provenance rule (hard):** every concrete value, policy, file fact, or command in v1 is either user-stated (draft / interview), `observed` (cite the recon file:line inline, e.g. "uses `fetch` (observed `src/api/client.ts:12`)"), labelled `(assumption — confirm)`, or phrased as an instruction for the downstream agent to discover/ask. Do not invent defaults. If recon reported `NO_TEST_COMMAND_OBSERVED`, v1 must tell the downstream agent to find the project's test command first and must not name one. If recon reported `MISSING: <path>`, say so in v1 rather than instructing the agent to "read <path>".
 - Output v1 only. No preamble ("Sure", "Here's", …), no `scope:` line, no frontmatter, no commentary.
 
 Print v1 as a fenced block, then write the Round 1 checkpoint (see "Checkpoint write" below) with `source=claude-inline`, `terminal=false`. No score is assigned in Round 1 — `score_v1` comes from the Round 2 grill.
@@ -101,12 +125,13 @@ Dispatch **ONE** `Agent` call:
 
 - `subagent_type: general-purpose`, `model: fable`.
 - **NOT `fork`.** The reviewer must not inherit conversation history — it sees only the artifact + criteria, which is the whole point of the adversarial review.
-- The prompt is the full text of `references/grill-prompt.md` with the placeholders filled: seed (intent block + project context + v1) and the 7 rubric criteria (paste `references/rubric.md` sections 1–7). The prompt contains the literal heading `## Grill yourself`.
+- The prompt is the full text of `references/grill-prompt.md` with the placeholders filled: `{{INTENT_BLOCK}}`, `{{CONTEXT_BLOCK_OR_none}}`, `{{RECON_FACTS_OR_none}}`, `{{INTERVIEW_ANSWERS_OR_none}}`, `{{TASK_CLASS}}`, `{{N_CRITERIA}}`, `{{V1_PROMPT}}`, and `{{RUBRIC_CRITERIA}}` (paste `references/rubric.md` sections 1–7, or 1–9 for `diagnosis`, plus the rubric's provenance vocabulary and intent-gate paragraphs). The prompt contains the literal heading `## Grill yourself`.
 
-**Grill protocol** (enforced by `references/grill-prompt.md`): for each of the 7 criteria, the subagent asks itself the hardest question a skeptical senior engineer would ask, quotes the exact v1 text that answers it or marks FAIL with the missing piece, then rewrites v1 into **v2** fixing every FAIL. It returns strict JSON:
+**Grill protocol** (enforced by `references/grill-prompt.md`): first an **intent gate** (hard-fail, unscored — lists every unlabelled scope/policy item v1 invented as `intent_drift`), then for each of the N criteria, the subagent asks itself the hardest question a skeptical senior engineer would ask, quotes the exact v1 text that answers it or marks FAIL with the missing piece, then rewrites v1 into **v2** fixing every FAIL. It returns strict JSON:
 
 ```json
 {
+  "intent_drift": [ "..." ],
   "verdicts": [ { "criterion": "...", "verdict": "PASS|FAIL", "quote": "...", "fix": "..." } ],
   "score_v1": 0,
   "score_v2": 0,
@@ -117,12 +142,13 @@ Dispatch **ONE** `Agent` call:
 **Validate with `jq -e`** (write the raw reply to `grill_output.json` first; strip surrounding markdown fences if present):
 
 ```bash
-jq -e '
-  (.verdicts | length == 7)
+jq -e --argjson n "$N_CRITERIA" '
+  (.intent_drift | type == "array")
+  and (.verdicts | length == $n)
   and (.verdicts | map(select(.quote == "" or .quote == null)) | length == 0)
   and (.verdicts | map(.verdict) | all(. == "PASS" or . == "FAIL"))
-  and (.score_v1 | type == "number") and (.score_v1 >= 0) and (.score_v1 <= 7)
-  and (.score_v2 | type == "number") and (.score_v2 >= 0) and (.score_v2 <= 7)
+  and (.score_v1 | type == "number") and (.score_v1 >= 0) and (.score_v1 <= $n)
+  and (.score_v2 | type == "number") and (.score_v2 >= 0) and (.score_v2 <= $n)
   and (.v2 | type == "string") and ((.v2 | length) > 0)
 ' < grill_output.json > /dev/null
 ```
@@ -134,8 +160,9 @@ Apply the preamble strip `^(Sure|Here'?s|Okay|Got it)[^\n]*\n` to `v2`. If `v2` 
 **Print:**
 
 1. v2 as a fenced block.
-2. The 7-row verdict table: `| criterion | verdict (v1) | quote | fix |`.
-3. One line: `score_v1 → score_v2`, e.g. `4/7 → 7/7`.
+2. `Intent drift:` the `intent_drift` list, or `none`.
+3. The N-row verdict table: `| criterion | verdict (v1) | quote | fix |`.
+4. One line: `score_v1 → score_v2`, e.g. `4/7 → 7/7` (or `/9` for diagnosis).
 
 Write the Round 2 checkpoint with `source=fable-grill`, `score=score_v2`. Set `terminal=true` if Codex is unavailable or `JPM_CODEX_ROUND=no` (no Round 3 possible); otherwise `terminal=false`, and re-persist Round 2 with `terminal=true` if the user stops at the Round 3 gate.
 
@@ -146,8 +173,8 @@ Write the Round 2 checkpoint with `source=fable-grill`, `score=score_v2`. Set `t
 - If `codex` is not on PATH (`CODEX_AVAILABLE=0` from Phase 0): skip the question entirely and print one line — `ℹ️ Codex not on PATH — skipping optional Round 3; v2 is final.` Proceed to Phase 5.
 - If `JPM_CODEX_ROUND=no`: skip the question; v2 is final.
 - If `JPM_CODEX_ROUND=yes`: skip the question; run Round 3.
-- Otherwise (`ask`, the default) — one `AskUserQuestion` (Header: "Round 3"): **"v2 scored N/7. Consult Codex for a 3rd round?"** Options:
-  1. `Stop here — use v2 (recommended when ≥6/7)`
+- Otherwise (`ask`, the default) — one `AskUserQuestion` (Header: "Round 3"): **"v2 scored N/7 (or N/9). Consult Codex for a 3rd round?"** Options:
+  1. `Stop here — use v2 (recommended when ≥6/7, or ≥8/9 for diagnosis)`
   2. `Yes, Codex critique + synthesize v3`
   3. `Show v2 full text first` → print v2 in full, then re-ask with options 1–2 only.
 
@@ -156,7 +183,7 @@ Write the Round 2 checkpoint with `source=fable-grill`, `score=score_v2`. Set `t
 **If yes:**
 
 1. Send v2 + the rubric to Codex using the Bash pattern in `references/codex-call.md` (stdin via `codex exec -`, `gtimeout`/`timeout` wrapper, exit-code semantics). The instruction at the top of `PROMPT_FILE` asks Codex for (a) a per-criterion critique of v2 and (b) its own v3 candidate, in that order, separated by the literal line `---CANDIDATE---`.
-2. Exit 0 with non-empty stdout → Claude Code synthesizes the final **v3 inline** (main context, no subagent) from v2 + Codex's critique + Codex's candidate, following `references/synthesizer-prompt.md`. Apply the preamble strip. Self-score v3 against the rubric (quote-then-verdict, same 7 criteria) to obtain `score_v3`.
+2. Exit 0 with non-empty stdout → Claude Code synthesizes the final **v3 inline** (main context, no subagent) from v2 + Codex's critique + Codex's candidate, following `references/synthesizer-prompt.md`. Apply the preamble strip. Self-score v3 against the rubric (quote-then-verdict, same active criteria set, after the intent gate) to obtain `score_v3`.
 3. Exit 124 / non-zero / empty stdout → **keep v2 as final** and print the degraded-hedge caveat:
 
    ```
@@ -180,6 +207,9 @@ Call `bash references/prompts-persist.sh` with the round artifact via stdin (mar
 
 ## Project context (ingested)
 <truncated CLAUDE.md / AGENTS.md content, or "none">
+
+## Recon + interview
+<task class, recon facts, interview Q&A — or "none">
 
 ## Round input
 <the seed / prior-round prompt this round started from>
@@ -266,7 +296,7 @@ If `.prompts/` was fallback-tmpdir'd at checkpoint time, the FINAL.md goes to th
    | 3     | 7     | codex-synth   |
    ```
 
-   `source ∈ {claude-inline, fable-grill, codex-synth}`. Round 1's score is `score_v1` as assessed by the Round 2 grill. Round 3 row appears only if Codex synthesis ran.
+   `source ∈ {claude-inline, fable-grill, codex-synth}`. Scores are out of 7 (`implementation`) or 9 (`diagnosis`); print the denominator in the table header. Round 1's score is `score_v1` as assessed by the Round 2 grill. Round 3 row appears only if Codex synthesis ran.
 
 4. **Criteria flips** — one line per criterion that flipped PASS↔FAIL between v1 and v2 (and v2 → v3 if applicable), for auditability.
 
@@ -287,7 +317,7 @@ If `.prompts/` was fallback-tmpdir'd at checkpoint time, the FINAL.md goes to th
 
 Load on demand:
 
-- `references/rubric.md` — 7 binary criteria with PASS/FAIL examples per criterion.
+- `references/rubric.md` — binary criteria (7 for implementation, 9 for diagnosis) with PASS/FAIL examples, provenance vocabulary, and the intent gate.
 - `references/grill-prompt.md` — Round 2 subagent prompt ("Grill yourself" protocol + JSON schema + retry instructions).
 - `references/synthesizer-prompt.md` — Round 3 inline synthesis guidance (v2 + Codex critique/candidate → v3) + worked example.
 - `references/codex-call.md` — codex exec bash invocation pattern (stdin, gtimeout, exit codes).

@@ -42,8 +42,8 @@ If the synthesized v3 is empty, one line or less, or self-scores lower than v2, 
 > Refactor the worker module. Make it async. If the database schema is ambiguous, ask before coding.
 
 **Critique verdicts (abridged):**
-- A passes role_clarity, output_format. Fails failure_mode_handling.
-- B passes failure_mode_handling. Fails role_clarity, output_format.
+- A passes provenance, output_format. Fails failure_mode_handling.
+- B passes failure_mode_handling. Fails provenance, output_format.
 - Both fail constraint_tightness, verifiability.
 
 **Synthesized v3:**

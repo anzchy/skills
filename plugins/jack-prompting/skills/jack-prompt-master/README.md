@@ -2,21 +2,24 @@
 
 Two-round self-refinement (plus an optional Codex round) for high-stakes coding prompts. Inspired by Garry Tan's *Metaprompting* essay and Claude Code's [adversarial-review guidance](https://code.claude.com/docs/en/best-practices.md#add-an-adversarial-review-step).
 
-**Status:** v0.1.1 — project-scope, manual install. See `docs/plans/20260512-plan-prompt-master.md` for the full design.
+**Status:** v0.2.0 — project-scope, manual install. See `docs/plans/20260512-plan-prompt-master.md` for the full design.
 
 ## What it does
 
 Given a rough draft prompt:
 
-1. Extracts intent across 9 dimensions (reuses `prompt-master`'s extraction).
-2. (Optional) Ingests local `./CLAUDE.md` so the prompt cites real project stack.
-3. **Round 1 — inline rewrite.** Claude Code rewrites the draft into v1 in the main context, targeting the 7-criterion rubric. No subagent.
-4. **Round 2 — "Grill yourself" (mandatory).** One fresh, isolated `general-purpose` subagent (model `fable`, not a fork — it sees only v1 + the criteria, never the conversation) asks the hardest skeptical-senior-engineer question per criterion, quotes v1's evidence or marks FAIL, then rewrites to v2. Returns strict JSON validated with `jq`. You get v2, a 7-row verdict table, and `score_v1 → score_v2`.
-5. **Round 3 — Codex consult (optional, user-gated).** After Round 2 the skill asks: "v2 scored N/7. Consult Codex for a 3rd round?" Stop there (recommended at ≥6/7), or have Codex critique v2 and propose its own candidate, after which Claude Code synthesizes v3 inline. Codex never runs without that answer; if `codex` isn't on PATH the question is skipped.
-6. Persists every round to `.prompts/YYYY-MM-DD_HHMMSS_round-k.{md,json}` for audit and auto-resume.
-7. Outputs the final prompt as a copy-paste block — no auto-execution.
+1. Extracts intent across 9 dimensions (reuses `prompt-master`'s extraction), marking each dimension user-stated or unspecified.
+2. **Classifies the task** — `implementation` (7 criteria) or `diagnosis` (9 criteria: adds *timeline & reproduction* and *ruled-out causes*, the two things a good bug report always carries).
+3. **Bounded reconnaissance.** Looks up only the paths/symbols the draft itself names plus the project manifests (`package.json` scripts, Makefile, CI), inside the workspace, under a byte cap, never in `node_modules`/`.env`. Every fact is recorded as `observed <file>:<line>` so the prompt can cite it instead of guessing. `JPM_RECON=off` disables it.
+4. **Interview (≤3 questions).** Asks only where different answers would change the implementation — retry policy, idempotency rules, breaking-change tolerance — never for blanks that don't matter. `JPM_INTERVIEW=auto` skips the questions and labels those decisions as assumptions/open questions instead.
+5. (Optional) Ingests local `./CLAUDE.md` so the prompt cites real project conventions.
+6. **Round 1 — inline rewrite.** Claude Code rewrites the draft into v1 in the main context under a **provenance rule**: every concrete value is user-stated, observed (cited), labelled `assumption`, or posed as an open question. Invented defaults are not allowed. No subagent.
+7. **Round 2 — "Grill yourself" (mandatory).** One fresh, isolated `general-purpose` subagent (model `fable`, not a fork — it sees only v1, the recon/interview facts and the criteria, never the conversation) first runs an **intent gate** (hard-fail: any scope or policy v1 invented without a label is listed as `intent_drift` and stripped), then asks the hardest skeptical-senior-engineer question per criterion, quotes v1's evidence or marks FAIL, then rewrites to v2. Returns strict JSON validated with `jq`. You get v2, the drift list, an N-row verdict table, and `score_v1 → score_v2`.
+8. **Round 3 — Codex consult (optional, user-gated).** After Round 2 the skill asks: "v2 scored N/7 (or N/9). Consult Codex for a 3rd round?" Stop there (recommended at ≥6/7 / ≥8/9), or have Codex critique v2 and propose its own candidate, after which Claude Code synthesizes v3 inline. Codex never runs without that answer; if `codex` isn't on PATH the question is skipped.
+9. Persists every round to `.prompts/YYYY-MM-DD_HHMMSS_round-k.{md,json}` for audit and auto-resume.
+10. Outputs the final prompt as a copy-paste block — no auto-execution.
 
-Why this shape: most of the gain comes from one strong rewrite plus one independent critique. A reviewer in a fresh context catches more than the author re-reading its own reasoning. Codex is a hedge you opt into, not a default cost.
+Why this shape: a prompt is only as good as the facts it stands on, so the skill looks at the repo and asks the user *before* writing, and forbids filling gaps with plausible-sounding defaults. After that, most of the gain comes from one strong rewrite plus one independent critique. A reviewer in a fresh context catches more than the author re-reading its own reasoning. Codex is a hedge you opt into, not a default cost.
 
 ## When to pick which skill
 
@@ -73,6 +76,9 @@ If invoked without arguments, the skill will AskUserQuestion for the draft.
 
 ```bash
 JPM_CODEX_ROUND=ask      # ask/yes/no — gate for the optional Round 3 Codex consult
+JPM_INTERVIEW=ask        # ask/auto — auto never asks back; labels gaps as assumptions/open questions
+JPM_RECON=on             # on/off — bounded repo reconnaissance on paths the draft names
+JPM_RECON_CAP=4000       # bytes; cap on recorded recon facts
 JPM_CONTEXT=on           # on/off — default ON if ./CLAUDE.md exists
 JPM_CONTEXT_CAP=6000     # bytes; truncation cap for ingested context
 JPM_CODEX_EFFORT=medium  # low/medium/high
@@ -83,10 +89,11 @@ JPM_PROMPTS_DIR=./.prompts
 ## Output
 
 1. Final prompt (copy-paste markdown block).
-2. Score history table per round (`round | score | source`, source ∈ {claude-inline, fable-grill, codex-synth}).
-3. Criteria-flip lines (v1→v2, and v2→v3 if run) for auditability.
-4. Caveat banner if Round 3 was requested but Codex failed, or the grill's JSON had to be regex-recovered ("degraded").
-5. Scope tag if project-mode was used.
+2. Task class and intent-drift list from the grill.
+3. Score history table per round (`round | score /7 or /9 | source`, source ∈ {claude-inline, fable-grill, codex-synth}).
+4. Criteria-flip lines (v1→v2, and v2→v3 if run) for auditability.
+5. Caveat banner if Round 3 was requested but Codex failed, or the grill's JSON had to be regex-recovered ("degraded").
+6. Scope tag if project-mode was used.
 
 ## `.prompts/` persistence
 

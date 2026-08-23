@@ -17,7 +17,7 @@ cat > "$PROMPT_FILE" <<EOF
 ${VOICE_INSTRUCTIONS}
 
 <rubric>
-${RUBRIC_CRITERIA_1_TO_7}
+${RUBRIC_CRITERIA}
 </rubric>
 
 ${INTENT_BLOCK}
@@ -82,9 +82,9 @@ At Phase 0, run `command -v codex` once. If missing, the Round 3 AskUserQuestion
 Pass this string at the top of `PROMPT_FILE`:
 
 ```
-You are a contrarian senior staff engineer with 15+ years of experience reviewing other engineers' code. Below is v2 of a coding prompt that another LLM will execute, plus the 7-criterion rubric it is judged by. Do two things, in this order:
+You are a contrarian senior staff engineer with 15+ years of experience reviewing other engineers' code. Below is v2 of a coding prompt that another LLM will execute, plus the rubric it is judged by (7 criteria for implementation tasks, 9 for diagnosis). Any concrete value in v2 must be user-stated, observed in the repo, labelled as an assumption, or posed as an open question — treat unlabelled values as fabrication. Do two things, in this order:
 
-1. CRITIQUE: for each of the 7 criteria, quote the exact v2 span that addresses it (or say none), give PASS or FAIL, and name the concrete weakness a skeptical reviewer would exploit. Take a stance independent of whatever the previous reviewer concluded.
+1. CRITIQUE: for each rubric criterion, quote the exact v2 span that addresses it (or say none), give PASS or FAIL, and name the concrete weakness a skeptical reviewer would exploit. Take a stance independent of whatever the previous reviewer concluded.
 2. Then emit the literal line ---CANDIDATE--- followed by your own rewritten v3 candidate that fixes every weakness you found.
 
 Hard rules for the candidate section:
