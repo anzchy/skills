@@ -2,13 +2,13 @@
 
 Two-round self-refinement (plus an optional Codex round) for high-stakes coding prompts. Inspired by Garry Tan's *Metaprompting* essay and Claude Code's [adversarial-review guidance](https://code.claude.com/docs/en/best-practices.md#add-an-adversarial-review-step).
 
-**Status:** v0.1.2 — project-scope, manual install. See `docs/plans/20260512-plan-prompt-master.md` for the full design.
+**Status:** v0.1.3 — project-scope, manual install. See `docs/plans/20260512-plan-prompt-master.md` for the full design.
 
 ## What it does
 
 Given a rough draft prompt:
 
-1. Extracts intent across 9 dimensions (reuses `prompt-master`'s extraction), marking each dimension user-stated or unspecified.
+1. Extracts intent across 9 dimensions (built in — `references/intent-dimensions.md`, no dependency on other skills), marking each dimension user-stated or unspecified.
 2. **Classifies the task** — `implementation` (7 criteria) or `diagnosis` (9 criteria: adds *timeline & reproduction* and *ruled-out causes*, the two things a good bug report always carries).
 3. **Bounded reconnaissance.** Looks up only the paths/symbols the draft itself names plus the project manifests (`package.json` scripts, Makefile, CI), inside the workspace, under a byte cap, never in `node_modules`/`.env`. Every fact is recorded as `observed <file>:<line>` so the prompt can cite it instead of guessing. `JPM_RECON=off` disables it.
 4. **Interview (≤3 questions).** Asks only where different answers would change the implementation — retry policy, idempotency rules, breaking-change tolerance — never for blanks that don't matter. `JPM_INTERVIEW=auto` skips the questions and labels those decisions as assumptions/open questions instead.

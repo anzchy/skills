@@ -1,7 +1,7 @@
 ---
 name: jack-prompt-master
 description: Two-round meta-prompting skill that refines a coding prompt — Phase 2 classifies the task, runs bounded repo reconnaissance on paths the draft names, and asks the user only decision-changing questions; Round 1 is an inline Claude rewrite under a provenance rule (no invented defaults) against a 7- or 9-criterion rubric; Round 2 is a mandatory "Grill yourself" adversarial review in a fresh, isolated Fable subagent that quotes evidence per criterion and rewrites to v2; Round 3 is an optional, user-gated Codex critique + synthesis. Use this skill when the user wants to elevate a rough or high-stakes prompt for downstream coding tasks. Trigger keywords - "tournament prompt", "iteratively refine prompt", "meta-prompting", "/jack-prompt-master", "improve this prompt with multiple rounds". Distinct from one-shot /prompt-enhance.
-version: 0.1.2
+version: 0.1.3
 ---
 
 # jack-prompt-master
@@ -80,7 +80,7 @@ No round-count or pass-threshold questions — the round structure is fixed (2 +
 
 ## Phase 2 — Intent extraction + Recon + Interview + Context ingest + Resume check
 
-1. **Intent extraction (semantic):** invoke the workflow at `~/.claude/skills/prompt-master/SKILL.md` against `$DRAFT_FILE`. Produce a structured intent block over the 9 dimensions (task / target\_tool / output\_format / constraints / input / context / audience / success\_criteria / examples). Mark each dimension `user-stated` or `unspecified` — never fill an unspecified dimension with a guessed value at this stage.
+1. **Intent extraction (semantic, inline):** read `$DRAFT_FILE` and fill the 9-dimension intent block defined in `references/intent-dimensions.md` (task / target\_tool / output\_format / constraints / input / context / audience / success\_criteria / examples). Mark each dimension `user-stated` or `unspecified` — never fill an unspecified dimension with a guessed value at this stage. No other skill is invoked.
 
 1a. **Task classification:** set `TASK_CLASS`:
    - `diagnosis` — the draft is about something that is broken, failing, flaky, slow, or "why does X happen" (fix / debug / investigate / root-cause).
@@ -317,6 +317,7 @@ If `.prompts/` was fallback-tmpdir'd at checkpoint time, the FINAL.md goes to th
 
 Load on demand:
 
+- `references/intent-dimensions.md` — the 9-dimension intent block used in Phase 2 (self-contained; no external skill).
 - `references/rubric.md` — binary criteria (7 for implementation, 9 for diagnosis) with PASS/FAIL examples, provenance vocabulary, and the intent gate.
 - `references/grill-prompt.md` — Round 2 subagent prompt ("Grill yourself" protocol + JSON schema + retry instructions).
 - `references/synthesizer-prompt.md` — Round 3 inline synthesis guidance (v2 + Codex critique/candidate → v3) + worked example.
@@ -328,7 +329,7 @@ Load on demand:
 
 - `jack-meta-think` (upstream, domain-general): diagnoses whether the question is aimed at the truth or at agreement — embedded conclusions, missing timeline, missing ruled-out factors. This skill assumes the aim is already correct and only optimizes the wording; if the draft's premise is unverified, run `/jack-meta-think` first.
 - `/prompt-enhance` (legacy, in `~/.claude/CLAUDE.md`): one-shot enhancement, quick polish.
-- `prompt-master` (skill at `~/.claude/skills/prompt-master/`): one-shot 9-dim intent extraction → single prompt.
+- `prompt-master` (user-scope skill, if installed): one-shot 9-dim intent extraction → single prompt. Not a dependency — this skill carries its own copy of the 9 dimensions in `references/intent-dimensions.md`.
 - `jack-prompt-master` (this skill): rewrite → isolated adversarial grill → optional Codex hedge, scored with a rubric at each step.
 
 All coexist. No auto-deprecation, no auto-redirect, no auto-chaining. Pick based on stakes — and on whether the question or the wording is what needs work.
