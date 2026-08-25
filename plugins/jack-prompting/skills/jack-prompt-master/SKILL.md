@@ -1,7 +1,7 @@
 ---
 name: jack-prompt-master
-description: Two-round meta-prompting skill that refines a coding prompt — Phase 2 classifies the task, runs bounded repo reconnaissance on paths the draft names, and asks the user only decision-changing questions; Round 1 is an inline Claude rewrite under a provenance rule (no invented defaults) against a 7- or 9-criterion rubric; Round 2 is a mandatory "Grill yourself" adversarial review in a fresh, isolated Fable subagent that quotes evidence per criterion and rewrites to v2; Round 3 is an optional, user-gated Codex critique + synthesis. Use this skill when the user wants to elevate a rough or high-stakes prompt for downstream coding tasks. Trigger keywords - "tournament prompt", "iteratively refine prompt", "meta-prompting", "/jack-prompt-master", "improve this prompt with multiple rounds". Distinct from one-shot /prompt-enhance.
-version: 0.1.3
+description: Use when the user wants a rough or high-stakes coding prompt elevated through multiple rounds rather than a one-shot polish — /jack-prompt-master, "tournament prompt", "meta-prompting", "iteratively refine prompt", "improve this prompt with multiple rounds". Rewrites the draft, then puts it through a mandatory adversarial review in a fresh isolated context that quotes evidence per rubric criterion, plus an optional cross-model Codex round. Costs roughly 15k-35k tokens per run — for a quick polish use one-shot /prompt-enhance instead.
+version: 0.1.4
 ---
 
 # jack-prompt-master
@@ -56,9 +56,7 @@ Run these BEFORE Phase 0a. Abort cleanly on any failure with a clear message —
    command -v gtimeout >/dev/null || command -v timeout >/dev/null || echo "WARN: no timeout wrapper — relying on codex internal timeout"
    ```
 
-2. **Agent tool probe**: dispatch one `Agent` call with `subagent_type: general-purpose` asking the agent to reply with the single word `ok`. If the call errors or returns empty, abort: "ABORT: Agent tool / general-purpose sub-agent unavailable."
-
-3. **Config validation**: read all `JPM_*` env vars; range-check each against the Configuration table above. Out-of-range → abort with the offending knob name.
+2. **Config validation**: read all `JPM_*` env vars; range-check each against the Configuration table above. Out-of-range → abort with the offending knob name.
 
 ## Phase 0a — Draft input
 
