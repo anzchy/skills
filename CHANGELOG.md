@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **jack-work 0.1.1 — `jc-basic-report` 0.1.0.** Builds a VC basic-information report as one self-contained HTML from a BP: Kami-derived design, JSON chart specs, sidebar TOC, highlight/underline/note annotations, a build script that blocks on unfilled placeholders and lists data gaps, and a Playwright test suite with a listed-company sample fixture.
 - **jack-work 0.1.1 — `expense-reimbursement` 0.1.0.** Receipts → filled reimbursement forms (市内交通 / 出差 / 招待) with preflight, calculators and rule checks. Templates are de-identified (no company name, author metadata or sample personal data).
 
+## [0.2.6] - 2026-08-25
+
+### Changed
+- **jack-prompt-master 0.1.4 — faster startup.** Removed the Phase 0 "Agent tool probe" (the pre-flight subagent that replied `ok` before every run); if the Agent tool is unavailable, the Round 2 grill now fails loudly instead. `jack-prompting` plugin 0.1.4 → 0.1.5.
+- **Trigger-first skill descriptions.** Rewrote the `description` frontmatter of `jack-meta-think` (0.2.1), `jack-html-preview` (0.1.1), `jack-audit-fable` and `jack-review-plan-fable` to lead with when-to-use triggers so auto-invocation matches more reliably. `jack-engineering` plugin 0.1.0 → 0.1.1, `jack-html-preview` plugin 0.1.0 → 0.1.1.
+
+---
+
 ## [0.2.5] - 2026-08-23
 
 ### Added
@@ -97,7 +105,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/anzchy/skills/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/anzchy/skills/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/anzchy/skills/compare/v0.2.2...v0.2.3
