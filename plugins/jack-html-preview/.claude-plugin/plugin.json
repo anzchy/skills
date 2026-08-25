@@ -1,6 +1,6 @@
 {
   "name": "jack-html-preview",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Turn a folder, repo, or Markdown file into one self-contained interactive HTML explainer.",
   "author": {
     "name": "anzchy",

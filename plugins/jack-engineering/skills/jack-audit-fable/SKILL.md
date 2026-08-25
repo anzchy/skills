@@ -1,6 +1,6 @@
 ---
 name: jack-audit-fable
-description: Claude-native code auditor — full 9-dimension or fast 5-dimension audit of uncommitted changes, staged changes, recent commits, specific paths, or the entire codebase, run by a single read-only subagent on the latest Opus model (Fable 5 only if the user explicitly asks). No Codex, no external CLI, no MCP dependency. Use whenever the user asks to audit code, review code quality, find bugs/dead code/duplication/security issues/refactoring debt, says "audit this", "审计", "代码审查", or invokes /jack-audit-fable. Prefer this over cc-suite:audit when the user wants a native/offline audit or Codex is unavailable.
+description: Use when the user asks to audit code, review code quality, or find bugs, dead code, duplication, security issues or refactoring debt — /jack-audit-fable, "audit this", 审计, 代码审查. Scope can be uncommitted or staged changes, recent commits, specific paths, or the whole codebase, as a full 9-dimension or fast 5-dimension pass. Native and offline — no Codex, no external CLI, no MCP. Prefer this over cc-suite:audit when the user wants a native/offline audit or Codex is unavailable.
 argument-hint: "[scope] [--full | --mini] [--fable]"
 ---
 

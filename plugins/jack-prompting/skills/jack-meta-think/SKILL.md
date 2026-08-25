@@ -1,7 +1,7 @@
 ---
 name: jack-meta-think
-description: Diagnoses the QUESTION before any prompt is written. Scans a raw ask for embedded conclusions, evaluative language, missing timeline, missing identifiers and missing ruled-out factors, then interactively resolves what only the asker can answer (what are you actually trying to find out) and rewrites the ask as a neutral, open-ended question. Domain-general — works for debugging, medical, purchase, relationship and career questions alike, not just coding. Use when the user has a rough ask, a suspicion, or a frustration rather than a draft prompt. Trigger keywords - "我该怎么问", "这个问题这样问对吗", "帮我想清楚我要问什么", "/jack-meta-think", "提问诊断", "diagnose my question". Distinct from /jack-prompt-master, which polishes an already-well-aimed coding prompt.
-version: 0.2.0
+description: Use when the user brings a rough ask, a suspicion, or a frustration rather than a draft prompt — 我该怎么问, 这个问题这样问对吗, 帮我想清楚我要问什么, 提问诊断, "diagnose my question", or /jack-meta-think. Diagnoses the question itself before any prompt gets written, surfacing the conclusions, blame and missing facts baked into how it was asked, interviewing the asker for what only they can answer, then rewriting it as a neutral, open-ended question. Domain-general — debugging, medical, purchase, relationship and career questions alike, not just coding. Distinct from /jack-prompt-master, which polishes an already-well-aimed coding prompt.
+version: 0.2.1
 ---
 
 # jack-meta-think

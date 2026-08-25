@@ -1,6 +1,6 @@
 {
   "name": "jack-engineering",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Claude-native code and plan audits (jack-audit-fable, jack-review-plan-fable), GitHub issue auto-fix (jack-auto-fix), remote branch cleanup (jack-audit-branches).",
   "author": {
     "name": "anzchy",

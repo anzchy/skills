@@ -1,6 +1,6 @@
 ---
 name: jack-review-plan-fable
-description: Fable 5 plan reviewer — sends an implementation plan, design doc, or spec to a fresh Fable 5 subagent for an independent buildability review across 5 dimensions (internal consistency, completeness, feasibility, ambiguity, risk & sequencing), then persists the findings. Use this whenever the user wants a plan reviewed, critiqued, sanity-checked, or stress-tested before implementation — including phrasings like "review my plan", "is this plan solid", "poke holes in this", "审查计划", "评审方案", or /jack-review-plan-fable. Prefer this over cc-suite:review-plan or gemini-review-plan when the user wants the review done by Fable 5 / a Claude-native reviewer, or when Codex and Gemini are unavailable.
+description: Use when the user wants an implementation plan, design doc, or spec reviewed, critiqued, sanity-checked, or stress-tested before implementation — /jack-review-plan-fable, 审查计划, 评审方案, "review my plan", "is this plan solid", "poke holes in this". Sends it to a fresh Fable 5 subagent for an independent buildability review across five dimensions. Prefer this over cc-suite:review-plan or gemini-review-plan when the user wants a Claude-native reviewer, or when Codex and Gemini are unavailable.
 argument-hint: "[plan-file] [+context.md ...]"
 ---
 

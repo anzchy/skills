@@ -1,7 +1,7 @@
 ---
 name: jack-html-preview
-description: Turn ONE input — a project/source folder, a single Markdown file, a local repo, or a GitHub repo URL — into ONE self-contained interactive HTML file that explains the input end-to-end (structure, architecture, and the data-and-control flow from entry point to output). Produces a single .html with all CSS/JS inlined, styled to the Claude/Anthropic design language, that opens by double-click and is shareable as one file. Use whenever someone wants to visualize, explain, walk through, document, or "make an interactive page" for a codebase, repo, folder, or Markdown doc. Invoke manually as "/jack-html-preview <path-or-url>".
-version: 0.1.0
+description: Use when someone wants to visualize, explain, walk through, or document a codebase, repo, folder, or Markdown doc — /jack-html-preview <path-or-url>, or "make an interactive page for this repo". Takes ONE input — a source folder, a single Markdown file, a local repo, or a GitHub repo URL — and produces ONE self-contained, shareable interactive .html that explains it end-to-end, covering structure, architecture, and the flow from entry point to output.
+version: 0.1.1
 ---
 
 # jack-html-preview
