@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<!-- ==================================================================
+     jc-basic-report · 项目基本信息报告模板（对应大纲 V 0.0.2）
+     用法：复制为 <项目>/report.src.html，替换全部 {{占位符}}，
+     图表写成 charts/<名称>.json，并在正文放 CHART:名称 构建标记（写成 HTML 注释），
+     然后运行 scripts/build.py 生成单文件 HTML。
+     不得删除三个构建标记：JC:CSS、JC:SCRIPTS、CHART。
+     ================================================================== -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="report-id" content="{{报告ID，如 company-basic-report-YYYYMMDD}}">
+<title>{{公司简称}} · 项目基本信息报告</title>
+<meta name="author" content="{{作者}}">
+<meta name="description" content="{{一句话摘要，≤150 字}}">
+<meta name="keywords" content="{{3–5 个关键词}}">
+<meta name="generator" content="jc-basic-report (design: Kami)">
+<!--JC:CSS-->
+</head>
+<body>
+
+<aside id="side" class="side" aria-label="阅读工具">
+  <div class="side-head">
+    <span class="side-title">{{公司简称}} · 基本信息报告</span>
+    <button id="side-toggle" class="side-btn" type="button" aria-controls="side" aria-expanded="true" title="收起侧栏">«</button>
+  </div>
+  <div class="side-tabs" role="tablist">
+    <button class="side-tab" type="button" role="tab" data-tab="toc" aria-selected="true">目录</button>
+    <button class="side-tab" type="button" role="tab" data-tab="ann" aria-selected="false">批注<span id="ann-count"></span></button>
+  </div>
+  <div class="side-pane" id="pane-toc" role="tabpanel"><nav class="js-toc" aria-label="报告目录"></nav></div>
+  <div class="side-pane" id="pane-ann" role="tabpanel" hidden>
+    <p class="ann-hint">选中正文即可高亮、划线或添加备注。批注只保存在本机浏览器里，换电脑或分享前请先导出。</p>
+    <div class="ann-tools">
+      <button id="ann-export" type="button">导出 JSON</button>
+      <button id="ann-import" type="button">导入</button>
+      <button id="ann-clear" type="button">清空</button>
+      <input type="file" id="ann-file" accept="application/json,.json" hidden>
+    </div>
+    <div id="ann-list"></div>
+  </div>
+</aside>
+
+<main id="report">
+
+<!-- ========== 标题区 ==========
+     标题用公司简称（全称放副标题），否则长名称会折行；四个 metric-label 各不超过 8 个字，否则会溢出版心。 -->
+<div class="report-header">
+  <div class="ticker-block">
+    <div class="ticker-eyebrow">项目基本信息报告 · {{轮次}}</div>
+    <div class="ticker-name">{{公司全称}} <span style="font-size: 14pt; color: var(--stone);">{{英文名 / 品牌}}</span></div>
+    <div class="ticker-sub">{{赛道}} · {{上市状态}} · {{一句核心判断}}</div>
+  </div>
+  <div class="price-block">
+    <div class="price-current">{{本轮投后估值}}</div>
+    <div class="price-change up">本轮投后估值</div>
+    <div class="price-date">{{报告日期 YYYY-MM-DD}}</div>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="metric-value">{{数字}}</div><div class="metric-label">{{本轮融资 · 出让比例}}</div></div>
+  <div class="metric"><div class="metric-value">{{数字}}</div><div class="metric-label">{{较上轮估值倍数}}</div></div>
+  <div class="metric"><div class="metric-value">{{数字}}</div><div class="metric-label">{{当年营收}}</div></div>
+  <div class="metric"><div class="metric-value">{{数字}}</div><div class="metric-label">{{成立时长}}</div></div>
+</div>
+
+<!-- ========== 〇 投资要点 ========== -->
+<h2 id="s0" class="with-rating">〇、投资要点<span class="h2-rating">建议<b>{{继续尽调 / 推进 / 放弃}}</b></span></h2>
+<p>{{2–3 句：公司做什么、押注什么需求。用 <span class="hl">关键数据</span> 支撑，每个数字后注明来源〔S1〕。}}</p>
+<p>{{差异判断：我们看到、而市场没看到的是什么；最大的不确定性在哪里。}}</p>
+<ul class="thesis">
+  <li><strong>{{论点 1 标题}}。</strong>{{一句话 + 数字 + 来源〔Sx〕}}</li>
+  <li><strong>{{论点 2 标题}}。</strong>{{一句话 + 数字 + 来源〔Sx〕}}</li>
+  <li><strong>{{论点 3 标题}}。</strong>{{一句话 + 数字 + 来源〔Sx〕}}</li>
+  <li><strong>需澄清的事实偏差。</strong>{{BP 与公开记录不一致之处，逐条列出〔Sx〕}}</li>
+</ul>
+
+<!-- ========== 一 关键概念及定义 ========== -->
+<h2 id="s1">一、关键概念及定义</h2>
+<p>{{一句话说明本章假设读者是行业新手，由浅入深分几层。}}</p>
+<h3>1.1 第一层：{{为什么需要这个东西}}</h3>
+<p>{{通俗解释}}</p>
+<h3>1.2 第二层：{{用什么材料 / 技术实现}}</h3>
+<p>{{通俗解释}}</p>
+<h3>1.3 第三层：{{产品有哪几种类型}}</h3>
+<table class="compact">
+  <thead><tr><th>类型</th><th>一句话定义</th><th>主要用途</th><th>与目标公司的关系</th></tr></thead>
+  <tbody>
+    <tr><td>{{类型}}</td><td>{{定义}}</td><td>{{用途}}</td><td>{{关系}}</td></tr>
+  </tbody>
+</table>
+<h3>1.4 第四层：{{系统 / 封装形态}}</h3>
+<p>{{通俗解释}}</p>
+<h3>1.5 第五层：{{目标公司产品所在的具体位置}}</h3>
+<p>{{通俗解释}}</p>
+<h3>1.6 术语表</h3>
+<table class="compact glossary">
+  <thead><tr><th>术语</th><th>解释</th></tr></thead>
+  <tbody>
+    <tr><td>{{术语}}</td><td>{{一句话解释}}</td></tr>
+  </tbody>
+</table>
+
+<!-- ========== 二 公司概况 ========== -->
+<h2 id="s2">二、公司概况</h2>
+<table class="compact">
+  <tbody>
+    <tr><td style="width:24%">主体名称</td><td>{{全称（品牌）}}</td></tr>
+    <tr><td>统一社会信用代码</td><td>{{代码}}〔Sx〕</td></tr>
+    <tr><td>成立时间</td><td>{{YYYY-MM-DD}}〔Sx〕</td></tr>
+    <tr><td>注册地</td><td>{{地址}}〔Sx〕</td></tr>
+    <tr><td>注册资本</td><td>{{各阶段注册资本}}〔Sx〕</td></tr>
+    <tr><td>法定代表人 / 董事长</td><td>{{姓名、持股}}</td></tr>
+    <tr><td>实际控制人</td><td>{{结论或 <span class="gap">[DATA NEEDED: …]</span>}}</td></tr>
+    <tr><td>关联董监</td><td>{{股东方人员在公司的任职}}</td></tr>
+    <tr><td>最近一期财务</td><td>{{总资产、净资产、营收、净利润，注明是否审计}}〔Sx〕</td></tr>
+  </tbody>
+</table>
+<h3>2.1 股权结构</h3>
+<figure><!--CHART:holders--><figcaption>{{图 2-1 · 一句话说出股权结构的要点}}</figcaption></figure>
+<p>{{公告值与 BP 值对比后的结论；推断要写明“推断”，并说明依据。}}</p>
+<table class="compact financial">
+  <thead><tr><th>股东</th><th>{{公告日期}} 公告</th><th>{{BP 日期}} BP</th><th>变化</th><th style="text-align:left">背景</th></tr></thead>
+  <tbody>
+    <tr><td>{{股东}}</td><td>{{%}}</td><td>{{%}}</td><td>{{±}}</td><td style="text-align:left">{{背景}}</td></tr>
+  </tbody>
+</table>
+<p class="note">来源：{{〔Sx〕}}。</p>
+<h3>2.2 融资历程</h3>
+<table class="compact nums">
+  <thead><tr><th>轮次</th><th>时间</th><th>金额</th><th>投后估值</th><th>投资方</th></tr></thead>
+  <tbody>
+    <tr><td>{{轮次}}</td><td>{{时间}}</td><td>{{金额}}</td><td>{{估值}}</td><td>{{投资方}}</td></tr>
+  </tbody>
+</table>
+<h3>2.3 BP 关键主张核验</h3>
+<table class="compact">
+  <thead><tr><th style="width:30%">BP 主张</th><th style="width:14%">状态</th><th>证据与来源</th></tr></thead>
+  <tbody>
+    <tr><td>{{主张}}</td><td>{{已核验 / 部分核验 / 矛盾 / 无法核验}}</td><td>{{证据}}〔Sx〕</td></tr>
+  </tbody>
+</table>
+
+<!-- ========== 三 业务与产品 ========== -->
+<h2 id="s3">三、业务与产品</h2>
+<p>{{公司定位与业务边界一段。}}</p>
+<h3>3.1 产品在下游中的位置</h3>
+<figure>
+  <!-- 手绘示意 SVG：沿用 kami 配色（#1B365D 墨蓝、#faf9f5 象牙、#e8e6dc 边线），用墨蓝标出目标公司产品的位置 -->
+  {{示意图 SVG}}
+  <figcaption>{{图 3-1 · 一句话说明产品在下游的位置，注明“示意图，本报告绘制”}}</figcaption>
+</figure>
+<h3>3.2 产品线</h3>
+<table class="compact">
+  <thead><tr><th style="width:15%">产品</th><th>技术路线与关键参数</th><th>应用场景</th><th>进度</th><th>谁买单</th></tr></thead>
+  <tbody>
+    <tr><td><strong>{{产品}}</strong></td><td>{{路线与参数}}</td><td>{{场景}}</td><td>{{进度}}</td><td>{{客户}}</td></tr>
+  </tbody>
+</table>
+<h3>3.3 商业模式与收入逻辑</h3>
+<p>{{卖什么形态、收入分几层、毛利结构，与可比公司毛利率对照〔Sx〕。}}</p>
+<h3>3.4 评判产品的核心技术指标</h3>
+<p>读规格书时，每个指标都要先弄清“往哪个方向算好”：<span class="dir up">↑ 越大越好</span>，<span class="dir down">↓ 越小越好</span>，<span class="dir mid">◎ 越接近目标越好</span>。比较不同厂商的数字前，必须先对齐测试条件。</p>
+<h3>3.4.1 {{产品线 A}}</h3>
+<table class="compact spec">
+  <thead><tr><th style="width:13%">指标</th><th style="width:30%">通俗解释</th><th style="width:11%">方向</th><th style="width:26%">典型 / 头部水平</th><th>{{公司简称}}（BP）</th></tr></thead>
+  <tbody>
+    <tr><td>{{指标}}</td><td>{{通俗解释}}</td><td><span class="dir up">↑ 越大越好</span></td><td>{{数值与测试条件}}〔Sx〕</td><td>{{公司数值或 <span class="gap">[DATA NEEDED]</span>}}</td></tr>
+  </tbody>
+</table>
+<p class="note">来源：{{〔Sx〕}}。标注“待核实”的数值应以厂商规格书为准。</p>
+<h3>3.5 为什么是这条技术路线，为什么是这家</h3>
+<p>{{路线取舍；同一路线下目标公司与竞对的差异，以及还需要哪些证据证明。}}</p>
+<h3>3.6 生产流程与技术壁垒</h3>
+<table class="compact">
+  <thead><tr><th style="width:15%">工序</th><th>做什么</th><th>难在哪里</th><th>公司的承担方式</th></tr></thead>
+  <tbody>
+    <tr><td>{{1. 工序}}</td><td>{{内容}}</td><td>{{难点}}</td><td>{{自有 / 外协 / 依托股东}}</td></tr>
+  </tbody>
+</table>
+<h3>3.7 产业链</h3>
+<table class="compact">
+  <thead><tr><th style="width:14%">环节</th><th>内容</th><th>代表厂商</th></tr></thead>
+  <tbody>
+    <tr><td>{{上游 / 中游 / 下游}}</td><td>{{内容}}</td><td>{{厂商}}</td></tr>
+  </tbody>
+</table>
+
+<!-- ========== 四 市场与竞品 ========== -->
+<h2 id="s4">四、市场与竞品</h2>
+<h3>4.1 市场规模</h3>
+<figure><!--CHART:market--><figcaption>{{图 4-1 · 一句话说出规模与增速的要点}}</figcaption></figure>
+<p><strong>Top-down（自上而下）。</strong>{{第三方口径与数字〔Sx〕；与 BP 口径是否一致。}}</p>
+<p><strong>Bottom-up（自下而上）。</strong>{{公式 = 出货量 × 单位用量 × 单价；每个输入的来源；缺失单价用情景表。}}</p>
+<h3>4.2 竞争格局：全球头部与上市公司</h3>
+<table class="compact financial">
+  <thead><tr><th style="width:15%">公司</th><th style="width:13%">营收</th><th style="width:15%">归母净利</th><th style="text-align:left">与目标公司的重叠（角色：外售 / 自用 / 客户兼潜在自研方）</th></tr></thead>
+  <tbody>
+    <tr><td>{{公司 代码}}</td><td>{{数}}</td><td>{{数}}</td><td style="text-align:left">{{重叠与产品进展}}〔Sx〕</td></tr>
+  </tbody>
+</table>
+<h3>4.3 竞争格局：创业公司</h3>
+<table class="compact">
+  <thead><tr><th style="width:12%">公司</th><th style="width:7%">地点</th><th>产品重点</th><th>最新进展与融资</th><th>与目标公司相比</th></tr></thead>
+  <tbody>
+    <tr><td>{{公司}}</td><td>{{地点}}</td><td>{{产品}}</td><td>{{进展}}〔Sx〕</td><td>{{对比}}</td></tr>
+  </tbody>
+</table>
+<p>{{透过名单看本质：竞争已转向哪个维度，目标公司的窗口取决于什么。}}</p>
+
+<!-- ========== 五 团队 ========== -->
+<h2 id="s5">五、团队</h2>
+<table class="compact">
+  <thead><tr><th style="width:13%">姓名 / 职务</th><th style="width:43%">履历（BP 口径）</th><th>核验情况（含竞业、IP）</th></tr></thead>
+  <tbody>
+    <tr><td><strong>{{姓名}}</strong><br>{{职务}}</td><td>{{履历}}</td><td>{{已核验 / 部分核验 / 无法核验 + 证据}}〔Sx〕</td></tr>
+  </tbody>
+</table>
+<p>{{关键人依赖度与全职状态的判断。}}</p>
+
+<!-- ========== 六 经营与里程碑 ========== -->
+<h2 id="s6">六、经营与里程碑</h2>
+<h3>6.1 已发生的里程碑</h3>
+<table class="compact">
+  <thead><tr><th style="width:16%">时间</th><th>事件</th><th>来源</th></tr></thead>
+  <tbody><tr><td>{{时间}}</td><td>{{事件}}</td><td>{{Sx}}</td></tr></tbody>
+</table>
+<h3>6.2 未来节点</h3>
+<table class="compact">
+  <thead><tr><th style="width:16%">时间</th><th>预期事件</th><th>对收入预测的影响</th></tr></thead>
+  <tbody><tr><td>{{时间}}</td><td>{{事件}}</td><td>{{影响}}</td></tr></tbody>
+</table>
+<h3>6.3 收入情况与管理层预测</h3>
+<figure><!--CHART:forecast--><figcaption>{{图 6-1 · 一句话说出预测的要点}}</figcaption></figure>
+<table class="compact financial">
+  <thead><tr><th>万元</th><th>{{年份}}</th><th>{{年份}}</th><th>{{年份}}</th></tr></thead>
+  <tbody>
+    <tr><td>{{分项}}</td><td>{{数}}</td><td>{{数}}</td><td>{{数}}</td></tr>
+    <tr class="total"><td>营业收入</td><td>{{数}}</td><td>{{数}}</td><td>{{数}}</td></tr>
+  </tbody>
+</table>
+<p class="note">来源：{{〔Sx〕管理层预测，未经审计}}。{{分项合计与总额核对结果。}}</p>
+
+<!-- ========== 七 估值与交易 ========== -->
+<h2 id="s7">七、估值与交易</h2>
+<p>{{本轮条款：投前 / 投后、出让比例、资金用途、跑道测算。}}</p>
+<p>{{历轮估值变化及其支撑；对应管理层预测的 P/S、P/E（标注“本报告计算”）；可比上市公司与可比融资估值。}}</p>
+<p>{{关键假设与敏感性；条款建议。}}</p>
+
+<!-- ========== 八 风险与合规 ========== -->
+<h2 id="s8">八、风险与合规</h2>
+<div class="risk-grid">
+  <div class="risk-item"><div class="risk-label">{{技术}}</div><div class="risk-desc">{{量化描述，并说明对预测的影响}}</div></div>
+  <div class="risk-item"><div class="risk-label">{{供应链与产能}}</div><div class="risk-desc">{{…}}</div></div>
+  <div class="risk-item"><div class="risk-label">{{客户集中}}</div><div class="risk-desc">{{…}}</div></div>
+  <div class="risk-item"><div class="risk-label">{{竞争与价格}}</div><div class="risk-desc">{{…}}</div></div>
+  <div class="risk-item"><div class="risk-label">{{财务与估值}}</div><div class="risk-desc">{{…}}</div></div>
+  <div class="risk-item"><div class="risk-label">{{关联交易与治理}}</div><div class="risk-desc">{{…}}</div></div>
+  <div class="risk-item"><div class="risk-label">{{竞业与知识产权}}</div><div class="risk-desc">{{…}}</div></div>
+  <div class="risk-item"><div class="risk-label">{{信息披露与舆情}}</div><div class="risk-desc">{{…}}</div></div>
+</div>
+
+<div class="verdict">
+  <h3>总结</h3>
+  <p class="verdict-lead">{{一句话结论：建议、对估值的态度、最关键的假设。}}</p>
+  <dl class="verdict-list">
+    <dt>看多核心</dt><dd>{{…}}</dd>
+    <dt>看空核心</dt><dd>{{…}}</dd>
+    <dt>决策条件</dt><dd>{{拿到哪些证据后再决定}}</dd>
+    <dt>条款建议</dt><dd>{{…}}</dd>
+  </dl>
+</div>
+
+<!-- ========== 附录 ========== -->
+<h2 id="sa">附录 A：管理层访谈问题清单</h2>
+<ol class="qa">
+  <li>{{每一个未核验事项与 [DATA NEEDED] 缺口都对应一个问题}}</li>
+</ol>
+<h2 id="sb">附录 B：数据来源</h2>
+<ol class="sources">
+  <li id="S1">〔S1〕{{来源名称，日期，URL}}</li>
+</ol>
+<p class="note">数据说明：标注“本报告计算”的数字由所列输入推导得出；<span class="gap legend">[DATA NEEDED]</span> 表示信息缺口，需在尽调中补齐。</p>
+
+<div class="report-footer">
+  <span>仅供内部投资评估使用，不构成投资建议</span>
+  <span>项目基本信息报告 · {{报告日期}}</span>
+</div>
+
+</main>
+<!--JC:SCRIPTS-->
+</body>
+</html>
