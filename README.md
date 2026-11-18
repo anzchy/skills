@@ -15,15 +15,12 @@ A Claude Code **plugin marketplace** by [@anzchy](https://github.com/anzchy) —
 
 | Plugin | Category | What's inside |
 |--------|----------|---------------|
-| [jack-prompting](./plugins/jack-prompting) | productivity | `jack-ask` (router) · `jack-meta-think` · `jack-prompt-master` · `jack-loop-prompt` — work on the prompt before any code |
-| [jack-engineering](./plugins/jack-engineering) | productivity | `jack-audit-fable` · `jack-review-plan-fable` · `jack-auto-fix` · `jack-audit-branches` — review and audit code and plans |
-| [jack-git](./plugins/jack-git) | productivity | `gh-commit` · `gh-pr` · `gh-release` — ship with the `gh` CLI |
-| [jack-html-preview](./plugins/jack-html-preview) | productivity | one-file interactive HTML explainer for a folder, repo, or Markdown file |
+| [jack-prompting](./plugins/jack-prompting) | productivity | `iyow` — restate the user's goal in your own words before any work starts |
 | [songy-course-exporter](./plugins/songy-course-exporter) | utility | export a Songy course (personal tool, installed disabled by default) |
 | [writing-truth](./plugins/writing-truth) | writing | `dissect-author-mind` (L1) · `logic-template-lens` (L4) · `rhetoric-lens` (L5) — from 《写作的真相》 |
 | [jack-work](./plugins/jack-work) | productivity | `interview-notes` — sync raw interview transcripts into one consolidated Q&A memo, additively · `jc-basic-report` — VC basic-information report as one self-contained HTML, with TOC, annotations and browser tests · `expense-reimbursement` — receipts → filled reimbursement forms with rule checks |
 
-Plugins are small on purpose — install only the ones you want. Skills are namespaced as `/<plugin>:<skill>`, e.g. `/jack-prompting:jack-meta-think`, `/writing-truth:rhetoric-lens`. Not sure which skill? `/jack-prompting:jack-ask <your ask>` routes across all of them.
+Plugins are small on purpose — install only the ones you want. Skills are namespaced as `/<plugin>:<skill>`, e.g. `/jack-prompting:iyow`, `/writing-truth:rhetoric-lens`.
 
 ## Install
 
@@ -31,9 +28,6 @@ Plugins are small on purpose — install only the ones you want. Skills are name
 # add this repo as a marketplace, then install the plugin(s) you want
 /plugin marketplace add anzchy/skills
 /plugin install jack-prompting@jack-cheng-marketplace
-/plugin install jack-engineering@jack-cheng-marketplace
-/plugin install jack-git@jack-cheng-marketplace
-/plugin install jack-html-preview@jack-cheng-marketplace
 /plugin install writing-truth@jack-cheng-marketplace
 /plugin install jack-work@jack-cheng-marketplace
 ```
@@ -48,10 +42,7 @@ After install, restart your Claude Code session so the new skills are picked up.
 .claude-plugin/
   marketplace.json       # marketplace manifest; metadata.pluginRoot = ./plugins
 plugins/
-  jack-prompting/        # .claude-plugin/plugin.json + skills/{jack-ask,jack-meta-think,jack-prompt-master,jack-loop-prompt}
-  jack-engineering/      # skills/{jack-audit-fable,jack-review-plan-fable,jack-auto-fix,jack-audit-branches}
-  jack-git/              # skills/{gh-commit,gh-pr,gh-release}
-  jack-html-preview/     # single-skill plugin: SKILL.md at the plugin root
+  jack-prompting/        # .claude-plugin/plugin.json + skills/iyow
   songy-course-exporter/ # skills/songy-course-exporter (defaultEnabled: false)
   writing-truth/         # skills/{dissect-author-mind,logic-template-lens,rhetoric-lens} + knowledge/
   jack-work/             # skills/interview-notes, jc-basic-report, expense-reimbursement
@@ -85,24 +76,18 @@ MIT
 
 | 插件 | 类别 | 内含 |
 |------|------|------|
-| [jack-prompting](./plugins/jack-prompting) | 生产力 | `jack-ask`（路由）、`jack-meta-think`、`jack-prompt-master`、`jack-loop-prompt` —— 写代码之前先把提示词做对 |
-| [jack-engineering](./plugins/jack-engineering) | 生产力 | `jack-audit-fable`、`jack-review-plan-fable`、`jack-auto-fix`、`jack-audit-branches` —— 审代码、审计划 |
-| [jack-git](./plugins/jack-git) | 生产力 | `gh-commit`、`gh-pr`、`gh-release` —— 用 `gh` CLI 提交 / PR / 发布 |
-| [jack-html-preview](./plugins/jack-html-preview) | 生产力 | 把目录、仓库或 Markdown 变成单文件交互式 HTML 讲解页 |
+| [jack-prompting](./plugins/jack-prompting) | 生产力 | `iyow` —— 动手前用自己的话复述用户的目标和要解决的问题 |
 | [songy-course-exporter](./plugins/songy-course-exporter) | 工具 | 导出 Songy 课程（个人工具，默认不启用） |
 | [writing-truth](./plugins/writing-truth) | 写作 | `dissect-author-mind`（第一课）、`logic-template-lens`（第四课）、`rhetoric-lens`（第五课） |
 | [jack-work](./plugins/jack-work) | 生产力 | `interview-notes` —— 把访谈原始记录增量并入一份汇总问答纪要，只增不改 · `jc-basic-report` —— 生成单文件 HTML 项目基本信息报告（侧栏目录、批注、浏览器测试） · `expense-reimbursement` —— 从票据填好报销单并按规则校验 |
 
-插件刻意拆得很小，只装你需要的。skill 以 `/<插件>:<skill>` 调用，如 `/jack-prompting:jack-meta-think`、`/writing-truth:rhetoric-lens`。不知道该用哪个？`/jack-prompting:jack-ask <你的需求>` 会跨插件路由。
+插件刻意拆得很小，只装你需要的。skill 以 `/<插件>:<skill>` 调用，如 `/jack-prompting:iyow`、`/writing-truth:rhetoric-lens`。
 
 ### 安装
 
 ```bash
 /plugin marketplace add anzchy/skills
 /plugin install jack-prompting@jack-cheng-marketplace
-/plugin install jack-engineering@jack-cheng-marketplace
-/plugin install jack-git@jack-cheng-marketplace
-/plugin install jack-html-preview@jack-cheng-marketplace
 /plugin install writing-truth@jack-cheng-marketplace
 /plugin install jack-work@jack-cheng-marketplace
 ```
