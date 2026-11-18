@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **jack-work 0.1.1 — `jc-basic-report` 0.1.0.** Builds a VC basic-information report as one self-contained HTML from a BP: Kami-derived design, JSON chart specs, sidebar TOC, highlight/underline/note annotations, a build script that blocks on unfilled placeholders and lists data gaps, and a Playwright test suite with a listed-company sample fixture.
+- **jack-work 0.1.1 — `expense-reimbursement` 0.1.0.** Receipts → filled reimbursement forms (市内交通 / 出差 / 招待) with preflight, calculators and rule checks. Templates are de-identified (no company name, author metadata or sample personal data).
+
 ## [0.2.5] - 2026-08-23
 
 ### Added

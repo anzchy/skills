@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!-- 测试样例：以沐曦股份（688802）为例，按 assets/template.html 填写。
+     数据由检索摘要整理，未逐项复核，仅用于测试与演示，不作投资依据。 -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="report-id" content="fixture-metax-basic-report">
+<title>沐曦股份 · 项目基本信息报告（样例）</title>
+<meta name="author" content="jc-basic-report">
+<meta name="description" content="沐曦股份（688802）项目基本信息报告样例，用于 jc-basic-report 的测试与演示。">
+<meta name="keywords" content="沐曦股份, GPU, 科创板, 样例">
+<meta name="generator" content="jc-basic-report (design: Kami)">
+<!--JC:CSS-->
+</head>
+<body>
+
+<aside id="side" class="side" aria-label="阅读工具">
+  <div class="side-head">
+    <span class="side-title">沐曦股份 · 基本信息报告</span>
+    <button id="side-toggle" class="side-btn" type="button" aria-controls="side" aria-expanded="true" title="收起侧栏">«</button>
+  </div>
+  <div class="side-tabs" role="tablist">
+    <button class="side-tab" type="button" role="tab" data-tab="toc" aria-selected="true">目录</button>
+    <button class="side-tab" type="button" role="tab" data-tab="ann" aria-selected="false">批注<span id="ann-count"></span></button>
+  </div>
+  <div class="side-pane" id="pane-toc" role="tabpanel"><nav class="js-toc" aria-label="报告目录"></nav></div>
+  <div class="side-pane" id="pane-ann" role="tabpanel" hidden>
+    <p class="ann-hint">选中正文即可高亮、划线或添加备注。批注只保存在本机浏览器里，换电脑或分享前请先导出。</p>
+    <div class="ann-tools">
+      <button id="ann-export" type="button">导出 JSON</button>
+      <button id="ann-import" type="button">导入</button>
+      <button id="ann-clear" type="button">清空</button>
+      <input type="file" id="ann-file" accept="application/json,.json" hidden>
+    </div>
+    <div id="ann-list"></div>
+  </div>
+</aside>
+
+<main id="report">
+
+<div class="report-header">
+  <div class="ticker-block">
+    <div class="ticker-eyebrow">项目基本信息报告 · 样例</div>
+    <div class="ticker-name">沐曦股份 <span style="font-size: 14pt; color: var(--stone);">MetaX · 688802</span></div>
+    <div class="ticker-sub">沐曦集成电路（上海）股份有限公司 · 国产通用 GPU · 收入快速增长，扣非仍亏损</div>
+  </div>
+  <div class="price-block">
+    <div class="price-current">≈2,657 亿</div>
+    <div class="price-change up">市值（2026-09）</div>
+    <div class="price-date">2026-11-18</div>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="metric-value">41.97 亿</div><div class="metric-label">IPO 募资</div></div>
+  <div class="metric"><div class="metric-value">16.44 亿</div><div class="metric-label">2025 年营收</div></div>
+  <div class="metric"><div class="metric-value">+121%</div><div class="metric-label">营收增速</div></div>
+  <div class="metric"><div class="metric-value">-12.97 亿</div><div class="metric-label">H1 经营现金流</div></div>
+</div>
+
+<p class="note">本样例数据由检索摘要整理，未逐项复核，仅用于测试与演示，不作投资依据。</p>
+
+<h2 id="s0" class="with-rating">〇、投资要点<span class="h2-rating">建议<b>样例</b></span></h2>
+<p>沐曦股份是国产通用 GPU 公司，2025 年 12 月 17 日在科创板上市，发行价 104.66 元/股，募资总额 41.97 亿元〔S1〕。2025 年营收 16.44 亿元，同比增长 121.26%，归母净利润仍为 -7.89 亿元〔S3〕。</p>
+<p>2026 年上半年归母净利润转正为 6.12 亿元，但其中 8.87 亿元来自公允价值变动收益，扣非净利润仍为 <span class="hl">-0.49 亿元</span>，公司自认不可持续〔S4〕。</p>
+<ul class="thesis">
+  <li><strong>收入高速增长。</strong>营收从 2023 年 0.53 亿元增长到 2025 年 16.44 亿元〔S3〕。</li>
+  <li><strong>盈利质量待验证。</strong>2026H1 经营现金流 -12.97 亿元，存货 14.32 亿元、预付款 21.96 亿元〔S4〕。</li>
+  <li><strong>估值处于高位。</strong>市值约 2,657 亿元，对应 2025 年营收约 162 倍市销率（本报告计算）〔S4〕。</li>
+</ul>
+
+<h2 id="s1">一、关键概念及定义</h2>
+<p>本章假设读者不了解 AI 芯片，从“为什么需要 GPU”讲到“沐曦的产品处在哪个位置”，分三层说明。</p>
+<h3>1.1 第一层：为什么 AI 需要 GPU</h3>
+<p>训练和运行大模型需要同时完成海量的矩阵乘法。GPU 拥有成千上万个并行计算单元，适合这类计算，因此成为 AI 算力的主力芯片。</p>
+<h3>1.2 第二层：通用 GPU 与专用芯片</h3>
+<p>通用 GPU（GPGPU）可以运行多种算法，生态兼容性好；专用芯片针对特定算法优化，能效更高但灵活性较差。两者的竞争焦点是软件生态与性能功耗比。</p>
+<h3>1.3 术语表</h3>
+<table class="compact glossary">
+  <thead><tr><th>术语</th><th>解释</th></tr></thead>
+  <tbody>
+    <tr><td>GPGPU</td><td>通用图形处理器，既能做图形渲染，也能做通用并行计算</td></tr>
+    <tr><td>训推一体</td><td>同一款芯片既用于模型训练，也用于推理</td></tr>
+    <tr><td>回片点亮</td><td>芯片流片后拿回样片，首次通电运行成功</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s2">二、公司概况</h2>
+<table class="compact">
+  <tbody>
+    <tr><td style="width:24%">主体名称</td><td>沐曦集成电路（上海）股份有限公司〔S1〕</td></tr>
+    <tr><td>股票代码</td><td>688802（上交所科创板），2025-12-17 上市〔S1〕</td></tr>
+    <tr><td>成立时间</td><td>2020-09-14；2024-12-27 整体变更为股份公司〔S2〕</td></tr>
+    <tr><td>注册地</td><td>上海临港新片区（未经工商核验）</td></tr>
+    <tr><td>实际控制人</td><td>陈维良，与上海骄迈、上海曦骥为一致行动人，发行前合计持股 22.94%〔S2〕</td></tr>
+  </tbody>
+</table>
+<h3>2.1 股权结构</h3>
+<figure><!--CHART:holders--><figcaption>图 2-1 · 实控人及一致行动人合计约 20.6%，股权较分散</figcaption></figure>
+<p>发行前一致行动人合计 22.94%。按发行后总股本由 36,000 万股增至 40,010 万股稀释，约为 20.64%（本报告计算），与前三大股东合计 20.63% 一致〔S2〕。</p>
+<h3>2.2 融资历程</h3>
+<table class="compact nums">
+  <thead><tr><th>轮次</th><th>时间</th><th>金额</th><th>投后估值</th><th>投资方</th></tr></thead>
+  <tbody>
+    <tr><td>A 轮</td><td>2021-08</td><td>约 10 亿元</td><td><span class="gap">[DATA NEEDED: A 轮估值]</span></td><td>国调基金、中网投、经纬创投、红杉中国等（媒体转述）</td></tr>
+    <tr><td>Pre-IPO</td><td>2025-02/03</td><td><span class="gap">[DATA NEEDED]</span></td><td>210.71 亿元</td><td>两次增资〔S5〕</td></tr>
+    <tr class="total"><td>IPO</td><td>2025-12</td><td>41.97 亿元</td><td>—</td><td>发行 4,010 万股，净额 38.99 亿元〔S1〕</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s3">三、业务与产品</h2>
+<h3>3.1 产品线</h3>
+<table class="compact">
+  <thead><tr><th style="width:18%">产品</th><th>定位</th><th>进展</th></tr></thead>
+  <tbody>
+    <tr><td><strong>曦云 C 系列</strong></td><td>训推一体通用 GPU</td><td>C500 已部署于 10 余个国家级或省级智算中心；C600 已回片点亮；C700 设计中〔S5〕</td></tr>
+    <tr><td><strong>曦思 N 系列</strong></td><td>智算推理芯片</td><td>N300 为 IPO 募投项目〔S5〕</td></tr>
+    <tr><td><strong>曦彩 G 系列</strong></td><td>图形渲染 GPU</td><td>未找到量产信息</td></tr>
+  </tbody>
+</table>
+<h3>3.2 评判产品的核心技术指标</h3>
+<p>读规格书时先弄清方向：<span class="dir up">↑ 越大越好</span>，<span class="dir down">↓ 越小越好</span>，<span class="dir mid">◎ 越接近目标越好</span>。</p>
+<table class="compact spec">
+  <thead><tr><th style="width:14%">指标</th><th style="width:34%">通俗解释</th><th style="width:12%">方向</th><th>沐曦</th></tr></thead>
+  <tbody>
+    <tr><td>算力（TFLOPS）</td><td>每秒能做多少万亿次浮点运算，相当于发动机马力</td><td><span class="dir up">↑ 越大越好</span></td><td><span class="gap">[DATA NEEDED]</span></td></tr>
+    <tr><td>显存带宽</td><td>芯片读写数据的速度，决定算力能否跑满</td><td><span class="dir up">↑ 越大越好</span></td><td><span class="gap">[DATA NEEDED]</span></td></tr>
+    <tr><td>功耗</td><td>运行时耗电量，影响机房电费与散热</td><td><span class="dir down">↓ 越小越好</span></td><td><span class="gap">[DATA NEEDED]</span></td></tr>
+  </tbody>
+</table>
+
+<h2 id="s4">四、市场与竞品</h2>
+<h3>4.1 竞争格局：上市公司与创业公司</h3>
+<table class="compact">
+  <thead><tr><th style="width:18%">公司</th><th>状态</th><th>与沐曦相比</th></tr></thead>
+  <tbody>
+    <tr><td>摩尔线程</td><td>2025-12 科创板上市〔S6〕</td><td>同为全功能 GPU 路线</td></tr>
+    <tr><td>寒武纪</td><td>科创板上市</td><td>专用 AI 芯片路线，行业对标</td></tr>
+    <tr><td>燧原科技</td><td>2026-09 科创板上市〔S6〕</td><td>非 GPGPU 架构，客户集中于腾讯</td></tr>
+    <tr><td>壁仞科技</td><td>2026-01 港交所上市〔S6〕</td><td>通用 GPU 路线</td></tr>
+  </tbody>
+</table>
+<p>国产 GPU 赛道的头部公司已陆续上市，竞争重点正从“能否流片”转向软件生态、量产交付和盈利质量。</p>
+
+<h2 id="s5">五、团队</h2>
+<table class="compact">
+  <thead><tr><th style="width:16%">姓名 / 职务</th><th>履历</th><th style="width:22%">核验情况</th></tr></thead>
+  <tbody>
+    <tr><td><strong>陈维良</strong><br>董事长、总经理</td><td>此前在 AMD 约 13 年，任全球 GPGPU 设计总负责人</td><td>部分核验（媒体转述）</td></tr>
+    <tr><td><strong>彭莉</strong><br>CTO（硬件）</td><td>此前为 AMD Fellow</td><td>部分核验（媒体转述）</td></tr>
+    <tr><td><strong>杨建</strong><br>CTO（软件）</td><td>此前为 AMD 大中华区 Fellow，早年任职海思</td><td>部分核验（媒体转述）</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s6">六、经营与里程碑</h2>
+<h3>6.1 收入与利润</h3>
+<figure><!--CHART:finance--><figcaption>图 6-1 · 营收逐年翻倍以上，2026H1 利润转正主要来自公允价值变动收益</figcaption></figure>
+<table class="compact financial">
+  <thead><tr><th>亿元</th><th>2023</th><th>2024</th><th>2025</th><th>2026H1</th></tr></thead>
+  <tbody>
+    <tr><td>营业收入</td><td>0.53</td><td>7.43</td><td>16.44</td><td>13.24</td></tr>
+    <tr><td>归母净利润</td><td>-8.71</td><td>-14.09</td><td>-7.89</td><td>6.12</td></tr>
+  </tbody>
+</table>
+<p class="note">来源：〔S3, S4〕。2023 年数据另有媒体口径为营收 1.07 亿元、亏损 8.46 亿元，本样例未采用。</p>
+
+<h2 id="s7">七、估值与交易</h2>
+<p>Pre-IPO 投后估值 210.71 亿元〔S5〕，2026 年 9 月市值约 2,657 亿元〔S4〕，约为 Pre-IPO 估值的 12.6 倍（本报告计算）。按 2025 年营收计算，市销率约 162 倍（本报告计算）。</p>
+
+<h2 id="s8">八、风险与合规</h2>
+<div class="risk-grid">
+  <div class="risk-item"><div class="risk-label">盈利能力</div><div class="risk-desc">扣非仍亏损，2026H1 盈利依赖 8.87 亿元公允价值变动收益〔S4〕。</div></div>
+  <div class="risk-item"><div class="risk-label">现金流与资产质量</div><div class="risk-desc">2026H1 经营现金流 -12.97 亿元；存货 14.32 亿元、预付款 21.96 亿元，存在减值风险〔S4〕。</div></div>
+  <div class="risk-item"><div class="risk-label">解禁与估值</div><div class="risk-desc">2026-09-17 首批解禁占股本 3.49%，2028 年有大额解禁〔S4〕。</div></div>
+  <div class="risk-item"><div class="risk-label">数据口径</div><div class="risk-desc">2023 年财务存在两种媒体口径，需以招股书原文为准。</div></div>
+</div>
+
+<div class="verdict">
+  <h3>总结</h3>
+  <p class="verdict-lead">样例结论：收入高速增长已被验证，盈利质量与现金流是下一阶段的关键观察点。</p>
+  <dl class="verdict-list">
+    <dt>看多核心</dt><dd>C500 已在多个智算中心部署，收入连续高增长</dd>
+    <dt>看空核心</dt><dd>扣非亏损、经营现金流为负、估值处于高位</dd>
+  </dl>
+</div>
+
+<h2 id="sa">附录 A：管理层访谈问题清单</h2>
+<ol class="qa">
+  <li>A 轮与 Pre-IPO 各轮的金额与估值。</li>
+  <li>主要产品的算力、显存带宽与功耗实测值。</li>
+</ol>
+<h2 id="sb">附录 B：数据来源</h2>
+<ol class="sources">
+  <li id="S1">〔S1〕沐曦股份上市公告书（证券之星转载），2025-12-15</li>
+  <li id="S2">〔S2〕沐曦股份上市保荐书，上交所，2025-10-24</li>
+  <li id="S3">〔S3〕新浪财经，沐曦股份 2025 年年报解读，2026-03-26</li>
+  <li id="S4">〔S4〕腾讯新闻，沐曦股份 2026 年半年报分析，2026-09-03</li>
+  <li id="S5">〔S5〕搜狐 / AI 资本局，沐曦 IPO 分析，2025-10-19</li>
+  <li id="S6">〔S6〕同花顺，国产 GPU 公司上市进展，2026-09-09</li>
+</ol>
+<p class="note">数据说明：标注“本报告计算”的数字由所列输入推导得出；<span class="gap legend">[DATA NEEDED]</span> 表示信息缺口。</p>
+
+<div class="report-footer">
+  <span>样例报告，仅用于测试与演示</span>
+  <span>项目基本信息报告 · 2026-11-18</span>
+</div>
+
+</main>
+<!--JC:SCRIPTS-->
+</body>
+</html>

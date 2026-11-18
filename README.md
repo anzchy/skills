@@ -21,7 +21,7 @@ A Claude Code **plugin marketplace** by [@anzchy](https://github.com/anzchy) —
 | [jack-html-preview](./plugins/jack-html-preview) | productivity | one-file interactive HTML explainer for a folder, repo, or Markdown file |
 | [songy-course-exporter](./plugins/songy-course-exporter) | utility | export a Songy course (personal tool, installed disabled by default) |
 | [writing-truth](./plugins/writing-truth) | writing | `dissect-author-mind` (L1) · `logic-template-lens` (L4) · `rhetoric-lens` (L5) — from 《写作的真相》 |
-| [jack-work](./plugins/jack-work) | productivity | `interview-notes` — sync raw interview transcripts into one consolidated Q&A memo, additively |
+| [jack-work](./plugins/jack-work) | productivity | `interview-notes` — sync raw interview transcripts into one consolidated Q&A memo, additively · `jc-basic-report` — VC basic-information report as one self-contained HTML, with TOC, annotations and browser tests · `expense-reimbursement` — receipts → filled reimbursement forms with rule checks |
 
 Plugins are small on purpose — install only the ones you want. Skills are namespaced as `/<plugin>:<skill>`, e.g. `/jack-prompting:jack-meta-think`, `/writing-truth:rhetoric-lens`. Not sure which skill? `/jack-prompting:jack-ask <your ask>` routes across all of them.
 
@@ -54,7 +54,7 @@ plugins/
   jack-html-preview/     # single-skill plugin: SKILL.md at the plugin root
   songy-course-exporter/ # skills/songy-course-exporter (defaultEnabled: false)
   writing-truth/         # skills/{dissect-author-mind,logic-template-lens,rhetoric-lens} + knowledge/
-  jack-work/             # skills/interview-notes (+ references/profile-zh.md)
+  jack-work/             # skills/interview-notes, jc-basic-report, expense-reimbursement
 docs/                    # planning docs and reference texts (not installed)
 CHANGELOG.md
 ```
@@ -91,7 +91,7 @@ MIT
 | [jack-html-preview](./plugins/jack-html-preview) | 生产力 | 把目录、仓库或 Markdown 变成单文件交互式 HTML 讲解页 |
 | [songy-course-exporter](./plugins/songy-course-exporter) | 工具 | 导出 Songy 课程（个人工具，默认不启用） |
 | [writing-truth](./plugins/writing-truth) | 写作 | `dissect-author-mind`（第一课）、`logic-template-lens`（第四课）、`rhetoric-lens`（第五课） |
-| [jack-work](./plugins/jack-work) | 生产力 | `interview-notes` —— 把访谈原始记录增量并入一份汇总问答纪要，只增不改 |
+| [jack-work](./plugins/jack-work) | 生产力 | `interview-notes` —— 把访谈原始记录增量并入一份汇总问答纪要，只增不改 · `jc-basic-report` —— 生成单文件 HTML 项目基本信息报告（侧栏目录、批注、浏览器测试） · `expense-reimbursement` —— 从票据填好报销单并按规则校验 |
 
 插件刻意拆得很小，只装你需要的。skill 以 `/<插件>:<skill>` 调用，如 `/jack-prompting:jack-meta-think`、`/writing-truth:rhetoric-lens`。不知道该用哪个？`/jack-prompting:jack-ask <你的需求>` 会跨插件路由。
 
