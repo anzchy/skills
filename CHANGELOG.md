@@ -6,14 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-11-19
+
 ### Removed
 - **Plugins `jack-engineering`, `jack-git` and `jack-html-preview` retired** — removed from the repo and the marketplace. Uninstall with `/plugin uninstall <name>@jack-cheng-marketplace`. `writing-truth`'s `dissect-author-mind` already falls back to writing the HTML directly when `jack-html-preview` is absent.
 - **jack-prompting: `jack-ask`, `jack-loop-prompt`, `jack-meta-think` and `jack-prompt-master` retired.**
 
 ### Added
-- **jack-prompting 0.1.6 — `iyow`.** User-invoked skill that restates the user's goal and the problem behind it in its own words before work starts; now the plugin's only skill.
+- **jack-prompting 0.1.6 — `iyow` 0.1.0.** User-invoked skill that restates the user's goal and the problem behind it in its own words before work starts; now the plugin's only skill.
 - **jack-work 0.1.1 — `jc-basic-report` 0.1.0.** Builds a VC basic-information report as one self-contained HTML from a BP: Kami-derived design, JSON chart specs, sidebar TOC, highlight/underline/note annotations, a build script that blocks on unfilled placeholders and lists data gaps, and a Playwright test suite with a listed-company sample fixture.
 - **jack-work 0.1.1 — `expense-reimbursement` 0.1.0.** Receipts → filled reimbursement forms (市内交通 / 出差 / 招待) with preflight, calculators and rule checks. Templates are de-identified (no company name, author metadata or sample personal data).
+
+---
 
 ## [0.2.6] - 2026-08-25
 
@@ -110,7 +114,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.7...HEAD
+[0.2.7]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.7
 [0.2.6]: https://github.com/anzchy/skills/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/anzchy/skills/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.4
