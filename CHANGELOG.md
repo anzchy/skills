@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-11-19
+
 ### Added
-- **jack-work 0.1.2 — `jc-basic-report` 0.1.1: docx export.** `scripts/docx/` converts a built report HTML into an editable docx with pandoc + python-docx, styled from `report.css` (TsangerJinKai02 body at a fixed 15pt line, compact tables at 11.2pt that never split across pages, centred captions, a flush-right rating badge, side-by-side `.two-col` charts). Ships `render.py` (LibreOffice with a `fonts.conf` so CJK text survives headless rendering) and `compare.py` (page-by-page HTML vs docx sheets). New tests cover the docx and its rendering; the sample fixture gains a `.two-col` block with a 2023–2025 revenue chart. Docs in `references/docx.md` (#4).
+- **jack-work 0.1.2 — `jc-basic-report` 0.1.1: docx export.** `scripts/docx/` converts a built report HTML into an editable docx with pandoc + python-docx, styled from `report.css` (TsangerJinKai02 body at a fixed 15pt line, compact tables at 11.2pt that never split across pages, centred captions, a flush-right rating badge, side-by-side `.two-col` charts). Ships `render.py` (LibreOffice with a `fonts.conf` so CJK text survives headless rendering) and `compare.py` (page-by-page HTML vs docx sheets). New tests cover the docx and its rendering; the sample fixture gains a `.two-col` block with a 2023–2025 revenue chart. Docs in `references/docx.md` (closes #4).
+
+---
 
 ## [0.2.7] - 2026-11-19
 
@@ -117,7 +121,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.7...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.8...HEAD
+[0.2.8]: https://github.com/anzchy/skills/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.7
 [0.2.6]: https://github.com/anzchy/skills/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/anzchy/skills/compare/v0.2.4...v0.2.5
