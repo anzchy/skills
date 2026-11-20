@@ -1,6 +1,6 @@
 {
   "name": "jack-work",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Knowledge-work skills for research, investment and consulting output: interview-notes syncs raw interview transcripts into a consolidated Q&A memo additively; jc-basic-report builds a VC basic-information report as one self-contained HTML (Kami design, sidebar TOC, annotations, browser tests); expense-reimbursement turns receipts into filled reimbursement forms with rule checks.",
   "author": {
     "name": "anzchy",

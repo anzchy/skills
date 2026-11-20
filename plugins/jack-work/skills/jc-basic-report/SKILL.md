@@ -1,7 +1,7 @@
 ---
 name: jc-basic-report
-description: 'Build a VC 项目基本信息报告 (basic-information due-diligence report) as one self-contained HTML file from a company BP, following the 大纲 V 0.0.2 (投资要点、概念、公司概况与 BP 核验、产品与技术指标、市场与竞品、团队、经营、估值、风险、附录). Kami parchment design, data charts from JSON specs, left sidebar TOC, highlight/underline/note annotations, and a browser test suite. Use when asked to 写/做 项目基本信息报告、尽调报告、BP 分析报告, or to rebuild/verify such a report HTML.'
-version: 0.1.0
+description: 'Build a VC 项目基本信息报告 (basic-information due-diligence report) as one self-contained HTML file from a company BP, optionally exported to an editable docx, following the 大纲 V 0.0.2 (投资要点、概念、公司概况与 BP 核验、产品与技术指标、市场与竞品、团队、经营、估值、风险、附录). Kami parchment design, data charts from JSON specs, left sidebar TOC, highlight/underline/note annotations, and a browser test suite. Use when asked to 写/做 项目基本信息报告、尽调报告、BP 分析报告, or to rebuild/verify such a report HTML, or to 转成 Word/docx.'
+version: 0.1.1
 ---
 
 # jc-basic-report
@@ -17,10 +17,12 @@ version: 0.1.0
 | `references/outline.md` | 报告大纲与验收标准（V 0.0.2）。动笔前先读 |
 | `references/design.md` | 版式规则与组件用法（从 Kami 精简） |
 | `references/charts.md` | 图表 JSON 规格 |
+| `references/docx.md` | 导出 docx：依赖、字体、样式与 CSS 的对应、排错 |
 | `assets/template.html` | 脱敏后的报告骨架，含全部组件和 `{{占位符}}` |
 | `assets/report.css`, `assets/ui.css`, `assets/ui.js`, `assets/vendor/` | 构建时内联进 HTML，不要手改生成后的文件 |
 | `scripts/build.py` | 源文件 + 图表规格 → 单文件 HTML |
 | `scripts/chart.py` | Kami 图表生成器（MIT），由 build.py 调用 |
+| `scripts/docx/` | 报告 HTML → 可编辑 docx（pandoc + python-docx），含 LibreOffice 渲染与逐页对比工具 |
 | `tests/` | 构建与浏览器测试；`tests/fixtures/sample` 是以沐曦股份为例的样例报告 |
 
 ## 流程
@@ -67,11 +69,12 @@ python3 <skill>/scripts/build.py report.src.html -o <公司>-项目基本信息�
 ### 5. 测试
 
 ```bash
-uv run --with pytest --with playwright python -m pytest <skill>/tests --report <生成的报告>.html
+uv run --with pytest --with playwright --with python-docx --with pymupdf python -m pytest <skill>/tests --report <生成的报告>.html
 ```
 
 - 用本机 Chrome 跑，无需下载浏览器。不带 `--report` 时测试内置样例。
-- 覆盖：构建脚本行为、侧栏目录（生成、跳转高亮、折叠及记忆）、批注（高亮、划线、备注、刷新后保留、删除、列表跳转、导出导入）。
+- 覆盖：构建脚本行为、侧栏目录（生成、跳转高亮、折叠及记忆）、批注（高亮、划线、备注、刷新后保留、删除、列表跳转、导出导入）、docx 导出（样式、内容、渲染）。
+- docx 渲染测试在缺 LibreOffice 或今楷字体时自动跳过，见 `references/docx.md`。
 - 全部通过才算完成。
 
 ### 6. 目视检查
@@ -80,7 +83,21 @@ uv run --with pytest --with playwright python -m pytest <skill>/tests --report <
 - 重点检查：标题区公司名是否折行（标题用简称）、四个关键数字标签是否溢出（每个 ≤8 字）、两栏图表是否过小（改用 `"size": "compact"`），数字列是否折行，表格列宽是否失衡，标签是否继承了首行缩进。
 - 每轮修最明显的三处，最多三轮。
 
-### 7. 交付
+### 7. 导出 docx（可选）
+
+用户要 Word 版时：
+
+```bash
+W=$(mktemp -d)
+uv run --with playwright python <skill>/scripts/docx/prep.py <报告>.html $W
+uv run --with python-docx python <skill>/scripts/docx/build_docx.py $W <报告>.docx
+uv run --with playwright --with pymupdf --with pillow python <skill>/scripts/docx/compare.py <报告>.html <报告>.docx <对比目录>
+```
+
+- 依赖 pandoc、Chrome、LibreOffice。仓耳今楷 TsangerJinKai02 必须装在 `~/Library/Fonts`，否则 Chrome 和 Word 都会换成别的字体。详见 `references/docx.md`。
+- 打开 `compare.py` 生成的逐页并排图，检查图表是否完整、表格是否跨页、页数与 HTML 是否接近。
+
+### 8. 交付
 
 在回复里写明：
 
