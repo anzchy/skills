@@ -179,3 +179,31 @@ class Reader:
 def reader(context, report_path):
     page = context.new_page()
     return Reader(page, report_path.as_uri()).open()
+
+
+# ---------- docx export (scripts/docx) ----------
+DOCX = SKILL / "scripts" / "docx"
+
+
+@pytest.fixture(scope="session")
+def source_html(report_path) -> str:
+    """The report HTML as a reader opens it; expected counts in the docx tests are read from it."""
+    return report_path.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="session")
+def docx_path(report_path, tmp_path_factory) -> Path:
+    """Convert the report the way a user would: prep.py, then build_docx.py."""
+    wd = tmp_path_factory.mktemp("docx")
+    out = wd / "report.docx"
+    for cmd in ([sys.executable, str(DOCX / "prep.py"), str(report_path), str(wd)],
+                [sys.executable, str(DOCX / "build_docx.py"), str(wd), str(out)]):
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        assert res.returncode == 0, f"{cmd[1]} failed:\n{res.stdout}\n{res.stderr}"
+    return out
+
+
+@pytest.fixture(scope="session")
+def doc(docx_path):
+    from docx import Document
+    return Document(str(docx_path))
