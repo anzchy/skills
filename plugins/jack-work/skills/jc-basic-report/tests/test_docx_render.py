@@ -78,3 +78,35 @@ def test_header_figure_stays_on_one_line(rendered, source_html):
     lines = ["".join(s["text"] for s in l["spans"]).strip()
              for b in page.get_text("dict")["blocks"] for l in b.get("lines", [])]
     assert any(figure.replace(" ", "") in ln.replace(" ", "") for ln in lines), (figure, lines[:12])
+
+
+def test_a_picture_pasted_into_body_text_shows_at_full_height(docx_path, tmp_path):
+    # A reader pastes a picture into the exported docx. Word inserts it inline, in a Body Text paragraph
+    # with no direct formatting. It must render at its full height, not cropped to one 15pt text line.
+    import docx
+    import pymupdf
+    from docx.shared import Cm
+    from PIL import Image
+
+    red = tmp_path / "red.png"
+    Image.new("RGB", (400, 300), (255, 0, 0)).save(red)
+    d = docx.Document(str(docx_path))
+    host = next(p for p in d.paragraphs if p.style.name == "Body Text" and len(p.text) > 20)
+    pasted = d.add_paragraph(style="Body Text")
+    host._p.addnext(pasted._p)
+    pasted.add_run().add_picture(str(red), height=Cm(6))
+    edited = tmp_path / "pasted.docx"
+    d.save(str(edited))
+
+    subprocess.run([sys.executable, str(DOCX / "render.py"), str(edited), str(tmp_path)], check=True)
+    pdf = pymupdf.open(str(tmp_path / "pasted.pdf"))
+    tallest = 0
+    for page in pdf:
+        pix = page.get_pixmap(dpi=72)            # 1 px = 1 pt
+        img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+        px = img.load()
+        rows = sum(1 for y in range(pix.height)
+                   if any(px[x, y][0] > 200 and px[x, y][1] < 60 and px[x, y][2] < 60 for x in range(0, pix.width, 2)))
+        tallest = max(tallest, rows)
+    expected = 6 / 2.54 * 72                      # 6cm in pt
+    assert tallest >= expected * 0.95, f"picture shows {tallest}pt of {expected:.0f}pt"

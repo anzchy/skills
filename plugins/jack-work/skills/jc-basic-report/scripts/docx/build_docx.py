@@ -94,8 +94,10 @@ for n in ("Normal", "Body Text", "First Paragraph", "Compact"):
     st = style(n)
     set_fonts(st, size=10, color=NEAR_BLACK)
     pf = st.paragraph_format
-    pf.line_spacing = Pt(15)            # CSS: 10pt x line-height 1.5, a fixed line box
-    pf.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+    pf.line_spacing = Pt(15)            # CSS: 10pt x line-height 1.5
+    # "at least", not "exactly": text lines look the same, but a picture a reader pastes into a body
+    # paragraph (Word inserts pictures inline) grows its line instead of being cropped to a 15pt strip
+    pf.line_spacing_rule = WD_LINE_SPACING.AT_LEAST
     pf.space_after = Pt(8) if n != "Compact" else Pt(2)
     pf.space_before = Pt(0)
 for n in ("Body Text", "First Paragraph"):

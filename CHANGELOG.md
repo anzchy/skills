@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **jack-work — `jc-basic-report` docx export: pictures.** Body styles (`Normal`, `Body Text`, `First Paragraph`, `Compact`) now use an *at least* 15pt line instead of *exactly* 15pt. In Word, text keeps its 15pt line, and a picture a reader pastes into the docx (Word inserts pictures inline) now shows in full instead of being cropped to a 15pt strip. The cropping is what pushed readers to floating pictures, which drift away from their text when it is edited. `build.py` now embeds local `<img>` files as data URIs, so the built report is truly one file; before, a relative `<img>` was dropped from the docx and `build_docx.py` aborted with "table count mismatch". The sample fixture gains three `<img>` figures (relative PNG, data URI, tall JPG), with tests for embedding, inline in-order pictures, the line rule and a LibreOffice render of a pasted picture. The `html_pages` test fixture now blocks the CDN web font, as the other browser tests do, so `test_page_count_tracks_the_html` no longer times out (closes #6).
+
 ## [0.2.8] - 2026-11-19
 
 ### Added

@@ -37,11 +37,14 @@ def test_body_text_uses_the_report_serif_cjk_font(doc):
     assert east_asia_font(doc.styles["Body Text"]) == "TsangerJinKai02"
 
 
-def test_body_text_line_height_matches_css_exactly(doc):
-    # report.css: body { font-size: 10pt; line-height: 1.5 } -> a fixed 15pt line box
-    pf = doc.styles["Body Text"].paragraph_format
-    assert pf.line_spacing_rule == WD_LINE_SPACING.EXACTLY
-    assert pf.line_spacing == Pt(15)
+def test_body_text_line_height_matches_css_but_grows_for_pictures(doc):
+    # report.css: body { font-size: 10pt; line-height: 1.5 } -> a 15pt line box.
+    # It must be "at least", not "exactly": Word inserts pasted pictures inline, and an exact line box
+    # crops them to a 15pt strip, which pushes readers to floating pictures that drift when text is edited.
+    for name in ("Normal", "Body Text", "First Paragraph", "Compact"):
+        pf = doc.styles[name].paragraph_format
+        assert pf.line_spacing_rule == WD_LINE_SPACING.AT_LEAST, name
+        assert pf.line_spacing == Pt(15), name
 
 
 def _size(run):
