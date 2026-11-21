@@ -6,10 +6,13 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
+import mimetypes
 import re
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 SKILL = Path(__file__).resolve().parent.parent
 ASSETS = SKILL / "assets"
@@ -28,6 +31,22 @@ def embed_charts(html: str, charts_dir: Path) -> str:
         spec = json.loads((charts_dir / f"{m.group(1)}.json").read_text(encoding="utf-8"))
         return render_chart(spec)
     return CHART_MARKER.sub(repl, html)
+
+
+IMG_SRC = re.compile(r'(<img\b[^>]*?\ssrc=")([^"]+)(")', re.I)
+
+
+def embed_images(html: str, base: Path) -> str:
+    """Inline every local <img> as a data URI so the built report is one self-contained file."""
+    def repl(m: re.Match) -> str:
+        url = m.group(2)
+        if re.match(r"(data|https?):", url, re.I):
+            return m.group(0)
+        path = base / unquote(url)
+        mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        data = base64.b64encode(path.read_bytes()).decode("ascii")
+        return f"{m.group(1)}data:{mime};base64,{data}{m.group(3)}"
+    return IMG_SRC.sub(repl, html)
 
 
 def read(path: Path) -> str:
@@ -61,6 +80,7 @@ def build(src: Path, out: Path, draft: bool = False) -> int:
         for p in unfilled:
             print("  " + p, file=sys.stderr)
         return 1
+    html = embed_images(html, src.parent)
     html = html.replace("<!--JC:CSS-->", styles())
     html = html.replace("<!--JC:SCRIPTS-->", scripts())
     html = embed_charts(html, src.parent / "charts")

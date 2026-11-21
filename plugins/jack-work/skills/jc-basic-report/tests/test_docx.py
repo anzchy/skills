@@ -80,10 +80,11 @@ def test_rating_badge_sits_at_the_right_margin(doc, source_html):
 
 def test_content_survives_conversion(doc, source_html):
     charts = source_html.count("<svg")
+    photos = len(re.findall(r"<img\b", source_html))   # report pictures (<img>), embedded by build.py
     gaps = len(re.findall(r'<span class="gap[" ]', source_html))   # span.gap, including "gap legend"
     tables = source_html.count("<table")
-    assert charts and gaps and tables
-    assert len(doc.inline_shapes) == charts
+    assert charts and photos and gaps and tables
+    assert len(doc.inline_shapes) == charts + photos
     assert len(data_tables(doc)) == tables
     gap_text = "".join(
         r.findtext(qn("w:t")) or "" for r in doc.element.body.iter(qn("w:r"))
@@ -156,3 +157,22 @@ def test_no_chart_is_clipped_by_a_fixed_line_box(doc):
 def test_document_title_comes_from_the_report(doc, source_html):
     title = re.search(r"<title>(.*?)</title>", source_html).group(1).strip()
     assert doc.core_properties.title == title
+
+
+def test_pictures_are_inline_in_order_and_fit_the_text_width(doc, source_html):
+    # every <figure> picture becomes an inline picture (never a floating anchor, which drifts when text is edited),
+    # immediately followed by its own caption, and no wider than the 17cm text line
+    body = doc.element.body
+    assert not body.xpath(".//wp:anchor")
+    expected = [re.sub(r"<[^>]+>", "", c).split("·")[0].strip()
+                for c in re.findall(r"<figcaption>(.*?)</figcaption>", source_html)]
+    paras = all_paragraphs(doc)
+    seen = []
+    for i, p in enumerate(paras):
+        if p._p.xpath(".//w:drawing"):
+            cap = paras[i + 1]
+            assert cap.style.name == "Image Caption", (i, cap.text)
+            seen.append(cap.text.split("·")[0].strip())
+    assert seen == expected
+    for shape in doc.inline_shapes:
+        assert shape.width <= Cm(17), shape.width
