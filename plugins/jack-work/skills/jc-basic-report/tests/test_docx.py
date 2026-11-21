@@ -37,11 +37,14 @@ def test_body_text_uses_the_report_serif_cjk_font(doc):
     assert east_asia_font(doc.styles["Body Text"]) == "TsangerJinKai02"
 
 
-def test_body_text_line_height_matches_css_exactly(doc):
-    # report.css: body { font-size: 10pt; line-height: 1.5 } -> a fixed 15pt line box
-    pf = doc.styles["Body Text"].paragraph_format
-    assert pf.line_spacing_rule == WD_LINE_SPACING.EXACTLY
-    assert pf.line_spacing == Pt(15)
+def test_body_text_line_height_matches_css_but_grows_for_pictures(doc):
+    # report.css: body { font-size: 10pt; line-height: 1.5 } -> a 15pt line box.
+    # It must be "at least", not "exactly": Word inserts pasted pictures inline, and an exact line box
+    # crops them to a 15pt strip, which pushes readers to floating pictures that drift when text is edited.
+    for name in ("Normal", "Body Text", "First Paragraph", "Compact"):
+        pf = doc.styles[name].paragraph_format
+        assert pf.line_spacing_rule == WD_LINE_SPACING.AT_LEAST, name
+        assert pf.line_spacing == Pt(15), name
 
 
 def _size(run):
@@ -80,10 +83,11 @@ def test_rating_badge_sits_at_the_right_margin(doc, source_html):
 
 def test_content_survives_conversion(doc, source_html):
     charts = source_html.count("<svg")
+    photos = len(re.findall(r"<img\b", source_html))   # report pictures (<img>), embedded by build.py
     gaps = len(re.findall(r'<span class="gap[" ]', source_html))   # span.gap, including "gap legend"
     tables = source_html.count("<table")
-    assert charts and gaps and tables
-    assert len(doc.inline_shapes) == charts
+    assert charts and photos and gaps and tables
+    assert len(doc.inline_shapes) == charts + photos
     assert len(data_tables(doc)) == tables
     gap_text = "".join(
         r.findtext(qn("w:t")) or "" for r in doc.element.body.iter(qn("w:r"))
@@ -156,3 +160,22 @@ def test_no_chart_is_clipped_by_a_fixed_line_box(doc):
 def test_document_title_comes_from_the_report(doc, source_html):
     title = re.search(r"<title>(.*?)</title>", source_html).group(1).strip()
     assert doc.core_properties.title == title
+
+
+def test_pictures_are_inline_in_order_and_fit_the_text_width(doc, source_html):
+    # every <figure> picture becomes an inline picture (never a floating anchor, which drifts when text is edited),
+    # immediately followed by its own caption, and no wider than the 17cm text line
+    body = doc.element.body
+    assert not body.xpath(".//wp:anchor")
+    expected = [re.sub(r"<[^>]+>", "", c).split("·")[0].strip()
+                for c in re.findall(r"<figcaption>(.*?)</figcaption>", source_html)]
+    paras = all_paragraphs(doc)
+    seen = []
+    for i, p in enumerate(paras):
+        if p._p.xpath(".//w:drawing"):
+            cap = paras[i + 1]
+            assert cap.style.name == "Image Caption", (i, cap.text)
+            seen.append(cap.text.split("·")[0].strip())
+    assert seen == expected
+    for shape in doc.inline_shapes:
+        assert shape.width <= Cm(17), shape.width

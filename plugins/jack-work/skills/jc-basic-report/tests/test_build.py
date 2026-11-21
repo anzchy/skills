@@ -1,7 +1,9 @@
 """Seam: scripts/build.py — a filled template (+ chart specs) in, one self-contained HTML out."""
 from __future__ import annotations
 
+import base64
 import json
+import re
 from pathlib import Path
 
 from conftest import run_build
@@ -89,3 +91,28 @@ def test_data_gaps_are_listed_after_a_successful_build(tmp_path):
     assert res.returncode == 0, res.stderr
     assert "GAP 2" in res.stdout
     assert "实控人认定" in res.stdout
+
+
+# A tiny valid PNG (1x1, grey): an independent, known-good byte string.
+PNG_1x1 = bytes.fromhex(
+    "89504e470d0a1a0a0000000d4948445200000001000000010806000000"
+    "1f15c4890000000d49444154789c63f8cfc0f01f0005000201a7f3d6"
+    "0a0000000049454e44ae426082")
+
+
+def test_local_images_are_embedded_so_the_report_stays_one_file(tmp_path):
+    # the built report is opened (and converted to docx) away from its source folder
+    (tmp_path / "images").mkdir()
+    (tmp_path / "images" / "dot.png").write_bytes(PNG_1x1)
+    src = write_src(tmp_path, body='<figure><img src="images/dot.png" width="20"><figcaption>图 1</figcaption></figure>')
+    out = tmp_path / "elsewhere" / "report.html"
+    out.parent.mkdir()
+
+    res = run_build(src, out)
+
+    assert res.returncode == 0, res.stderr
+    html = out.read_text(encoding="utf-8")
+    srcs = re.findall(r'<img[^>]*\ssrc="([^"]*)"', html)
+    assert len(srcs) == 1
+    assert srcs[0].startswith("data:image/png;base64,")
+    assert base64.b64decode(srcs[0].split(",", 1)[1]) == PNG_1x1

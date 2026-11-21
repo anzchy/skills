@@ -22,7 +22,7 @@
 
 | 项目 | report.css | docx |
 |---|---|---|
-| 正文 | `--serif`，10pt，`line-height: 1.5` | 东亚字体 TsangerJinKai02、西文 Georgia；固定行高 15pt |
+| 正文 | `--serif`，10pt，`line-height: 1.5` | 东亚字体 TsangerJinKai02、西文 Georgia；行高"最小值 15pt"（不是固定值，见排错第 2 条） |
 | 数据表 | `table.compact`：8pt，`line-height: 1.4`，`padding: 2.5pt 6pt`，`break-inside: avoid` | 固定行高 11.2pt；单元格边距 50/120 twips；除末行外"与下段同页"；标题行跨页重复 |
 | 图注 | `figcaption`：9pt，stone，居中 | `Image Caption` 样式 |
 | 评级标签 | `.h2-rating` 9pt stone + `b` 15pt brand，`space-between` | `RatingLead` / `RatingWord` 字符样式，无底色；17cm 右对齐制表位 |
@@ -32,5 +32,7 @@
 ## 排错
 
 - **图表只剩图注**：图片段落用了固定行高，被裁掉了。`build_docx.py` 会把所有含图片的段落（包括表格单元格里的）设为单倍行距，`test_no_chart_is_clipped_by_a_fixed_line_box` 守着这一点。
+- **在 Word 里粘贴的图片只露出一条**：粘贴的图片默认"嵌入型"，落在正文段落里。正文若用"固定值"行高，图片会被裁成一行高的窄条，读者只好改成"上下型环绕"，而浮动图片不随文字移动。所以正文、Normal、First Paragraph、Compact 用"最小值 15pt"：Word 中文字行距仍是 15pt，含图的行会自动长高。`test_a_picture_pasted_into_body_text_shows_at_full_height` 守着这一点。LibreOffice 对仓耳今楷的中文行按约 15.9pt 排，所以用它渲染时页数可能比 Word 多。
+- **报告里的 `<img>` 在 docx 中丢失，或 `build_docx.py` 报 "table count mismatch"**：相对路径的图片在临时目录里找不到，pandoc 会把它换成文字，并多生成一个表格。`build.py` 会把本地图片内嵌为 data URI，所以请先用 `build.py` 生成报告 HTML，再转 docx。
 - **中文全部空白**：LibreOffice 没加载 `fonts.conf`，请用 `render.py`，不要直接调用 `soffice`。
 - **docx 比 HTML 少很多页**：多半是表格被允许跨页拆开，或单元格边距被改小了。
