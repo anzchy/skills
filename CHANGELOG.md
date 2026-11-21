@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-11-21
+
 ### Fixed
-- **jack-work — `jc-basic-report` docx export: pictures.** Body styles (`Normal`, `Body Text`, `First Paragraph`, `Compact`) now use an *at least* 15pt line instead of *exactly* 15pt. In Word, text keeps its 15pt line, and a picture a reader pastes into the docx (Word inserts pictures inline) now shows in full instead of being cropped to a 15pt strip. The cropping is what pushed readers to floating pictures, which drift away from their text when it is edited. `build.py` now embeds local `<img>` files as data URIs, so the built report is truly one file; before, a relative `<img>` was dropped from the docx and `build_docx.py` aborted with "table count mismatch". The sample fixture gains three `<img>` figures (relative PNG, data URI, tall JPG), with tests for embedding, inline in-order pictures, the line rule and a LibreOffice render of a pasted picture. The `html_pages` test fixture now blocks the CDN web font, as the other browser tests do, so `test_page_count_tracks_the_html` no longer times out (closes #6).
+- **jack-work 0.1.3 — `jc-basic-report` 0.1.2: docx export pictures.** Body styles (`Normal`, `Body Text`, `First Paragraph`, `Compact`) now use an *at least* 15pt line instead of *exactly* 15pt. In Word, text keeps its 15pt line, and a picture a reader pastes into the docx (Word inserts pictures inline) now shows in full instead of being cropped to a 15pt strip. The cropping is what pushed readers to floating pictures, which drift away from their text when it is edited. `build.py` now embeds local `<img>` files as data URIs, so the built report is truly one file; before, a relative `<img>` was dropped from the docx and `build_docx.py` aborted with "table count mismatch". The sample fixture gains three `<img>` figures (relative PNG, data URI, tall JPG), with tests for embedding, inline in-order pictures, the line rule and a LibreOffice render of a pasted picture. The `html_pages` test fixture now blocks the CDN web font, as the other browser tests do, so `test_page_count_tracks_the_html` no longer times out (closes #6).
+
+---
 
 ## [0.2.8] - 2026-11-19
 
@@ -124,7 +128,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.9...HEAD
+[0.2.9]: https://github.com/anzchy/skills/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/anzchy/skills/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.7
 [0.2.6]: https://github.com/anzchy/skills/compare/v0.2.5...v0.2.6
