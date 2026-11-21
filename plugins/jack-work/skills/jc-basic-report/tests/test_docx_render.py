@@ -30,6 +30,7 @@ def html_pages(report_path, browser, tmp_path_factory):
     """Pages when Chrome prints the same HTML on A4 with 2cm margins (the docx page setup)."""
     import pymupdf
     page = browser.new_page()
+    page.route("**/*.ttf", lambda route: route.abort())   # the CDN web font is not under test; as in conftest.context
     page.goto(report_path.as_uri(), wait_until="load")
     page.evaluate("() => document.querySelectorAll('script, button, .ann-tools, .ann-save, .ann-hint, #side')"
                   ".forEach(e => e.remove())")
