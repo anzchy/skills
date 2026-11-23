@@ -29,7 +29,7 @@
       "name": "songy-course-exporter",
       "version": "0.1.0",
       "description": "Export a Songy web course from a course URL or the open authenticated Songy page.",
-      "source": "./plugins/songy-course-exporter",
+      "source": "./plugins/course-exporter",
       "category": "utility",
       "keywords": [
         "songy",
