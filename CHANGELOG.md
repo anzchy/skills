@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.10] - 2026-11-22
+
+### Added
+- **course-exporter 0.1.1 — `xvast-subtitle-capture` 0.0.1.** Captures an authorized Xvast video's full burned-in subtitles and PPT slides into one Markdown with one screenshot per logical slide followed by its original subtitle text (images flat in `assets/`). Capture uses the bundled Swift tool `xvast-capture` (macOS Accessibility to read and drive the player, plus `screencapture -l` for raw window frames); a Python pipeline handles slide-change detection, clean-frame selection, Vision/PaddleOCR/Baidu OCR, cue review sheets, segment merging and crop audits, with a pytest suite. Not for one-off screenshots, subtitle summaries or bypassing DRM.
+
+### Changed
+- **Plugin `songy-course-exporter` renamed to `course-exporter`** (directory `plugins/course-exporter/`). It now holds both `songy-course-exporter` (unchanged) and `xvast-subtitle-capture`. If you installed the old plugin, switch: `/plugin uninstall songy-course-exporter@jack-cheng-marketplace` then `/plugin install course-exporter@jack-cheng-marketplace`.
+
+---
+
 ## [0.2.9] - 2026-11-21
 
 ### Fixed
@@ -128,7 +138,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.9...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.10...HEAD
+[0.2.10]: https://github.com/anzchy/skills/compare/v0.2.9...v0.2.10
 [0.2.9]: https://github.com/anzchy/skills/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/anzchy/skills/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/anzchy/skills/compare/v0.2.3...v0.2.7
