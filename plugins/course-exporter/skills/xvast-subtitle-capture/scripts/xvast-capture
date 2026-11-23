@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Compile xvast_capture.swift once (cached by source hash) and run it.
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+src="$here/xvast_capture.swift"
+hash="$(shasum -a 256 "$src" | cut -c1-12)"
+cache="${XVAST_CAPTURE_CACHE:-$HOME/Library/Caches/xvast-capture}"
+bin="$cache/xvast-capture-$hash"
+if [[ ! -x "$bin" ]]; then
+  mkdir -p "$cache"
+  swiftc -O "$src" -o "$bin.tmp" >&2
+  mv "$bin.tmp" "$bin"
+fi
+exec "$bin" "$@"

@@ -1,0 +1,30 @@
+#!/bin/zsh
+set -euo pipefail
+
+script_dir="${0:A:h}"
+project_root="${PWD:A}"
+conda_env="${XVAST_PADDLEOCR_CONDA_ENV:-}"
+
+if [[ "${1:-}" == "--conda-env" ]]; then
+  if [[ $# -lt 2 ]]; then
+    print -u2 -- "--conda-env requires an environment name"
+    exit 2
+  fi
+  conda_env="$2"
+  shift 2
+fi
+
+export PADDLE_PDX_CACHE_HOME="${PADDLE_PDX_CACHE_HOME:-${project_root}/.paddleocr-cache}"
+export PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True
+
+if [[ -n "$conda_env" ]]; then
+  exec conda run --no-capture-output -n "$conda_env" \
+    python "${script_dir}/paddleocr_subtitles.py" "$@"
+fi
+
+python_bin="${project_root}/.venv/bin/python"
+if [[ ! -x "$python_bin" ]]; then
+  print -u2 -- "Missing ${python_bin}. Run ${script_dir}/setup_paddleocr.sh first, or pass --conda-env NAME."
+  exit 2
+fi
+exec "$python_bin" "${script_dir}/paddleocr_subtitles.py" "$@"

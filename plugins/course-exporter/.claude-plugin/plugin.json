@@ -1,0 +1,22 @@
+{
+  "name": "course-exporter",
+  "version": "0.1.1",
+  "description": "Export online courses into local notes: songy-course-exporter merges a Songy course's audio and 课程文本 into one folder; xvast-subtitle-capture captures an Xvast video's burned-in subtitles and PPT slides into a per-slide Markdown transcript.",
+  "author": {
+    "name": "anzchy",
+    "url": "https://github.com/anzchy"
+  },
+  "homepage": "https://github.com/anzchy/skills",
+  "repository": "https://github.com/anzchy/skills",
+  "license": "MIT",
+  "keywords": [
+    "songy",
+    "xvast",
+    "export",
+    "course",
+    "subtitle",
+    "ocr",
+    "字幕",
+    "课程"
+  ]
+}
