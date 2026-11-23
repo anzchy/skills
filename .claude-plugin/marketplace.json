@@ -1,6 +1,6 @@
 {
   "name": "jack-cheng-marketplace",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "owner": {
     "name": "anzchy",
     "url": "https://github.com/anzchy"
@@ -26,15 +26,20 @@
       ]
     },
     {
-      "name": "songy-course-exporter",
-      "version": "0.1.0",
-      "description": "Export a Songy web course from a course URL or the open authenticated Songy page.",
+      "name": "course-exporter",
+      "version": "0.1.1",
+      "description": "Export online courses into local notes: songy-course-exporter merges a Songy course's audio and 课程文本 into one folder; xvast-subtitle-capture captures an Xvast video's burned-in subtitles and PPT slides into a per-slide Markdown transcript.",
       "source": "./plugins/course-exporter",
       "category": "utility",
       "keywords": [
         "songy",
+        "xvast",
         "export",
-        "course"
+        "course",
+        "subtitle",
+        "ocr",
+        "字幕",
+        "课程"
       ],
       "defaultEnabled": false
     },

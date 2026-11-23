@@ -1,5 +1,6 @@
 ---
 name: xvast-subtitle-capture
+version: 0.0.1
 description: 在 Claude Code 中抓取 Xvast 已授权视频的全片烧录字幕和 PPT 页面，整理为每页 PPT 配原文字幕的 Markdown（图片平铺 assets/）。采集用附带的 Swift 工具 xvast-capture（macOS 辅助功能读取/控制播放器 + screencapture -l 截取 Xvast 窗口原始帧）。适用于“Xvast 字幕 capture”“Xvast 截图字幕”“PPT 配完整字幕”“课程图文逐字稿”；不用于仅截一张图、字幕总结或绕过 DRM。
 ---
 
