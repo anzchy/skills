@@ -52,6 +52,7 @@ html, body { background: var(--desk, var(--parchment)); }
 .sheet-foot { bottom: 7mm; text-align: center; }
 .sheet-body > .oversized { outline: 1.5pt dashed #c0392b; }
 .theme-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px 0 16px; font-size: 12px; color: var(--stone); }
+html.side-collapsed .theme-bar { display: none; }   /* ui.css hides title/tabs/panes when collapsed; the new control must follow */
 .theme-bar span { margin-right: 4px; }
 .theme-bar button { flex: 1; border: .6pt solid var(--border); background: transparent; color: var(--olive); font: inherit; font-size: 12px; padding: 3px 0; border-radius: 4px; cursor: pointer; }
 .theme-bar button[aria-pressed="true"] { background: var(--brand); color: var(--parchment); border-color: var(--brand); }
