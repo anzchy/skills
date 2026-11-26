@@ -1,0 +1,35 @@
+{
+  "defaultTheme": "beige",
+  "pagination": { "enabled": true },
+  "paper": { "size": "A4", "marginMm": { "top": 16, "right": 18, "bottom": 18, "left": 18 } },
+  "chrome": {
+    "headerTemplate": "{company} · 项目基本信息报告",
+    "headerOnFirstSheet": false,
+    "footerTemplate": "第 {page} 页 共 {pages} 页"
+  },
+  "toc": { "pageNumbers": true },
+  "print": { "palette": "white" },
+  "themes": {
+    "white": {
+      "desk": "#e9e9ec", "parchment": "#ffffff", "ivory": "#f7f7f8", "near_black": "#141413", "dark_warm": "#2f2f2d",
+      "olive": "#4a4a47", "stone": "#6b6b68", "brand": "#1B365D", "border": "#e3e3e0", "tag_bg": "#E4ECF5",
+      "chart": { "parchment": "#ffffff", "near_black": "#141413", "charcoal": "#4a4a47", "olive": "#4a4a47",
+                 "stone": "#6b6b68", "light_stone": "#b5b5b1", "mist": "#d4d4d0", "brand": "#1B365D",
+                 "brand_tint": "#EEF2F7", "grid": "#e6e6e3", "text_strong": "#30302e", "tag": "#E4ECF5", "ivory": "#f7f7f8" }
+    },
+    "black": {
+      "desk": "#08080a", "parchment": "#16161a", "ivory": "#1d1d22", "near_black": "#ececea", "dark_warm": "#d6d6d2",
+      "olive": "#b6b5af", "stone": "#8f8e88", "brand": "#8fb4e8", "border": "#34343b", "tag_bg": "#25324a",
+      "chart": { "parchment": "#16161a", "near_black": "#ececea", "charcoal": "#c9c8c2", "olive": "#b6b5af",
+                 "stone": "#8f8e88", "light_stone": "#6a6963", "mist": "#4a4a50", "brand": "#8fb4e8",
+                 "brand_tint": "#26324a", "grid": "#2f2f36", "text_strong": "#dcdcd8", "tag": "#25324a", "ivory": "#1d1d22" }
+    },
+    "beige": {
+      "desk": "#e8e6dc", "parchment": "#f5f4ed", "ivory": "#faf9f5", "near_black": "#141413", "dark_warm": "#3d3d3a",
+      "olive": "#504e49", "stone": "#6b6a64", "brand": "#1B365D", "border": "#e8e6dc", "tag_bg": "#E4ECF5",
+      "chart": { "parchment": "#f5f4ed", "near_black": "#141413", "charcoal": "#4d4c48", "olive": "#504e49",
+                 "stone": "#6b6a64", "light_stone": "#b8b7b0", "mist": "#d4d3cd", "brand": "#1B365D",
+                 "brand_tint": "#EEF2F7", "grid": "#e8e7e1", "text_strong": "#30302e", "tag": "#E4ECF5", "ivory": "#faf9f5" }
+    }
+  }
+}
