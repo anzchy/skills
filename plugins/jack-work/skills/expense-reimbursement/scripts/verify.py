@@ -87,7 +87,7 @@ def run_transport_regression(folder, gold_reimb, label):
     total = round(sum(t["金额"] for t in trips), 2)
     os.makedirs("/tmp/verify_out", exist_ok=True)
     out = f"/tmp/verify_out/{label}_报销单.xlsx"
-    fill_reimbursement({"部门": "投资部", "日期": "", "报销内容": "",
+    fill_reimbursement({"部门": "示例部门", "日期": "", "报销内容": "",
                         "金额": total, "金额数值": total}, out)
     gold_total = float(cell_value(gold_reimb, "费用报销单", "F4"))
     gold_cap = cell_value(gold_reimb, "费用报销单", "C7")

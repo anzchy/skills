@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """insert_payment_screenshot() 单测（TDD，红→绿）。
-需要 python-docx + Pillow：用装有该依赖的 Python 3.11+ 跑（如 uv run --with …）。
+需要 python-docx + Pillow：用 python3.11 跑。
 """
 import os, sys, tempfile
 import docx

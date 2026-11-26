@@ -12,8 +12,12 @@ from copy import copy
 
 import openpyxl
 from datetime import datetime
+from openpyxl.styles import Alignment
 
 from rmb_capitalize import rmb_capitalize
+
+_ALIGN_CENTER = Alignment(horizontal="center", vertical="center")
+_ALIGN_LEFT = Alignment(horizontal="left", vertical="center")
 
 TPL = os.path.join(os.path.dirname(__file__), "..", "templates")
 
@@ -36,7 +40,11 @@ def fill_transport_list(data: dict, out_path: str):
         'trips': [ {序号:int, 日期:'YYYY-MM-DD', 行程:str, 事由:str,
                     金额:float, 平台:'滴滴出行'/'曹操出行', 发票张数:int|None} ... ],
       }
-    发票张数：每个平台组的首行填 1，其余留空（同一发票多行程只记一张）。
+    发票张数：每个平台组的首行填 1，其余留空（同一发票多行程只记一张），
+    并把同一组的发票张数列纵向合并成一个单元格（合并后居中显示）。
+
+    对齐：序号/金额列居中；日期/行程/事由/发票张数/备注列左对齐（发票张数
+    合并单元格例外，为便于在多行合并后的框内居中显示数字，单独居中）。
     """
     wb = openpyxl.load_workbook(_tpl("市内交通费报销清单模板.xlsx"))
     ws = wb["Sheet1"]
@@ -55,24 +63,43 @@ def fill_transport_list(data: dict, out_path: str):
     for i, t in enumerate(trips):
         r = start + i
         ws.cell(row=r, column=1).value = t["序号"]
+        ws.cell(row=r, column=1).alignment = _ALIGN_CENTER
         d = t["日期"]
         ws.cell(row=r, column=2).value = (
             datetime.strptime(d, "%Y-%m-%d") if isinstance(d, str) else d
         )
         ws.cell(row=r, column=2).number_format = "yyyy/m/d"
+        ws.cell(row=r, column=2).alignment = _ALIGN_LEFT
         ws.cell(row=r, column=3).value = t.get("行程", "")
+        ws.cell(row=r, column=3).alignment = _ALIGN_LEFT
         ws.cell(row=r, column=4).value = t.get("事由", "")
+        ws.cell(row=r, column=4).alignment = _ALIGN_LEFT
         ws.cell(row=r, column=5).value = round(float(t["金额"]), 2)
+        ws.cell(row=r, column=5).alignment = _ALIGN_CENTER
         if t.get("发票张数"):
             ws.cell(row=r, column=6).value = t["发票张数"]
+        ws.cell(row=r, column=6).alignment = _ALIGN_LEFT
         ws.cell(row=r, column=7).value = t.get("平台", "")
+        ws.cell(row=r, column=7).alignment = _ALIGN_LEFT
 
     last = start + len(trips) - 1
+
+    # 发票张数列：按「发票张数」标记行切分组，纵向合并同组行，合并格居中
+    group_starts = [start + i for i, t in enumerate(trips) if t.get("发票张数")]
+    for gi, r0 in enumerate(group_starts):
+        r1 = (group_starts[gi + 1] - 1) if gi + 1 < len(group_starts) else last
+        if r1 > r0:
+            ws.merge_cells(start_row=r0, start_column=6, end_row=r1, end_column=6)
+        ws.cell(row=r0, column=6).alignment = _ALIGN_CENTER
+
     total_r = last + 1
     ws.cell(row=total_r, column=1).value = "合  计"
+    ws.cell(row=total_r, column=1).alignment = _ALIGN_CENTER
     ws.cell(row=total_r, column=5).value = f"=SUM(E{start}:E{last})"
+    ws.cell(row=total_r, column=5).alignment = _ALIGN_CENTER
     inv = sum(int(t["发票张数"]) for t in trips if t.get("发票张数"))
     ws.cell(row=total_r, column=6).value = inv
+    ws.cell(row=total_r, column=6).alignment = _ALIGN_CENTER
 
     note_r = total_r + 2
     ws.cell(row=note_r, column=1).value = "备注："
@@ -137,6 +164,31 @@ def fill_travel_application(data: dict, out_path: str):
 # ---------------------------------------------------------------------------
 # ② 出差：出差费用报销单（03）
 # ---------------------------------------------------------------------------
+_PLUS_SUM = re.compile(r"\d+(\.\d+)?(\+\d+(\.\d+)?)*")
+
+
+def _as_number(v) -> float:
+    """金额单元格值 → 数值，用于回退总额。
+
+    支持数值、数字字符串，以及纯加法公式字符串（如 '=67.08+31.59'）。
+    其他（空、None、非纯加法公式）计 0；Excel 公式本身仍原样写入单元格。
+    """
+    if v is None or v == "":
+        return 0.0
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip()
+    if s.startswith("="):
+        body = s[1:]
+        if _PLUS_SUM.fullmatch(body):
+            return sum(float(x) for x in body.split("+"))
+        return 0.0
+    try:
+        return float(s)
+    except ValueError:
+        return 0.0
+
+
 def fill_travel_reimbursement(data: dict, out_path: str):
     """data = {部门,日期,出差人员,出差地点,出差时间,出差事由,
                rows:[{日期,起讫地点,城市间交通费,住宿费,餐食补贴,会议费,其他费用}...]}
@@ -178,10 +230,12 @@ def fill_travel_reimbursement(data: dict, out_path: str):
                 ws[f"{col}{r}"] = v
         ws[f"I{r}"] = f"=D{r}+E{r}+F{r}+G{r}+H{r}"
         for k in cols:
-            try:
-                total += float(row.get(k) or 0)
-            except (TypeError, ValueError):
-                pass  # 公式字符串由调用方在 总额数值 给出
+            total += _as_number(row.get(k))
+
+    # 模板原生 3 个数据行，若实际行数更少，清空多出的空行（含小计公式），避免残留 0.00
+    for r in range(7 + len(rows), 7 + max(3, len(rows))):
+        for col in "BCDEFGHI":
+            ws[f"{col}{r}"] = None
 
     if extra:
         for col in ["D", "E", "F", "G", "H"]:

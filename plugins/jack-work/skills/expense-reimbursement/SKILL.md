@@ -1,17 +1,16 @@
 ---
 name: expense-reimbursement
 description: >-
-  投资机构的费用报销助手，覆盖三类：①市内交通 ②出差 ③招待客人。从票据
+  示例公司的费用报销助手，覆盖三类：①市内交通 ②出差 ③招待客人。从票据
   （网约车行程报销单/电子发票、高铁机票、住宿发票、餐饮发票、支付截图）自动抽取
   可推导字段，按公司标准计算餐补/税抵扣/大写金额，填入官方空白模板产出报销单。
   触发词：报销、市内交通报销、出差报销、招待/接待报销、发给财务前检查、填报销单、
   交通费清单、出差费用报销单、业务招待备案表。处理前先做附件预检，附件不足不开工。
-version: 0.1.0
 ---
 
 # 费用报销 Skill（expense-reimbursement）
 
-帮公司员工完成三类报销的票据整理与表单填写，并按公司规则
+帮示例投资管理有限公司完成三类报销的票据整理与表单填写，并按公司规则
 （《报销检查清单》）做校验。**所有金额/标准均有出处，禁止编造。**
 
 ## 0. 总流程（先预检 → 先自动后补全 → 写出 → 验收）
@@ -52,10 +51,17 @@ python3 scripts/preflight.py <transport|travel|entertainment|auto> <材料目录
 1. `preflight.py transport <dir>` 预检。
 2. 对每个 `*行程报销单.pdf` 运行 `parse_trip_report.py` → 得到行程（日期/起止/金额/平台）。
    - 交叉核对：`parsed_total` 与行程单自报「合计」一致才放行；不一致说明有行程被排除/漏读，**向用户确认要计入哪些行程**。
-3. 与用户确认：每条行程的**事由**（票据没有，必填）、**行程地点的规范写法**（清理「张江|」「-西北门」等）、以及**哪些行程计入报销**。
-4. 发票张数：**同一发票多次行程只记 1 张**；按平台分组，每组首行记 1，合计=平台数（电子发票张数）。
+3. **事由草稿（默认自动生成，仍需用户 review）**：对每笔行程的日期，用
+   `extract_weekly_plan.py` 从 `~/Desktop/周计划-持续记录.xlsx`（只读，脚本
+   会先拷贝到临时目录再读，绝不编辑原文件）的「周计划」sheet 取当天上午/下午/晚上
+   原文，你(Claude)据此比对行程的起止地点/时间，为每笔行程推断一条事由草稿，写入
+   「待补全清单.csv」；无法唯一确定的标「待确认」。**这仍是 B 类字段的草稿，不是
+   最终值**——生成后必须交给用户 review/改正，不能直接采信写入正式报销单。
+   与用户确认：核对/修正草稿**事由**、**行程地点的规范写法**（清理「张江|」
+   「-西北门」等）、以及**哪些行程计入报销**。
+4. 发票张数与排序：**同一发票多次行程只记 1 张**；先按**所属发票分组**（同一张行程单/发票的行程放一起，不是按「平台」名字分——同一服务商如曹操出行/阳光出行可能分属滴滴 App、百度地图 App 两张不同发票，需读行程单原文核对具体归属，不能只看服务商名字），**组内再按日期排序**；每组首行记发票张数=1，其余留空，合计=发票张数之和。
 5. 税抵扣（如需填报销测算）：`tax_deduction.py` 仅滴滴快车计入抵扣；曹操/T3/出租车不计。
-6. 写出：`fill_transport_list()` 填交通费报销清单 → `fill_reimbursement()` 填费用报销单（C4 报销内容、F4 金额合计、C7 大写）。
+6. 写出：`fill_transport_list()` 填交通费报销清单 → `fill_reimbursement()` 填费用报销单（C4 报销内容、F4 金额合计、C7 大写）。清单格式：序号/金额列居中，日期/行程/事由/发票张数/备注列左对齐；发票张数列按发票分组纵向合并单元格（合并格居中显示）。
 7. 打印：费用报销单 **A5 纸张、横向**。
 
 ### ② 出差 SOP
@@ -69,11 +75,22 @@ python3 scripts/preflight.py <transport|travel|entertainment|auto> <材料目录
    - 两路金额交叉核对，不一致报警。
 4. **餐食补贴**：`meal_subsidy(city, days, people)`（北京样例 = 300×2人×1天 = 600）。天数由用户确认（半天按全天）。
 5. **出差报告**：正文（目的/讨论/结果）由用户提供；模板 `templates/07.2出差报告模板.docx`；提醒**本人签字**。
-6. 写出：`fill_travel_reimbursement()`（按日期分行：城市间交通费/住宿费/餐食补贴/会议费/其他；C12 大写）。
-7. 附：经批准的出差申请单、出差报告、各票据。出差参会另附 `08.2参会申请单`。
+6. 写出：`fill_travel_reimbursement()`（城市间交通费/住宿费/餐食补贴/会议费/其他；C12 大写）。**行程布局规则**（2026-11-19 苏州出差纠错固化）：
+   - 同日往返只记两行：第一行「上海—苏州」、第二行「苏州—上海」。
+   - 市内接驳（出租车/曹操等）计入「其他费用」列，与所属行程同一行，不单列行。
+   - 餐补计入「餐食补贴」列，与所属行程同一行，不单列行。
+   - 「其他费用」可填加法公式字符串（如 `=67.08+31.59`），回退总额会计入。
+   - 模板多余的空数据行须清空（含小计公式），否则显示 0.00。
+   - 回归用例：`tests/test_travel_two_row_layout.py`，错误样例 `tests/fixtures/03_wrong_three_rows.xlsx`。
+7. **票据截图存档**（城市间交通票需贴发票截图时）：
+   - `scan_reimbursement_materials.py: scan_materials(<材料目录>)` 先扫描分类，确认哪些是「火车票发票」、哪些需人工确认。
+   - `render_ticket_pdf.py: render_pdf_to_image(pdf)` 把每张 PDF 发票渲染成 PNG（默认 dpi=200，临时文件，用完即删，不留在材料目录）。
+   - `insert_ticket_screenshots.py: insert_stacked_images(docx, [png...])` 按 A5 纵向、宽度占满、纵向堆叠贴入对应人员的「火车票截图-姓名.docx」，放不下自动分页。
+   - **多人出差按人各出一份**：文件名用「火车票截图-<姓名>.docx」；每人的票按行程顺序（去程→接驳→返程）传入。
+8. 附：经批准的出差申请单、出差报告、各票据。出差参会另附 `08.2参会申请单`。
 
 ### ③ 招待 SOP
-1. `preflight.py entertainment <dir>` 预检。**招待项目方应尽量避免；如招待须提前向王博申请。**
+1. `preflight.py entertainment <dir>` 预检。**招待项目方应尽量避免；如招待须提前向审批负责人申请。**
 2. **事前**（业务招待备案表）：用户提供客人单位/人数、接待事由、**申请金额**、**申请标准**（样例 250 元/人，按当次审批填，不写死）、参与接待人数、具体方式。`fill_entertainment_record()`。
 3. **票据抽取**：你读每张餐饮发票取**价税合计（小写）**（如川菜 317、咖啡 125）；金额合计 = 各发票之和（报销单 F4 可写 `=125+317`）。
 4. 留存支付截图/付款记录。
@@ -87,14 +104,18 @@ python3 scripts/preflight.py <transport|travel|entertainment|auto> <材料目录
 | `scripts/meal_subsidy.py` | 餐补 = 职级×城市×人数×天数（半天按全天） |
 | `scripts/tax_deduction.py` | 税抵扣判定：仅滴滴快车可抵扣 |
 | `scripts/parse_trip_report.py` | 解析滴滴/曹操行程报销单 + 金额交叉核对 |
+| `scripts/extract_weekly_plan.py` | 按日期从《周计划-持续记录》**只读复制件**中抽取当天上午/下午/晚上原文，供市内交通「事由」草稿比对（源文件默认 `~/Desktop/周计划-持续记录.xlsx`，从不编辑原文件） |
 | `scripts/fill_forms.py` | 填官方空白模板（保留公式/打印区） |
 | `scripts/preflight.py` | 附件预检闸门 |
 | `scripts/verify.py` | 与黄金样例比对验收 |
 | `scripts/aggregate_travel_rows.py` | 出差票据按(路线+方向,日期)分组汇总，供 `fill_travel_reimbursement()` 使用 |
 | `scripts/fill_forms.py: resolve_out_path()` | 报销单输出路径 = 材料所在目录 + 文件名，**不建「输出/」子文件夹** |
 | `scripts/insert_payment_screenshot.py` | 把支付截图贴进「支付截图.docx」：页面设为 A5 纵向，按原始长宽比缩放居中插入，替换旧内容 |
+| `scripts/insert_ticket_screenshots.py` | 多张票据截图按 A5 纵向**堆叠**贴入「火车票截图-姓名.docx」：宽度统一占满可打印宽度、等比缩放居中，一页放不下自动插分页符 |
+| `scripts/render_ticket_pdf.py` | 用 PyMuPDF(fitz) 把火车票等 PDF 电子发票**第一页**渲染成 PNG（默认 dpi=200），供上面的堆叠插图使用 |
+| `scripts/scan_reimbursement_materials.py` | 扫描材料目录（不递归），按文件名关键词分类为 火车票发票/网约车行程单/支付截图/其他，并给出判断依据 |
 
-跑全部单测：`python3 tests/test_rmb_capitalize.py && python3 tests/test_helpers.py && python3 tests/test_aggregate_travel_rows.py && python3 tests/test_fill_travel_reimbursement.py && python3 tests/test_resolve_out_path.py && python3 tests/test_insert_payment_screenshot.py`（除第一、二个外均需要 openpyxl/python-docx/Pillow，用 装有这些依赖的 Python 3.11+ 跑，例如 `uv run --with openpyxl --with python-docx --with Pillow python …`）
+跑全部单测：`python3 tests/test_rmb_capitalize.py && python3 tests/test_helpers.py && python3 tests/test_aggregate_travel_rows.py && python3 tests/test_fill_travel_reimbursement.py && python3 tests/test_fill_transport_list.py && python3 tests/test_resolve_out_path.py && python3 tests/test_insert_payment_screenshot.py && python3 tests/test_insert_ticket_screenshots.py && python3 tests/test_render_ticket_pdf.py && python3 tests/test_scan_reimbursement_materials.py && python3 tests/test_extract_weekly_plan.py`（除第一、二个外均需要 openpyxl/python-docx/Pillow/PyMuPDF，用 `python3.11` 跑）
 
 ## 4. 字段可推导性（决定能否「一模一样」）
 

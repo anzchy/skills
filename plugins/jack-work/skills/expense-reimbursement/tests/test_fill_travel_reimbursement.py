@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """fill_travel_reimbursement() 自动插行 单测（TDD，红→绿）。
 python3 tests/test_fill_travel_reimbursement.py
-需要 openpyxl：用装有该依赖的 Python 3.11+ 跑（如 uv run --with …）。
+需要 openpyxl：用 python3.11 跑。
 """
 import os, sys, tempfile
 import openpyxl
@@ -31,7 +31,7 @@ def make_rows(n):
 # ---- 基线：n<=3 不插行，模板原有公式/合并单元格不变（回归锁定） ----
 out1 = tempfile.mktemp(suffix=".xlsx")
 result1 = fill_travel_reimbursement(
-    {"部门": "投资部", "日期": "2026-08-25", "rows": make_rows(2)}, out1
+    {"部门": "示例部门", "日期": "2026-08-25", "rows": make_rows(2)}, out1
 )
 wb1 = openpyxl.load_workbook(out1)
 ws1 = wb1["出差费用报销单"]
@@ -43,7 +43,7 @@ check("n=2 回退总额=两行相加(10+20=30)", result1["总额"], 30.0)
 # ---- 超过3行 → 自动在汇总行之前插入所需行数 ----
 out2 = tempfile.mktemp(suffix=".xlsx")
 result2 = fill_travel_reimbursement(
-    {"部门": "投资部", "日期": "2026-08-25", "rows": make_rows(5)}, out2
+    {"部门": "示例部门", "日期": "2026-08-25", "rows": make_rows(5)}, out2
 )
 wb2 = openpyxl.load_workbook(out2)
 ws2 = wb2["出差费用报销单"]
@@ -76,7 +76,7 @@ rows3 = [
      "住宿费": 0, "餐食补贴": 0, "会议费": 0, "其他费用": 0},
 ]
 result3 = fill_travel_reimbursement(
-    {"部门": "投资部", "日期": "2026-08-25", "rows": rows3}, out3
+    {"部门": "示例部门", "日期": "2026-08-25", "rows": rows3}, out3
 )
 wb3 = openpyxl.load_workbook(out3)
 ws3 = wb3["出差费用报销单"]
