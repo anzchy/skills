@@ -112,7 +112,7 @@ def check_entertainment(b):
     if not b["payment"]:
         missing.append("支付截图/付款记录（docx 或图片）")
     if not b["record_form"]:
-        missing.append("业务招待备案表（须提前向王博申请、经批准）")
+        missing.append("业务招待备案表（须提前向审批负责人申请、经批准）")
     return missing, []
 
 

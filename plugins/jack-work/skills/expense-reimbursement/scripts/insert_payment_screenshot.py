@@ -14,22 +14,34 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from PIL import Image
 
 
-def insert_payment_screenshot(
-    docx_path: str, image_path: str, out_path: str = None, page_orientation: str = "portrait"
-) -> dict:
-    out_path = out_path or docx_path
-    doc = docx.Document(docx_path)
-
-    section = doc.sections[0]
+def apply_a5_page(section, page_orientation: str = "portrait"):
+    """把 section 设为 A5（portrait 148x210mm / landscape 210x148mm），页边距不动。
+    供 insert_payment_screenshot() 与 insert_ticket_screenshots.py 共用。
+    """
     if page_orientation == "landscape":
         section.page_width, section.page_height = Mm(210), Mm(148)
         section.orientation = WD_ORIENT.LANDSCAPE
     else:
         section.page_width, section.page_height = Mm(148), Mm(210)
         section.orientation = WD_ORIENT.PORTRAIT
+    return section
 
+
+def clear_paragraphs(doc):
+    """清空文档已有段落（替换旧内容）。供两个插图脚本共用。"""
     for p in list(doc.paragraphs):
         p._element.getparent().remove(p._element)
+    return doc
+
+
+def insert_payment_screenshot(
+    docx_path: str, image_path: str, out_path: str = None, page_orientation: str = "portrait"
+) -> dict:
+    out_path = out_path or docx_path
+    doc = docx.Document(docx_path)
+
+    section = apply_a5_page(doc.sections[0], page_orientation)
+    clear_paragraphs(doc)
 
     avail_w = section.page_width - section.left_margin - section.right_margin
     avail_h = section.page_height - section.top_margin - section.bottom_margin
