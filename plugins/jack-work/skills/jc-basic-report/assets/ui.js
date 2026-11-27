@@ -78,6 +78,16 @@
     hasInnerContainers: true,
     headingLabelCallback: stripRating
   });
+  /* 目录页码：每项的页码与 tocbot 的点击跳转共用同一个目标（链接指向的标题），页码 = 该标题所在 Sheet 的序号。 */
+  (function tocPageNumbers() {
+    var P = window.JCPaginator, S = JSON.parse(document.getElementById('jc-settings').textContent);
+    if (!P || P.state !== 'done' || !S.toc.pageNumbers) return;   // continuous scroll / switched off: no numbers
+    side.querySelectorAll('.js-toc a.toc-link').forEach(function (a) {
+      var target = document.getElementById(decodeURIComponent(a.hash.slice(1)));
+      var n = target ? P.sheets.indexOf(target.closest('.sheet')) + 1 : 0;
+      if (n > 0) a.setAttribute('data-page', String(n));   // drawn by CSS, so the label text stays unchanged
+    });
+  })();
   side.querySelector('.js-toc').addEventListener('click', function (e) {
     if (e.target.closest('a') && window.innerWidth < 900) setCollapsed(true);
   });
