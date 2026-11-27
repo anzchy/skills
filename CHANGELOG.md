@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.11] - 2026-11-26
+
+### Added
+- **jack-work 0.1.4 — `jc-basic-report` 0.1.3: themes, A4 pages and page numbers** (closes #11–#21).
+  - Three switchable themes (white, black, beige) from a control at the top of the sidebar; the choice is remembered, and chart colours follow the theme.
+  - The body is laid out as strict A4 Sheets with a header and a centred "第 X 页 共 Y 页" footer (the first Sheet has no header but counts as page 1). Blocks are never split across Sheets; a table taller than a Sheet gets its own Sheet and a warning, so split long tables yourself.
+  - The sidebar TOC shows each section's page number and still jumps on click.
+  - Printing and PDF always use the Print palette (white by default), one Sheet per page, whatever theme is on screen.
+  - docx export now has a first-page-different header and centred `PAGE`/`NUMPAGES` footer fields, with the page colour taken from the Print palette.
+  - One settings file for all of it: defaults ship with the skill, a `settings.json` beside the report overrides any key, and the build fails with every reason listed if it is invalid.
+- **jack-work 0.1.4 — `expense-reimbursement`:** refreshed official templates and form/pre-check scripts, plus new scripts to scan reimbursement materials, render ticket PDFs, insert ticket screenshots and extract the weekly plan.
+
+### Fixed
+- **`jc-basic-report`: annotations no longer drift onto the wrong text.** Saved or imported highlights are re-anchored by their quote; ones whose quote is gone are listed as 「未定位」 instead of being painted over unrelated text, and are still exported. If pagination ever fails, the report falls back to continuous scroll instead of leaving a dead sidebar.
+
+### Changed
+- Docs: added a `CONTEXT.md` glossary and ADR 0001 (why a block paginator, not paged.js) for `jc-basic-report`; the project `CLAUDE.md` now pins implementer subagents to Opus for `/mattpocock-skills:implement-spec`.
+- `expense-reimbursement` has no `version:` frontmatter, so no skill-level version changed for it; the `jack-work` plugin version (0.1.4) carries this release to users.
+
+---
+
 ## [0.2.10] - 2026-11-22
 
 ### Added
@@ -138,7 +159,8 @@ First tagged release of the skills hub (`npx skills@latest add anzchy/skills`).
 
 ---
 
-[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.10...HEAD
+[Unreleased]: https://github.com/anzchy/skills/compare/v0.2.11...HEAD
+[0.2.11]: https://github.com/anzchy/skills/compare/v0.2.10...v0.2.11
 [0.2.10]: https://github.com/anzchy/skills/compare/v0.2.9...v0.2.10
 [0.2.9]: https://github.com/anzchy/skills/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/anzchy/skills/compare/v0.2.7...v0.2.8
