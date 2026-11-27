@@ -47,7 +47,8 @@
     var closeSheet = false;                       // the previous Sheet holds an Oversized Block
     newSheet();
     nodes.forEach(function (n) {
-      if (n.nodeType === 1 && closeSheet) { newSheet(); closeSheet = false; }
+      var explicitBreak = n.nodeType === 1 && body.firstElementChild && getComputedStyle(n).breakBefore === 'page';
+      if (n.nodeType === 1 && (closeSheet || explicitBreak)) { newSheet(); closeSheet = false; }
       body.appendChild(n);
       if (n.nodeType !== 1 || !overflows()) return;
       var run = withLeadingHeadings(n);
@@ -62,25 +63,20 @@
 
   /* A Block taller than a whole Sheet: it keeps a Sheet to itself, grown to fit (never clipped),
      and the author is told to split it. */
-  var warnings = [];
+  var MM = 96 / 25.4, warnings = [];
   function oversized(block, sheet, body) {
     var avail = body.clientHeight;
     sheet.classList.add('sheet--oversized');
     var tall = block.getBoundingClientRect().height;
-    var h = null;
-    for (var p = block.previousElementSibling; p && !h; p = p.previousElementSibling) if (/^H[1-6]$/.test(p.tagName)) h = p;
-    if (!h) {
-      var all = report.querySelectorAll('h2, h3');
-      for (var i = 0; i < all.length; i++) if (all[i].compareDocumentPosition(block) & Node.DOCUMENT_POSITION_FOLLOWING) h = all[i];
-    }
-    var where = h ? '「' + h.textContent.trim() + '」下的' : '';
-    var what = block.tagName === 'TABLE' ? 'Oversized table' : 'Oversized block';
-    var msg = what + '：' + where + (block.tagName === 'TABLE' ? '表格' : '内容') + '高 ' + Math.round(tall / MM) +
-      ' mm，超过一张 Sheet 的可用高度 ' + Math.round(avail / MM) + ' mm，已单独成页、未截断；请拆成多张表。';
+    var h = null, heads = report.querySelectorAll('h2, h3');   // the last heading above the Block
+    for (var i = 0; i < heads.length; i++) if (heads[i].compareDocumentPosition(block) & Node.DOCUMENT_POSITION_FOLLOWING) h = heads[i];
+    var table = block.tagName === 'TABLE';
+    var msg = (table ? 'Oversized table' : 'Oversized block') + '：' + (h ? '「' + h.textContent.trim() + '」下的' : '') +
+      (table ? '表格' : '内容') + '高 ' + Math.round(tall / MM) + ' mm，超过一张 Sheet 的可用高度 ' +
+      Math.round(avail / MM) + ' mm，已单独成页、未截断；请' + (table ? '拆成多张表。' : '拆分。');
     warnings.push(msg);
     console.warn('[jc-basic-report] ' + msg);
   }
-  var MM = 96 / 25.4;
 
   function showWarnings() {
     if (!warnings.length) return;

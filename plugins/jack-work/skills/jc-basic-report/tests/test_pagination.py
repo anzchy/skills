@@ -178,6 +178,67 @@ def test_sheets_are_measured_only_after_slow_images_have_loaded(context, tmp_pat
     assert all(mm(p["room"]) >= m["bottom"] - 0.5 for p in placed), placed
 
 
+SHEET_LAYOUT = """() => [...document.querySelectorAll('#report .sheet')].map(s => ({
+    w: s.getBoundingClientRect().width, h: s.getBoundingClientRect().height,
+    first: s.querySelector('h2, h3, p, table, figure, div') && s.querySelector('h2, h3, p, table, figure, div').textContent.trim().slice(0, 40),
+    blocks: s.querySelectorAll('p, table, figure, h2, h3').length }))"""
+
+
+def test_toggling_the_sidebar_resizing_or_switching_theme_does_not_repaginate(reader):
+    before = reader.page.evaluate(SHEET_LAYOUT)
+
+    reader.toggle_sidebar()
+    collapsed = reader.page.evaluate(SHEET_LAYOUT)
+    reader.page.evaluate("document.documentElement.setAttribute('data-theme', 'black')")
+    reader.page.set_viewport_size({"width": 1100, "height": 700})
+    reader.page.wait_for_timeout(400)
+    after = reader.page.evaluate(SHEET_LAYOUT)
+
+    assert len(before) >= 3
+    assert collapsed == before
+    assert after == before
+
+
+def test_an_explicit_page_break_starts_a_new_sheet(context, tmp_path):
+    out = build_sample(tmp_path, extra_body='<p id="before-break">分页标记之前。</p>\n'
+                                            '<div class="page-break"></div>\n<p id="after-break">分页标记之后。</p>')
+    page = open_report(context, out)
+
+    sheet = page.evaluate("""id => { const s = document.getElementById(id).closest('.sheet');
+        return {index: [...document.querySelectorAll('#report .sheet')].indexOf(s),
+                first: s.querySelector('p') && s.querySelector('p').id}; }""", "after-break")
+    before = page.evaluate("id => [...document.querySelectorAll('#report .sheet')]"
+                           ".indexOf(document.getElementById(id).closest('.sheet'))", "before-break")
+
+    assert sheet["index"] == before + 1
+    assert sheet["first"] == "after-break"
+
+
+def test_a_highlight_on_a_later_sheet_is_drawn_over_its_own_text_after_reopening(reader):
+    para = reader.page.evaluate("""() => { const ps = [...document.querySelectorAll('#report .sheet')].slice(2)
+            .flatMap(s => [...s.querySelectorAll('p')]);
+        const p = ps.find(p => p.textContent.trim().length > 40 && !p.closest('table'));
+        return [...document.querySelectorAll('#report p')].indexOf(p); }""")
+    assert para > 0, "the sample has a body paragraph on Sheet 3 or later"
+    reader.select_text("#report p", para)
+    reader.toolbar("yellow")
+    quote = reader.note_items()[0]["quote"]
+
+    reader.reopen()
+    target = reader.page.locator("#report p").nth(para)
+    target.scroll_into_view_if_needed()
+    reader.page.wait_for_timeout(300)
+    marks = reader.page.evaluate("""() => [...document.querySelectorAll('.r6o-span-highlight-layer .r6o-annotation')]
+        .map(m => { const r = m.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; })""")
+    box = target.bounding_box()
+
+    assert [i["quote"] for i in reader.note_items()] == [quote]
+    assert marks, "the highlight is painted"
+    assert all(box["x"] <= m["x"] <= box["x"] + box["width"] and box["y"] <= m["y"] <= box["y"] + box["height"]
+               for m in marks), (marks, box)
+    assert quote in target.inner_text()
+
+
 def test_with_pagination_disabled_the_report_scrolls_continuously(context, tmp_path):
     out = build_sample(tmp_path, {"pagination": {"enabled": False}})
     page = open_report(context, out)
