@@ -1,0 +1,44 @@
+/* ========== Theme（白色 / 黑色 / 米色） ==========
+   米色 = report.css 里的 :root 原 token（Kami 羊皮纸），不需要覆盖。
+   白色、黑色只在屏幕上生效：打印走 Print palette（见 #19），不跟随 Theme。
+   所有颜色都写成 token；新增颜色请在这里给三种主题各配一份，不要在别处写死。 */
+
+  :root {
+    --wash:          #f0eee6;   /* 缺口标签、悬停底色、↓ 方向标签 */
+    --control:       #e8e6dc;   /* 侧栏按钮底色 */
+    --control-hover: #dedbd0;
+    --tint-mid:      #EEF2F7;   /* ◎ 方向标签 */
+    --brand-mid:     #2D5A8A;
+  }
+
+  @media screen {
+    html[data-theme="white"] {
+      --parchment: #ffffff;  --ivory: #f6f6f4;
+      --near-black: #141413; --dark-warm: #3a3a38; --olive: #4a4a47; --stone: #6b6b68;
+      --brand: #1B365D;      --positive: #1B365D;  --negative: #6b6b68;
+      --border: #e3e3e0;     --border-soft: #ebebe8; --tag-bg: #E4ECF5;
+      --wash: #efefec;       --control: #e7e7e4;   --control-hover: #dadad6;
+      --tint-mid: #EEF2F7;   --brand-mid: #2D5A8A;
+    }
+    html[data-theme="black"] {
+      --parchment: #16161a;  --ivory: #1f1f24;
+      --near-black: #ececea; --dark-warm: #d6d5cf; --olive: #b6b5af; --stone: #9a9993;
+      --brand: #8fb4e8;      --positive: #8fb4e8;  --negative: #9a9993;
+      --border: #3a3a42;     --border-soft: #303036; --tag-bg: #26324a;
+      --wash: #2a2a30;       --control: #2e2e35;   --control-hover: #3a3a42;
+      --tint-mid: #232c3c;   --brand-mid: #a9c4ec;
+      --hl-yellow: #6b5a1c;  --hl-green: #3c5a2c;  --hl-blue: #2c4a72; --ul-red: #e07a5f;
+      color-scheme: dark;
+    }
+  }
+
+  /* 侧栏顶部的主题三选一；侧栏收起时与标题、标签页一起隐藏 */
+  .side-theme { display: flex; gap: 4px; padding: 8px 12px 0 12px; }
+  .side-theme button {
+    flex: 1; border: 0.6pt solid var(--border); background: transparent; color: var(--olive);
+    font: inherit; font-size: 12px; padding: 3px 0; border-radius: 4px; cursor: pointer;
+  }
+  .side-theme button:hover { background: var(--wash); color: var(--near-black); }
+  .side-theme button[aria-checked="true"] { background: var(--brand); border-color: var(--brand); color: var(--parchment); font-weight: 500; }
+  html.side-collapsed .side-theme { display: none; }
+  @media print { .side-theme { display: none !important; } }
