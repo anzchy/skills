@@ -56,7 +56,7 @@ def read(path: Path) -> str:
 
 def styles() -> str:
     return ("<style>\n" + read(ASSETS / "report.css") + read(ASSETS / "ui.css") + read(ASSETS / "theme.css")
-            + read(ASSETS / "paginator.css") + "</style>\n"
+            + read(ASSETS / "paginator.css") + read(ASSETS / "chrome.css") + "</style>\n"
             "<style>/* @recogito/text-annotator 4.3.7 · BSD-3-Clause · (c) Pelagios Network */\n"
             + read(VENDOR / "recogito-text-annotator-4.3.7.css") + "</style>")
 
@@ -76,6 +76,7 @@ def chart_palettes(settings: dict) -> str:
 def scripts() -> str:
     parts = [
         ("/* jc-basic-report Paginator (runs before tocbot / recogito) */", read(ASSETS / "paginator.js")),
+        ("/* jc-basic-report Page chrome (after the Paginator) */", read(ASSETS / "chrome.js")),
         ("/*! tocbot 4.36.8 · MIT · (c) Tim Scanlin */", read(VENDOR / "tocbot-4.36.8.min.js")),
         ("/*! @recogito/text-annotator 4.3.7 · BSD-3-Clause · (c) Pelagios Network */\n"
          "if(!window.process){window.process={env:{NODE_ENV:\"production\"}};}",
