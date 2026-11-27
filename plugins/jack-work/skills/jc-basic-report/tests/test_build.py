@@ -116,3 +116,153 @@ def test_local_images_are_embedded_so_the_report_stays_one_file(tmp_path):
     assert len(srcs) == 1
     assert srcs[0].startswith("data:image/png;base64,")
     assert base64.b64decode(srcs[0].split(",", 1)[1]) == PNG_1x1
+
+
+# ---------- Settings: skill defaults + per-report override, validated and inlined ----------
+SETTINGS_BLOCK = re.compile(r'<script type="application/json" id="jc-settings">(.*?)</script>', re.S)
+
+
+def inlined_settings(out: Path) -> dict:
+    blocks = SETTINGS_BLOCK.findall(out.read_text(encoding="utf-8"))
+    assert len(blocks) == 1, "the Report carries exactly one inlined Settings block"
+    return json.loads(blocks[0])
+
+
+def test_without_an_override_the_report_carries_the_skill_default_settings(tmp_path):
+    src = write_src(tmp_path)
+    out = tmp_path / "report.html"
+
+    res = run_build(src, out)
+
+    assert res.returncode == 0, res.stderr
+    s = inlined_settings(out)
+    assert s["defaultTheme"] == "beige"
+    assert s["pagination"] == {"enabled": True}
+    assert s["paper"] == {"size": "A4", "marginMm": {"top": 16, "right": 18, "bottom": 18, "left": 18}}
+    assert s["chrome"]["headerTemplate"] == "{company} · 项目基本信息报告"
+    assert s["chrome"]["footerTemplate"] == "第 {page} 页 共 {pages} 页"
+    assert s["toc"] == {"pageNumbers": True}
+    assert s["print"] == {"palette": "white"}
+    assert set(s["themes"]) == {"white", "black", "beige"}
+    assert s["themes"]["beige"]["chart"]["parchment"] == "#f5f4ed"   # current Kami chart colours
+    assert s["themes"]["beige"]["chart"]["brand"] == "#1B365D"
+
+
+def write_override(tmp_path: Path, override) -> None:
+    """The per-report override file the author places next to report.src.html."""
+    text = override if isinstance(override, str) else json.dumps(override, ensure_ascii=False)
+    (tmp_path / "settings.json").write_text(text, encoding="utf-8")
+
+
+def test_a_partial_override_wins_and_every_other_key_keeps_its_default(tmp_path):
+    src = write_src(tmp_path)
+    write_override(tmp_path, {
+        "defaultTheme": "black",
+        "paper": {"marginMm": {"top": 25}},
+        "chrome": {"headerTemplate": "{company} · 尽调底稿"},
+        "themes": {"black": {"chart": {"brand": "#ff8800"}}},
+    })
+    out = tmp_path / "report.html"
+
+    res = run_build(src, out)
+
+    assert res.returncode == 0, res.stderr
+    s = inlined_settings(out)
+    assert s["defaultTheme"] == "black"
+    assert s["paper"] == {"size": "A4", "marginMm": {"top": 25, "right": 18, "bottom": 18, "left": 18}}
+    assert s["chrome"] == {"headerTemplate": "{company} · 尽调底稿", "footerTemplate": "第 {page} 页 共 {pages} 页"}
+    assert s["themes"]["black"]["chart"]["brand"] == "#ff8800"
+    assert s["themes"]["black"]["chart"]["parchment"] == "#16161a"   # sibling colour untouched
+    assert s["print"] == {"palette": "white"}
+
+
+def build_with_override(tmp_path: Path, override):
+    src = write_src(tmp_path)
+    write_override(tmp_path, override)
+    out = tmp_path / "report.html"
+    return run_build(src, out), out
+
+
+def test_an_unknown_settings_key_fails_the_build_and_is_named(tmp_path):
+    res, out = build_with_override(tmp_path, {"chrome": {"headerTemplte": "typo"}})
+
+    assert res.returncode != 0
+    assert "chrome.headerTemplte" in res.stderr
+    assert not out.exists()
+
+
+def test_an_illegal_theme_name_fails_the_build(tmp_path):
+    res, out = build_with_override(tmp_path, {"defaultTheme": "dark"})
+
+    assert res.returncode != 0
+    assert "defaultTheme" in res.stderr and "dark" in res.stderr
+    assert not out.exists()
+
+
+def test_the_print_palette_must_name_a_theme(tmp_path):
+    res, out = build_with_override(tmp_path, {"print": {"palette": "sepia"}})
+
+    assert res.returncode != 0
+    assert "print.palette" in res.stderr and "sepia" in res.stderr
+
+
+def test_a_negative_page_margin_fails_the_build(tmp_path):
+    res, out = build_with_override(tmp_path, {"paper": {"marginMm": {"left": -5}}})
+
+    assert res.returncode != 0
+    assert "paper.marginMm.left" in res.stderr
+    assert not out.exists()
+
+
+def test_unsetting_a_required_key_fails_the_build_and_names_it(tmp_path):
+    # null in the override removes the key, leaving the merged Settings without it
+    res, out = build_with_override(tmp_path, {"chrome": {"headerTemplate": None}})
+
+    assert res.returncode != 0
+    assert "chrome.headerTemplate" in res.stderr
+    assert not out.exists()
+
+
+def test_every_invalid_setting_is_listed_in_one_failed_build(tmp_path):
+    res, out = build_with_override(tmp_path, {
+        "defaultTheme": "dark",
+        "colour": "red",
+        "pagination": {"enabled": "yes"},
+        "paper": {"size": "Letter", "marginMm": {"top": -1}},
+        "toc": {"pageNumbers": 1},
+        "chrome": {"footerTemplate": 3},
+        "themes": {"black": {"chart": {"brand": "blue"}}},
+    })
+
+    assert res.returncode != 0
+    for path in ("defaultTheme", "colour", "pagination.enabled", "paper.size", "paper.marginMm.top",
+                 "toc.pageNumbers", "chrome.footerTemplate", "themes.black.chart.brand"):
+        assert path in res.stderr, f"{path} not reported:\n{res.stderr}"
+    assert not out.exists()
+
+
+def test_the_opened_report_reads_its_merged_settings_from_the_single_file(tmp_path, context):
+    tricky = "{company}</script><b>x</b> · 底稿"
+    res, out = build_with_override(tmp_path, {"chrome": {"headerTemplate": tricky}, "toc": {"pageNumbers": False}})
+    assert res.returncode == 0, res.stderr
+    moved = tmp_path / "sent" / "report.html"      # the file travels alone, away from settings.json
+    moved.parent.mkdir()
+    moved.write_bytes(out.read_bytes())
+
+    page = context.new_page()
+    page.goto(moved.as_uri(), wait_until="domcontentloaded")
+    s = page.evaluate("JSON.parse(document.getElementById('jc-settings').textContent)")
+
+    assert s["chrome"]["headerTemplate"] == tricky
+    assert s["toc"]["pageNumbers"] is False
+    assert s["defaultTheme"] == "beige"
+    assert page.locator("b", has_text="x").count() == 0   # nothing leaked out of the JSON block
+
+
+def test_a_settings_file_that_is_not_a_json_object_fails_the_build(tmp_path):
+    res, out = build_with_override(tmp_path, '{"defaultTheme": "black",}')
+
+    assert res.returncode != 0
+    assert "settings.json" in res.stderr
+    assert "Traceback" not in res.stderr
+    assert not out.exists()

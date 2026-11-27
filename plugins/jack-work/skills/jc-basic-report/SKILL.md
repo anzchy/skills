@@ -20,7 +20,8 @@ version: 0.1.2
 | `references/docx.md` | 导出 docx：依赖、字体、样式与 CSS 的对应、排错 |
 | `assets/template.html` | 脱敏后的报告骨架，含全部组件和 `{{占位符}}` |
 | `assets/report.css`, `assets/ui.css`, `assets/ui.js`, `assets/vendor/` | 构建时内联进 HTML，不要手改生成后的文件 |
-| `scripts/build.py` | 源文件 + 图表规格 → 单文件 HTML |
+| `assets/settings.default.json` | 默认 Settings：默认主题、纸张与页边距、页眉页码模板、目录页码、Print palette、各主题图表色板、分页开关 |
+| `scripts/build.py` | 源文件 + 图表规格 + Settings → 单文件 HTML |
 | `scripts/chart.py` | Kami 图表生成器（MIT），由 build.py 调用 |
 | `scripts/docx/` | 报告 HTML → 可编辑 docx（pandoc + python-docx），含 LibreOffice 渲染与逐页对比工具 |
 | `tests/` | 构建与浏览器测试；`tests/fixtures/sample` 是以沐曦股份为例的样例报告 |
@@ -64,6 +65,7 @@ python3 <skill>/scripts/build.py report.src.html -o <公司>-项目基本信息�
 ```
 
 - 有未填占位符时构建失败并列出它们；`--draft` 只用于预览。
+- 需要改默认 Settings 时，在 `report.src.html` 旁放 `settings.json`，只写要改的键（如 `{"defaultTheme": "white", "chrome": {"headerTemplate": "{company} · 尽调底稿"}}`）。构建时与 `assets/settings.default.json` 深度合并，覆盖优先；未知键、非法主题名、负页边距、缺失必填键等都会让构建失败并逐条列出。合并结果内联进报告，报告仍是单个文件。
 - 构建成功后会输出 `GAP n` 和缺口清单，把它们并入附录 A「管理层访谈问题清单」。
 
 ### 5. 测试
