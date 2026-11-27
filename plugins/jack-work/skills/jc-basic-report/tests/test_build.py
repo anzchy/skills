@@ -241,6 +241,24 @@ def test_every_invalid_setting_is_listed_in_one_failed_build(tmp_path):
     assert not out.exists()
 
 
+def test_the_opened_report_reads_its_merged_settings_from_the_single_file(tmp_path, context):
+    tricky = "{company}</script><b>x</b> · 底稿"
+    res, out = build_with_override(tmp_path, {"chrome": {"headerTemplate": tricky}, "toc": {"pageNumbers": False}})
+    assert res.returncode == 0, res.stderr
+    moved = tmp_path / "sent" / "report.html"      # the file travels alone, away from settings.json
+    moved.parent.mkdir()
+    moved.write_bytes(out.read_bytes())
+
+    page = context.new_page()
+    page.goto(moved.as_uri(), wait_until="domcontentloaded")
+    s = page.evaluate("JSON.parse(document.getElementById('jc-settings').textContent)")
+
+    assert s["chrome"]["headerTemplate"] == tricky
+    assert s["toc"]["pageNumbers"] is False
+    assert s["defaultTheme"] == "beige"
+    assert page.locator("b", has_text="x").count() == 0   # nothing leaked out of the JSON block
+
+
 def test_a_settings_file_that_is_not_a_json_object_fails_the_build(tmp_path):
     res, out = build_with_override(tmp_path, '{"defaultTheme": "black",}')
 
