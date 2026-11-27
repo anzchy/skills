@@ -1,7 +1,7 @@
 ---
 name: jc-basic-report
 description: 'Build a VC 项目基本信息报告 (basic-information due-diligence report) as one self-contained HTML file from a company BP, optionally exported to an editable docx, following the 大纲 V 0.0.2 (投资要点、概念、公司概况与 BP 核验、产品与技术指标、市场与竞品、团队、经营、估值、风险、附录). Kami design with white/black/beige themes, A4 sheet pagination with page header and page numbers, per-report settings, data charts from JSON specs, left sidebar TOC with page numbers, highlight/underline/note annotations, and a browser test suite. Use when asked to 写/做 项目基本信息报告、尽调报告、BP 分析报告, or to rebuild/verify such a report HTML, or to 转成 Word/docx.'
-version: 0.1.2
+version: 0.1.3
 ---
 
 # jc-basic-report
