@@ -9,7 +9,7 @@
 | `prep.py <报告.html> <工作目录>` | 读报告里内联的 Settings（`<script id="jc-settings">`），写一份「不分页、浅色」的工作副本 `report.export.html` 再打开（见下文）；SVG 图表截成 PNG；标题区、关键数字、风险卡片、结论清单、来源列表、评级标签、`.two-col` 改写成 pandoc 能处理的结构；记录每张表的类型和列宽、文档标题和 Settings，写入 `meta.json` |
 | `build_docx.py <工作目录> <输出.docx>` | pandoc 转 docx，再用 python-docx 按 report.css 设置样式 |
 | `render.py <docx> <输出目录>` | LibreOffice 把 docx 渲染成 PDF（使用 `fonts.conf`） |
-| `compare.py <报告.html> <docx> <输出目录>` | Chrome 打印 HTML（A4、2cm 边距）与 LibreOffice 渲染的 docx 逐页并排，输出 `pages_NN-MM.png` |
+| `compare.py <报告.html> <docx> <输出目录>` | Chrome 把 HTML 打印成 A4 PDF（分页开启时每张 Sheet 一页，带 Page chrome），与 LibreOffice 渲染的 docx 逐页并排，输出 `html.pdf`、docx 的 PDF 和 `pages_NN-MM.png` |
 
 ## 依赖
 
@@ -28,7 +28,7 @@
 | 评级标签 | `.h2-rating` 9pt stone + `b` 15pt brand，`space-between` | `RatingLead` / `RatingWord` 字符样式，无底色；17cm 右对齐制表位 |
 | 双栏 | `.two-col` | 无边框两栏表格，图宽 ≤300px |
 | 页面 | Print palette（默认白底） | A4、2cm 边距；页面背景色 = `themes[print.palette].chart.parchment`（默认 `#ffffff`，`beige` 为羊皮纸 `#f5f4ed`） |
-| 页眉 | Sheet 页眉，首张 Sheet 无页眉 | 节页眉，"首页不同"，首页页眉为空；文字 = `chrome.headerTemplate`，`{company}` 取文档标题第一个"·"之前的部分；9pt stone，页眉距 1cm |
+| 页眉 | Sheet 页眉：公司简称靠左、报告名靠右；首张 Sheet 无页眉 | 节页眉，"首页不同"，首页页眉为空；整行靠左的一行文字 = `chrome.headerTemplate`，`{company}` 取文档标题第一个"·"之前的部分；9pt stone，页眉距 1cm |
 | 页脚 | 居中「第 X 页 共 Y 页」，首张 Sheet 也计页码 | 居中；`chrome.footerTemplate` 里的 `{page}`/`{pages}` 换成 Word 的 `PAGE`/`NUMPAGES` 域，首页页脚相同；页数由 Word 计算，不追求与 HTML 逐页一致 |
 
 ## Settings 与导出模式
@@ -36,7 +36,12 @@
 - Settings 来自构建好的报告（`build.py` 合并默认值和 `settings.json` 后内联）；没有内联块的旧报告退回 `assets/settings.default.json`。
 - 导出不依赖屏幕上的 Sheet：`prep.py` 把工作副本里的 Settings 改成 `pagination.enabled=false`、`defaultTheme` = Print palette（是 `black` 时用 `white`），原报告不动。新开的浏览器没有存过的 Theme 选择，所以图表按这个浅色主题截图，正文里也不会混进 Sheet 的页眉页码。
 - docx 的文字颜色固定为深色，所以 `print.palette` 设为 `black` 时页面会是深底深字；docx 请用 `white` 或 `beige`。
-- 页边距仍固定 2cm（17cm 行宽是表格列宽和评级制表位的基准），暂不读 `paper.marginMm`。
+
+## 与 HTML 的已知差异
+
+- **页眉只有一行、整行靠左**：HTML 的 Sheet 页眉在第一个「·」处分成左右两段，docx 页眉把整个 `chrome.headerTemplate` 写成一行靠左的文字（如「沐曦股份 · 项目基本信息报告」）。
+- **页边距固定 2cm**：17cm 行宽是表格列宽和评级制表位的基准，所以 docx 暂不读 `paper.marginMm`（HTML 的 Sheet 默认是上 16、左右 18、下 18 毫米）。
+- **页数不逐页一致**：docx 由 Word 自己排版（页边距、行高与 HTML 不同），页数由 Word 的 `NUMPAGES` 计算，不等于 HTML 的 Sheet 数。`compare.py` 的并排图用来检查两边是否大致接近。
 
 ## 排错
 
