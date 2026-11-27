@@ -55,9 +55,17 @@ def read(path: Path) -> str:
 
 
 def styles() -> str:
-    return ("<style>\n" + read(ASSETS / "report.css") + read(ASSETS / "ui.css") + "</style>\n"
+    return ("<style>\n" + read(ASSETS / "report.css") + read(ASSETS / "ui.css") + read(ASSETS / "theme.css")
+            + "</style>\n"
             "<style>/* @recogito/text-annotator 4.3.7 · BSD-3-Clause · (c) Pelagios Network */\n"
             + read(VENDOR / "recogito-text-annotator-4.3.7.css") + "</style>")
+
+
+def theme_script() -> str:
+    """Theme boot script: runs in <head> so the chosen Theme applies before the first paint."""
+    js = read(ASSETS / "theme.js")
+    assert "</script" not in js
+    return f"<script>/* jc-basic-report theme */\n{js}</script>\n"
 
 
 def scripts() -> str:
@@ -89,7 +97,7 @@ def build(src: Path, out: Path, draft: bool = False) -> int:
             print("  " + r, file=sys.stderr)
         return 1
     html = embed_images(html, src.parent)
-    html = html.replace("<!--JC:CSS-->", settings_block(settings) + styles())
+    html = html.replace("<!--JC:CSS-->", settings_block(settings) + theme_script() + styles())
     html = html.replace("<!--JC:SCRIPTS-->", scripts())
     html = embed_charts(html, src.parent / "charts")
     out.write_text(html, encoding="utf-8")

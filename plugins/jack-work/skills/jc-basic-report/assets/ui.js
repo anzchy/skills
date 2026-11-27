@@ -6,11 +6,17 @@
   var KEY_SIDE = 'kami-side-collapsed';
   var SOURCE = 'urn:report:' + RID;
   var KINDS = {
-    'hl-yellow': { label: '黄色高亮', color: '#F3E3A0' },
-    'hl-green':  { label: '绿色高亮', color: '#D5E6C3' },
-    'hl-blue':   { label: '蓝色高亮', color: '#D6E2F0' },
-    'underline': { label: '划线',     color: '#A4442B' }
+    'hl-yellow': { label: '黄色高亮', color: 'var(--hl-yellow, #F3E3A0)' },
+    'hl-green':  { label: '绿色高亮', color: 'var(--hl-green, #D5E6C3)' },
+    'hl-blue':   { label: '蓝色高亮', color: 'var(--hl-blue, #D6E2F0)' },
+    'underline': { label: '划线',     color: 'var(--ul-red, #A4442B)' }
   };
+  var BRAND = 'var(--brand, #1B365D)';
+  /* Mark colours follow the Theme: CSS reads var() directly, the annotator needs the resolved value. */
+  function paint(c) {
+    var m = /^var\((--[\w-]+),\s*([^)]+)\)$/.exec(c);
+    return m ? (getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() || m[2]) : c;
+  }
 
   var root = document.documentElement;
   var report = document.getElementById('report');
@@ -92,16 +98,16 @@
 
   function styleFn(a, state) {
     var kind = kindOf(a), note = noteOf(a), sel = state && state.selected;
-    if (!kind && !note) return { fill: '#1B365D', fillOpacity: 0.16 };
+    if (!kind && !note) return { fill: paint(BRAND), fillOpacity: 0.16 };
     var s;
     if (kind === 'underline') {
-      s = { fill: '#A4442B', fillOpacity: sel ? 0.10 : 0, underlineColor: '#A4442B', underlineThickness: 2, underlineOffset: 1 };
+      s = { fill: paint(KINDS.underline.color), fillOpacity: sel ? 0.10 : 0, underlineColor: paint(KINDS.underline.color), underlineThickness: 2, underlineOffset: 1 };
     } else {
-      s = { fill: KINDS[kind || 'hl-blue'].color, fillOpacity: sel ? 1 : 0.85 };
+      s = { fill: paint(KINDS[kind || 'hl-blue'].color), fillOpacity: sel ? 1 : 0.85 };
       if (!kind) s.fillOpacity = sel ? 0.6 : 0.35;
     }
     if (note && kind !== 'underline') {
-      s.underlineColor = '#1B365D'; s.underlineStyle = 'dashed'; s.underlineThickness = 1.5; s.underlineOffset = 1;
+      s.underlineColor = paint(BRAND); s.underlineStyle = 'dashed'; s.underlineThickness = 1.5; s.underlineOffset = 1;
     }
     return s;
   }
@@ -112,6 +118,8 @@
     userSelectAction: 'EDIT',
     dismissOnNotAnnotatable: function (e) { return !e.target.closest('.ann-pop, .side'); }
   });
+
+  document.addEventListener('jc:themechange', function () { anno.setStyle(styleFn); });
 
   function save() {
     var keep = anno.getAnnotations().filter(isKept);
