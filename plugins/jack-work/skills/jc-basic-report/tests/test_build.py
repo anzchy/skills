@@ -189,3 +189,18 @@ def test_an_unknown_settings_key_fails_the_build_and_is_named(tmp_path):
     assert res.returncode != 0
     assert "chrome.headerTemplte" in res.stderr
     assert not out.exists()
+
+
+def test_an_illegal_theme_name_fails_the_build(tmp_path):
+    res, out = build_with_override(tmp_path, {"defaultTheme": "dark"})
+
+    assert res.returncode != 0
+    assert "defaultTheme" in res.stderr and "dark" in res.stderr
+    assert not out.exists()
+
+
+def test_the_print_palette_must_name_a_theme(tmp_path):
+    res, out = build_with_override(tmp_path, {"print": {"palette": "sepia"}})
+
+    assert res.returncode != 0
+    assert "print.palette" in res.stderr and "sepia" in res.stderr

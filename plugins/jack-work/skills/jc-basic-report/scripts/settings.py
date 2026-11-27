@@ -36,13 +36,17 @@ def _any(path, v):
     return []
 
 
+def _theme(path, v):
+    return [] if v in THEMES else [f"非法主题名 {path} = {v!r}（可选：{' / '.join(THEMES)}）"]
+
+
 SCHEMA = {
-    "defaultTheme": _any,
+    "defaultTheme": _theme,
     "pagination": {"enabled": _any},
     "paper": {"size": _any, "marginMm": {side: _any for side in ("top", "right", "bottom", "left")}},
     "chrome": {"headerTemplate": _any, "footerTemplate": _any},
     "toc": {"pageNumbers": _any},
-    "print": {"palette": _any},
+    "print": {"palette": _theme},
     "themes": {t: {"chart": {k: _any for k in CHART_KEYS}} for t in THEMES},
 }
 
