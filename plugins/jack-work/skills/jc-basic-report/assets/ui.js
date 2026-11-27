@@ -414,9 +414,9 @@
       placed.forEach(function (a) {
         if (anno.getAnnotationById(a.id)) anno.updateAnnotation(a); else anno.addAnnotation(a);
       });
-      var n = arr.length;
+      var n = arr.length, unplaced = n - placed.length;
       save();
-      alert('已导入 ' + n + ' 条批注。');
+      alert('已导入 ' + n + ' 条批注' + (unplaced ? '，其中 ' + unplaced + ' 条未定位' : '') + '。');
     }).catch(function (err) { alert('导入失败：' + err.message); });
     fileIn.value = '';
   });

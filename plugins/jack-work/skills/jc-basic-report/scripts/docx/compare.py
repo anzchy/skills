@@ -18,10 +18,11 @@ with sync_playwright() as p:
     b = p.chromium.launch(channel="chrome")
     pg = b.new_page()
     pg.goto(html.as_uri(), wait_until="load")
-    pg.wait_for_timeout(500)
+    # Print what a reader prints: the Sheets once the Paginator has settled, each on one A4 page with
+    # its page chrome (the Report's own @page rules set paper size and margins).
+    pg.wait_for_selector("html[data-pagination]:not([data-pagination='pending'])", state="attached", timeout=15000)
     pg.evaluate("() => document.querySelectorAll('script, button, .ann-tools, .ann-save, .ann-hint, #side').forEach(e => e.remove())")
-    pg.pdf(path=str(out / "html.pdf"), format="A4", print_background=True,
-           margin={"top": "2cm", "bottom": "2cm", "left": "2cm", "right": "2cm"})
+    pg.pdf(path=str(out / "html.pdf"), print_background=True, prefer_css_page_size=True)
     b.close()
 
 subprocess.run([sys.executable, str(Path(__file__).with_name("render.py")), str(docx), str(out)], check=True,

@@ -146,6 +146,38 @@ def test_an_oversized_table_gets_its_own_sheet_and_a_visible_warning(context, tm
     assert "9.9 超长明细" in banner.inner_text()
 
 
+# Starts a fresh Sheet, then H2 + H3 + a ~245 mm table: it fits a 263 mm Sheet body alone, not with its headings.
+NEAR_FULL_TABLE = ('<div class="page-break"></div>\n<h2 id="s-near">九、近满页表格</h2>\n<h3 id="ss-near">9.1 明细</h3>\n'
+                   '<table id="near-full"><thead><tr><th>序号</th><th>事项</th></tr></thead><tbody>'
+                   + "".join(f'<tr style="height:10mm"><td>{i}</td><td>明细第 {i} 行</td></tr>' for i in range(1, 24))
+                   + "</tbody></table>\n<p id=\"after-near\">近满页表格之后的一段正文。</p>")
+
+
+def test_a_table_that_fits_a_sheet_alone_but_not_with_its_headings_is_not_oversized(context, tmp_path):
+    out = build_sample(tmp_path, extra_body=NEAR_FULL_TABLE)
+    page = context.new_page()
+    warnings = []
+    page.on("console", lambda m: warnings.append(m.text) if m.type == "warning" else None)
+    page.goto(out.as_uri(), wait_until="domcontentloaded")
+    page.wait_for_selector("html[data-pagination='done']", state="attached", timeout=10000)
+    m = page.evaluate("JSON.parse(document.getElementById('jc-settings').textContent).paper.marginMm")
+
+    got = page.evaluate("""() => {
+        const sheets = [...document.querySelectorAll('#report .sheet')], at = id => document.getElementById(id);
+        const t = at('near-full'), s = t.closest('.sheet'), r = t.getBoundingClientRect(), sr = s.getBoundingClientRect();
+        return {table: sheets.indexOf(s), h2: sheets.indexOf(at('s-near').closest('.sheet')),
+                h3: sheets.indexOf(at('ss-near').closest('.sheet')), oversized: s.classList.contains('sheet--oversized'),
+                height: r.height, room: sr.bottom - r.bottom, top: r.top - sr.top}; }""")
+
+    assert 230 < mm(got["height"]) < 263 - 5, got     # ~90 % of the Sheet body, so it really fits alone
+    assert not got["oversized"]
+    assert not any("Oversized" in w for w in warnings), warnings
+    assert page.locator("[role='alert']").count() == 0
+    assert mm(got["room"]) >= m["bottom"] - 0.5, "the table sits whole on its Sheet"
+    assert got["h2"] == got["h3"] and got["h3"] in (got["table"], got["table"] - 1), \
+        "the headings stay with the table, or sit on their own Sheet just before it"
+
+
 def tall_png() -> bytes:
     import io
     from PIL import Image
@@ -259,3 +291,44 @@ def test_pagination_leaves_the_annotatable_text_flow_unchanged(context, tmp_path
 
     assert paged.locator("#report .sheet").count() >= 3
     assert report_text(paged) == report_text(flat)
+
+
+# Fault injection: the first layout query the Paginator makes after it has started moving Blocks throws.
+BREAK_PAGINATION = """(() => { const real = window.getComputedStyle; let armed = true;
+    window.getComputedStyle = function (el) {
+      if (armed && document.documentElement.classList.contains('jc-paginated')) {
+        armed = false; throw new Error('injected layout failure'); }
+      return real.apply(this, arguments); }; })()"""
+
+
+def test_if_pagination_fails_the_report_falls_back_to_continuous_scroll_with_a_working_sidebar(context, report_path):
+    page = context.new_page()
+    errors = []
+    page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
+    page.add_init_script(BREAK_PAGINATION)
+    page.goto(report_path.as_uri(), wait_until="domcontentloaded")
+    page.wait_for_selector("html[data-pagination='off']", state="attached", timeout=10000)
+
+    page.wait_for_selector(".js-toc a", state="attached", timeout=5000)
+    assert page.locator("#report .sheet").count() == 0, "no half-built Sheets are left behind"
+    assert mm(page.evaluate("document.getElementById('report').getBoundingClientRect().height")) > 2 * 297
+    assert page.evaluate("typeof window.__report === 'object'"), "annotations started"
+    assert any("injected layout failure" in e for e in errors), errors
+
+
+# A page script whose readiness callback throws, registered before chrome.js and ui.js.
+EARLY_THROWING_CALLBACK = """(() => { let api;
+    Object.defineProperty(window, 'JCPaginator', { configurable: true,
+      get() { return api; },
+      set(v) { api = v; v.whenReady(() => { throw new Error('callback failure'); }); } }); })()"""
+
+
+def test_one_failing_readiness_callback_does_not_stop_the_others(context, report_path):
+    page = context.new_page()
+    page.add_init_script(EARLY_THROWING_CALLBACK)
+    page.goto(report_path.as_uri(), wait_until="domcontentloaded")
+    page.wait_for_selector("html[data-pagination='done']", state="attached", timeout=10000)
+
+    page.wait_for_selector(".js-toc a", state="attached", timeout=5000)
+    assert page.locator("#report .sheet .sheet-footer").count() >= 3, "page chrome still drawn"
+    assert page.evaluate("typeof window.__report === 'object'"), "annotations started"

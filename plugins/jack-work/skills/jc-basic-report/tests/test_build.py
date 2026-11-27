@@ -214,6 +214,18 @@ def test_a_negative_page_margin_fails_the_build(tmp_path):
     assert not out.exists()
 
 
+def test_a_bad_colour_error_names_both_accepted_hex_forms(tmp_path):
+    # #rgb and #rrggbb are both accepted; the message must say so
+    (tmp_path / "ok").mkdir()
+    (tmp_path / "bad").mkdir()
+    ok, _ =build_with_override(tmp_path / "ok", {"themes": {"white": {"chart": {"brand": "#abc"}}}})
+    res, out = build_with_override(tmp_path / "bad", {"themes": {"white": {"chart": {"brand": "blue"}}}})
+
+    assert ok.returncode == 0, ok.stderr
+    assert res.returncode != 0
+    assert "#rgb" in res.stderr and "#rrggbb" in res.stderr, res.stderr
+
+
 def test_unsetting_a_required_key_fails_the_build_and_names_it(tmp_path):
     # null in the override removes the key, leaving the merged Settings without it
     res, out = build_with_override(tmp_path, {"chrome": {"headerTemplate": None}})

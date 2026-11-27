@@ -28,7 +28,15 @@ SERIF_LATIN, SERIF_CJK = "Georgia", "TsangerJinKai02"
 # ---- Settings (inlined in the Report, carried here by prep.py) ----
 SETTINGS = meta["settings"]
 PRINT_PALETTE = SETTINGS["print"]["palette"]
-PAGE_COLOR = SETTINGS["themes"][PRINT_PALETTE]["chart"]["parchment"].lstrip("#")   # the palette's page colour
+
+
+def rrggbb(colour):
+    """Settings accept #rgb or #rrggbb; Word's colour attributes take RRGGBB only."""
+    h = colour.lstrip("#")
+    return "".join(c * 2 for c in h) if len(h) == 3 else h
+
+
+PAGE_COLOR = rrggbb(SETTINGS["themes"][PRINT_PALETTE]["chart"]["parchment"])   # the palette's page colour
 
 # header/metric paragraphs: <p data-k="x"> -> named paragraph style K_x
 html = (wd / "main.html").read_text(encoding="utf-8")
@@ -367,7 +375,8 @@ def page_count_footer(footer):
     """footerTemplate, e.g. "第 {page} 页 共 {pages} 页", with {page} / {pages} as PAGE / NUMPAGES fields."""
     para = footer.paragraphs[0]
     chrome_paragraph(para, WD_ALIGN_PARAGRAPH.CENTER)
-    for part in re.split(r"(\{page\}|\{pages\})", SETTINGS["chrome"]["footerTemplate"]):
+    template = SETTINGS["chrome"]["footerTemplate"].replace("{company}", company_from(meta.get("title", "")))
+    for part in re.split(r"(\{page\}|\{pages\})", template):
         if part == "{page}":
             field_run(para, "PAGE")
         elif part == "{pages}":

@@ -237,3 +237,23 @@ def test_an_annotation_whose_text_is_gone_is_kept_and_flagged_unlocated(context,
         assert not other.errors
     finally:
         ctx.close()
+
+
+def test_the_import_message_counts_unlocated_annotations_separately(context, browser, tmp_path):
+    url = build_sample(tmp_path / "v1", extra_body=REPEATED).as_uri()
+    reader = Reader(context.new_page(), url).open()
+    i = para_index(reader, "rep")
+    highlight_phrase(reader, i, "甲方案")
+    highlight_phrase(reader, i, "核心指标同比增长", k=1)
+    reader.export_notes(tmp_path / "notes.json")
+
+    v2 = revised(tmp_path, "v2", lambda h: h.replace("核心指标同比增长", "收入稳步提升"))
+    ctx, other = fresh_reader(browser, v2)
+    try:
+        said = []
+        other.page.on("dialog", lambda d: said.append(d.message))
+        other.import_notes(tmp_path / "notes.json")
+
+        assert said == ["已导入 2 条批注，其中 1 条未定位。"], said
+    finally:
+        ctx.close()

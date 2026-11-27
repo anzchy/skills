@@ -60,7 +60,7 @@ def _paper(path, v):
 
 
 def _colour(path, v):
-    return [] if isinstance(v, str) and HEX.fullmatch(v) else [f"{path} 必须是 #rrggbb 颜色，实际 {v!r}"]
+    return [] if isinstance(v, str) and HEX.fullmatch(v) else [f"{path} 必须是 #rgb 或 #rrggbb 颜色，实际 {v!r}"]
 
 
 def _theme(path, v):
