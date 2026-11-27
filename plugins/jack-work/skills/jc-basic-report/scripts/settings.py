@@ -5,6 +5,7 @@ The result is inlined into the Report as `<script type="application/json" id="jc
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
@@ -36,8 +37,30 @@ CHART_KEYS = ("parchment", "near_black", "charcoal", "olive", "stone", "light_st
               "brand", "brand_tint", "grid")
 
 
-def _any(path, v):
-    return []
+HEX = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
+
+
+def _bool(path, v):
+    return [] if isinstance(v, bool) else [f"{path} 必须是 true / false，实际 {v!r}"]
+
+
+def _text(path, v):
+    return [] if isinstance(v, str) and v.strip() else [f"{path} 必须是非空字符串，实际 {v!r}"]
+
+
+def _footer(path, v):
+    errors = _text(path, v)
+    if not errors and "{page}" not in v:
+        errors.append(f"{path} 必须包含 {{page}}，实际 {v!r}")
+    return errors
+
+
+def _paper(path, v):
+    return [] if v == "A4" else [f"{path} 目前只支持 \"A4\"，实际 {v!r}"]
+
+
+def _colour(path, v):
+    return [] if isinstance(v, str) and HEX.fullmatch(v) else [f"{path} 必须是 #rrggbb 颜色，实际 {v!r}"]
 
 
 def _theme(path, v):
@@ -52,12 +75,12 @@ def _margin(path, v):
 
 SCHEMA = {
     "defaultTheme": _theme,
-    "pagination": {"enabled": _any},
-    "paper": {"size": _any, "marginMm": {side: _margin for side in ("top", "right", "bottom", "left")}},
-    "chrome": {"headerTemplate": _any, "footerTemplate": _any},
-    "toc": {"pageNumbers": _any},
+    "pagination": {"enabled": _bool},
+    "paper": {"size": _paper, "marginMm": {side: _margin for side in ("top", "right", "bottom", "left")}},
+    "chrome": {"headerTemplate": _text, "footerTemplate": _footer},
+    "toc": {"pageNumbers": _bool},
     "print": {"palette": _theme},
-    "themes": {t: {"chart": {k: _any for k in CHART_KEYS}} for t in THEMES},
+    "themes": {t: {"chart": {k: _colour for k in CHART_KEYS}} for t in THEMES},
 }
 
 
@@ -89,7 +112,13 @@ def load_settings(src_dir: Path) -> dict:
     settings = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     override = src_dir / OVERRIDE_NAME
     if override.is_file():
-        settings = deep_merge(settings, json.loads(override.read_text(encoding="utf-8")))
+        try:
+            over = json.loads(override.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            raise SettingsError([f"{override.name} 不是合法 JSON：第 {e.lineno} 行第 {e.colno} 列 {e.msg}"])
+        if not isinstance(over, dict):
+            raise SettingsError([f"{override.name} 顶层必须是 JSON 对象"])
+        settings = deep_merge(settings, over)
     validate(settings)
     return settings
 

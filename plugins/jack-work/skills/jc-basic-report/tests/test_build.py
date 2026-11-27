@@ -221,3 +221,30 @@ def test_unsetting_a_required_key_fails_the_build_and_names_it(tmp_path):
     assert res.returncode != 0
     assert "chrome.headerTemplate" in res.stderr
     assert not out.exists()
+
+
+def test_every_invalid_setting_is_listed_in_one_failed_build(tmp_path):
+    res, out = build_with_override(tmp_path, {
+        "defaultTheme": "dark",
+        "colour": "red",
+        "pagination": {"enabled": "yes"},
+        "paper": {"size": "Letter", "marginMm": {"top": -1}},
+        "toc": {"pageNumbers": 1},
+        "chrome": {"footerTemplate": 3},
+        "themes": {"black": {"chart": {"brand": "blue"}}},
+    })
+
+    assert res.returncode != 0
+    for path in ("defaultTheme", "colour", "pagination.enabled", "paper.size", "paper.marginMm.top",
+                 "toc.pageNumbers", "chrome.footerTemplate", "themes.black.chart.brand"):
+        assert path in res.stderr, f"{path} not reported:\n{res.stderr}"
+    assert not out.exists()
+
+
+def test_a_settings_file_that_is_not_a_json_object_fails_the_build(tmp_path):
+    res, out = build_with_override(tmp_path, '{"defaultTheme": "black",}')
+
+    assert res.returncode != 0
+    assert "settings.json" in res.stderr
+    assert "Traceback" not in res.stderr
+    assert not out.exists()
