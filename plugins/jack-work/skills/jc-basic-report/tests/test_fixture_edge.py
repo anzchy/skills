@@ -2,8 +2,8 @@
 
 `sample` is the realistic, well-behaved 沐曦 report; `sample-edge` holds the extreme cases that would distort it
 (oversized table / figure / paragraph, a title without "·", an override `settings.json` beside the source).
-Known defects found by the edge fixture are recorded as strict xfails, so fixing one flips the test and
-reminds us to drop the marker.
+A defect found by the edge fixture is first recorded as a strict xfail; fixing it flips the test, which is
+the reminder to drop the marker. None are open at the moment.
 """
 from __future__ import annotations
 
@@ -85,7 +85,7 @@ def test_no_heading_is_left_stranded_at_the_bottom_of_a_sheet(context, edge_repo
 
     # A Sheet made only of headings is the deliberate special case pinned by the next test, so it is not counted here.
     stranded = page.evaluate("""() => [...document.querySelectorAll('#report .sheet')].slice(0, -1).filter(s => {
-        const kids = [...s.querySelector('.sheet-body').children];
+        const kids = [...s.querySelector('.sheet-body').children].filter(k => k.getBoundingClientRect().height > 1);
         return !kids.every(k => /^H[23]$/.test(k.tagName)) && /^H[23]$/.test(kids[kids.length - 1].tagName); }).length""")
 
     assert stranded == 0
@@ -118,8 +118,6 @@ def test_toc_page_numbers_never_go_backwards_on_the_edge_report(context, edge_re
     assert nums and nums == sorted(nums) and nums[0] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="found by the edge fixture: an explicit page break followed by headings and a "
-                                       "near-full table leaves a blank Sheet (only the empty .page-break marker on it)")
 def test_no_sheet_is_blank(context, edge_report):
     page = open_report(context, edge_report)
 
@@ -129,8 +127,6 @@ def test_no_sheet_is_blank(context, edge_report):
     assert blank == 0
 
 
-@pytest.mark.xfail(strict=True, reason="found by the edge fixture: an <img width=900> is wider than the Sheet body and "
-                                       "gets clipped on the right by .sheet-body{overflow:hidden}")
 def test_images_stay_inside_the_sheet(context, edge_report):
     page = open_report(context, edge_report)
 
