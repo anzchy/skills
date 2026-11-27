@@ -123,6 +123,57 @@ def test_every_text_in_body_and_sidebar_stays_readable_in_every_theme(reader):
             assert bad == [], f"{theme} theme, {pane} pane: low-contrast text {bad}"
 
 
+# What the reader sees where a mark is drawn. The mark layer sits ABOVE the text and is composited
+# with its CSS mix-blend-mode, so both the page and the glyphs under a mark are blended with it.
+MARKS = """() => {
+  const rgb = s => { const p = s.match(/rgba?\\(([^)]+)\\)/)[1].split(/[ ,\\/]+/).filter(Boolean).map(Number);
+    return { c: p.slice(0, 3), a: p.length > 3 ? p[3] : 1 }; };
+  const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const layer = document.querySelector('.r6o-span-highlight-layer');
+  const mode = getComputedStyle(layer).mixBlendMode;
+  const B = { normal: (b, s) => s, multiply: (b, s) => b * s / 255, screen: (b, s) => 255 - (255 - b) * (255 - s) / 255 }[mode];
+  const over = (back, src) => back.map((b, i) => (1 - src.a) * b + src.a * B(b, src.c[i]));
+  const page = rgb(getComputedStyle(document.body).backgroundColor).c;
+  const text = rgb(getComputedStyle(document.body).color).c;   // body text colour
+  return [...layer.querySelectorAll('.r6o-annotation')].map(m => {
+    const cs = getComputedStyle(m), fill = rgb(cs.backgroundColor), out = { mode };
+    if (fill.a > 0) {
+      const bg = over(page, fill), fg = over(text, fill);
+      out.fillDistance = Math.hypot(...bg.map((v, i) => v - page[i])); out.textOnFill = ratio(fg, bg);
+    }
+    if (parseFloat(cs.borderBottomWidth) > 0) out.lineVsPage = ratio(over(page, rgb(cs.borderBottomColor)), page);
+    return out;
+  });
+}"""
+
+
+def test_highlights_underlines_and_note_marks_stay_visible_in_every_theme(reader):
+    reader.select_text("#report > p", 0)
+    reader.toolbar("yellow")
+    reader.select_text("#report > p", 1)
+    reader.toolbar("underline")
+    reader.select_text("#report > p", 2)
+    reader.write_note("核实")                             # a note mark: tinted fill + dashed line
+
+    reader.page.locator("#report > p").nth(1).scroll_into_view_if_needed()
+    reader.page.wait_for_timeout(200)
+    for theme in THEMES:              # switched after marking, without scrolling: marks must repaint
+        choose(reader, theme)
+        reader.page.wait_for_timeout(200)
+        marks = reader.page.evaluate(MARKS)
+        assert any("fillDistance" in m for m in marks) and any("lineVsPage" in m for m in marks)
+        # Fill distance: the existing beige yellow sits ~66 from its page, which readers accept as visible.
+        for m in marks:
+            if "fillDistance" in m:
+                assert m["fillDistance"] >= 40, f"{theme}: highlight fill blends into the page {m}"
+                assert m["textOnFill"] >= 4.5, f"{theme}: text on a highlight is hard to read {m}"
+            if "lineVsPage" in m:
+                assert m["lineVsPage"] >= 3, f"{theme}: underline / note line is hard to see {m}"
+    assert not reader.errors
+
+
 def test_data_gap_labels_and_direction_tags_follow_the_theme(reader):
     tags = ".gap, .dir.up, .dir.down, .dir.mid"
     colours = {}
