@@ -118,3 +118,14 @@ def test_without_pagination_the_continuous_print_is_also_on_the_print_palette(co
 
     assert pdf.page_count >= 2
     assert all(near(paper_colour(p), WHITE) for p in pdf), [paper_colour(p) for p in pdf]
+
+
+def test_without_pagination_a_beige_print_palette_colours_the_page_margins_too(context, tmp_path):
+    # White paper would pass the test above even if the page colour never applied; beige would not.
+    out = build_sample(tmp_path, {"pagination": {"enabled": False}, "print": {"palette": "beige"}})
+    page = open_report(context, out)
+
+    pdf = print_pdf(page, tmp_path / "continuous-beige.pdf")
+
+    assert pdf.page_count >= 2
+    assert all(near(paper_colour(p), BEIGE) for p in pdf), [paper_colour(p) for p in pdf]
