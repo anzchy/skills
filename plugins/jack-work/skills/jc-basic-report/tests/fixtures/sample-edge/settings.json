@@ -1,0 +1,18 @@
+{
+  "defaultTheme": "black",
+  "paper": {
+    "marginMm": {
+      "top": 20,
+      "right": 16,
+      "bottom": 20,
+      "left": 16
+    }
+  },
+  "chrome": {
+    "headerTemplate": "{company} · 尽调底稿 · 机密",
+    "footerTemplate": "{page} / {pages}"
+  },
+  "print": {
+    "palette": "white"
+  }
+}

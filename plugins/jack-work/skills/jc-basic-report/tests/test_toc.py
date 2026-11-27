@@ -22,7 +22,8 @@ def test_sidebar_labels_for_the_sample_report(reader, request):
     labels = reader.toc_labels()
     assert labels[0] == "〇、投资要点"          # rating badge is not part of the label
     assert "1.1 第一层：为什么 AI 需要 GPU" in labels
-    assert labels[-1] == "附录 B：数据来源"
+    last_h2 = reader.page.evaluate("() => [...document.querySelectorAll('#report h2')].pop().textContent.trim()")
+    assert labels[-1] == last_h2 == "附录 C：财务明细（样例数据）"
 
 
 def visible_toc_labels(reader) -> list[str]:

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<!-- 边界样例：专放会让主样例失真的极端情形（超长表格、超高图片、超长段落、无分隔符标题、覆盖设置）。全部为虚构内容。
+     数据由检索摘要整理，未逐项复核，仅用于测试与演示，不作投资依据。 -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="report-id" content="fixture-edge-basic-report">
+<title>边界样例报告（标题里没有分隔符）</title>
+<meta name="author" content="jc-basic-report">
+<meta name="description" content="沐曦股份（688802）项目基本信息报告样例，用于 jc-basic-report 的测试与演示。">
+<meta name="keywords" content="沐曦股份, GPU, 科创板, 样例">
+<meta name="generator" content="jc-basic-report (design: Kami)">
+<!--JC:CSS-->
+</head>
+<body>
+
+<aside id="side" class="side" aria-label="阅读工具">
+  <div class="side-head">
+    <span class="side-title">边界样例 · 基本信息报告</span>
+    <button id="side-toggle" class="side-btn" type="button" aria-controls="side" aria-expanded="true" title="收起侧栏">«</button>
+  </div>
+  <div class="side-tabs" role="tablist">
+    <button class="side-tab" type="button" role="tab" data-tab="toc" aria-selected="true">目录</button>
+    <button class="side-tab" type="button" role="tab" data-tab="ann" aria-selected="false">批注<span id="ann-count"></span></button>
+  </div>
+  <div class="side-pane" id="pane-toc" role="tabpanel"><nav class="js-toc" aria-label="报告目录"></nav></div>
+  <div class="side-pane" id="pane-ann" role="tabpanel" hidden>
+    <p class="ann-hint">选中正文即可高亮、划线或添加备注。批注只保存在本机浏览器里，换电脑或分享前请先导出。</p>
+    <div class="ann-tools">
+      <button id="ann-export" type="button">导出 JSON</button>
+      <button id="ann-import" type="button">导入</button>
+      <button id="ann-clear" type="button">清空</button>
+      <input type="file" id="ann-file" accept="application/json,.json" hidden>
+    </div>
+    <div id="ann-list"></div>
+  </div>
+</aside>
+
+<main id="report">
+
+<div class="report-header">
+  <div class="ticker-block">
+    <div class="ticker-eyebrow">边界样例 · 全部为虚构内容</div>
+    <div class="ticker-name">边界样例公司</div>
+    <div class="ticker-sub">用于检验分页、批注、打印和 docx 的极端情形</div>
+  </div>
+  <div class="price-block"><div class="price-current">—</div><div class="price-date">2026-11-26</div></div>
+</div>
+
+<h2 id="e0">一、空章节与连续标题</h2>
+<h2 id="e1">二、标题紧跟标题</h2>
+<h3>2.1 第一个小节</h3>
+<h3>2.2 紧接着的第二个小节</h3>
+<h3>2.3 第三个小节</h3>
+<p>三个小节标题连着出现，只有最后一个后面有正文。这句话在报告里出现三次，用来检验批注按引文重新定位时能区分重复短语。</p>
+
+<h2 id="e2">三、重复短语（批注重新定位）</h2>
+<p data-fake="repeat">这句话在报告里出现三次，用来检验批注按引文重新定位时能区分重复短语。</p>
+<p>夹在中间的另一段普通正文，内容不同。</p>
+<p data-fake="repeat">这句话在报告里出现三次，用来检验批注按引文重新定位时能区分重复短语。</p>
+<ul>
+  <li>列表项里也有批注目标：<span class="hl">高亮片段</span>后面还有文字。
+    <ul><li>二级列表项。<ul><li>三级列表项，嵌套较深。</li></ul></li></ul>
+  </li>
+</ul>
+<table class="compact"><thead><tr><th>项目</th><th>说明</th></tr></thead><tbody>
+  <tr><td>表格单元格</td><td>批注也可能落在表格单元格里，这一格有较长的文字用于选中。</td></tr>
+</tbody></table>
+
+<div class="page-break"></div>
+<h2 id="e3">四、近满页表格（标题与表格同页放不下）</h2>
+<h3>4.1 明细</h3>
+<table class="compact" id="near-full"><thead><tr><th>序号</th><th>事项</th><th>数值</th></tr></thead><tbody><tr style="height:10mm"><td>1</td><td>近满页表格第 1 行</td><td>1</td></tr><tr style="height:10mm"><td>2</td><td>近满页表格第 2 行</td><td>2</td></tr><tr style="height:10mm"><td>3</td><td>近满页表格第 3 行</td><td>3</td></tr><tr style="height:10mm"><td>4</td><td>近满页表格第 4 行</td><td>4</td></tr><tr style="height:10mm"><td>5</td><td>近满页表格第 5 行</td><td>5</td></tr><tr style="height:10mm"><td>6</td><td>近满页表格第 6 行</td><td>6</td></tr><tr style="height:10mm"><td>7</td><td>近满页表格第 7 行</td><td>7</td></tr><tr style="height:10mm"><td>8</td><td>近满页表格第 8 行</td><td>8</td></tr><tr style="height:10mm"><td>9</td><td>近满页表格第 9 行</td><td>9</td></tr><tr style="height:10mm"><td>10</td><td>近满页表格第 10 行</td><td>10</td></tr><tr style="height:10mm"><td>11</td><td>近满页表格第 11 行</td><td>11</td></tr><tr style="height:10mm"><td>12</td><td>近满页表格第 12 行</td><td>12</td></tr><tr style="height:10mm"><td>13</td><td>近满页表格第 13 行</td><td>13</td></tr><tr style="height:10mm"><td>14</td><td>近满页表格第 14 行</td><td>14</td></tr><tr style="height:10mm"><td>15</td><td>近满页表格第 15 行</td><td>15</td></tr><tr style="height:10mm"><td>16</td><td>近满页表格第 16 行</td><td>16</td></tr><tr style="height:10mm"><td>17</td><td>近满页表格第 17 行</td><td>17</td></tr><tr style="height:10mm"><td>18</td><td>近满页表格第 18 行</td><td>18</td></tr><tr style="height:10mm"><td>19</td><td>近满页表格第 19 行</td><td>19</td></tr><tr style="height:10mm"><td>20</td><td>近满页表格第 20 行</td><td>20</td></tr><tr style="height:10mm"><td>21</td><td>近满页表格第 21 行</td><td>21</td></tr><tr style="height:10mm"><td>22</td><td>近满页表格第 22 行</td><td>22</td></tr><tr style="height:10mm"><td>23</td><td>近满页表格第 23 行</td><td>23</td></tr></tbody></table>
+<p>近满页表格之后的一段正文。</p>
+
+<h2 id="e4">五、超长表格（高于一张 Sheet）</h2>
+<p>下面的表格有 70 行，比一张 Sheet 还高。按设计，作者应当自己拆表；这里保留它来检验警告和单独成页的行为。</p>
+<table class="compact"><thead><tr><th>序号</th><th>事项</th><th>数值</th></tr></thead><tbody><tr><td>1</td><td>虚构明细事项 1</td><td>3</td></tr><tr><td>2</td><td>虚构明细事项 2</td><td>6</td></tr><tr><td>3</td><td>虚构明细事项 3</td><td>9</td></tr><tr><td>4</td><td>虚构明细事项 4</td><td>12</td></tr><tr><td>5</td><td>虚构明细事项 5</td><td>15</td></tr><tr><td>6</td><td>虚构明细事项 6</td><td>1</td></tr><tr><td>7</td><td>虚构明细事项 7</td><td>4</td></tr><tr><td>8</td><td>虚构明细事项 8</td><td>7</td></tr><tr><td>9</td><td>虚构明细事项 9</td><td>10</td></tr><tr><td>10</td><td>虚构明细事项 10</td><td>13</td></tr><tr><td>11</td><td>虚构明细事项 11</td><td>16</td></tr><tr><td>12</td><td>虚构明细事项 12</td><td>2</td></tr><tr><td>13</td><td>虚构明细事项 13</td><td>5</td></tr><tr><td>14</td><td>虚构明细事项 14</td><td>8</td></tr><tr><td>15</td><td>虚构明细事项 15</td><td>11</td></tr><tr><td>16</td><td>虚构明细事项 16</td><td>14</td></tr><tr><td>17</td><td>虚构明细事项 17</td><td>0</td></tr><tr><td>18</td><td>虚构明细事项 18</td><td>3</td></tr><tr><td>19</td><td>虚构明细事项 19</td><td>6</td></tr><tr><td>20</td><td>虚构明细事项 20</td><td>9</td></tr><tr><td>21</td><td>虚构明细事项 21</td><td>12</td></tr><tr><td>22</td><td>虚构明细事项 22</td><td>15</td></tr><tr><td>23</td><td>虚构明细事项 23</td><td>1</td></tr><tr><td>24</td><td>虚构明细事项 24</td><td>4</td></tr><tr><td>25</td><td>虚构明细事项 25</td><td>7</td></tr><tr><td>26</td><td>虚构明细事项 26</td><td>10</td></tr><tr><td>27</td><td>虚构明细事项 27</td><td>13</td></tr><tr><td>28</td><td>虚构明细事项 28</td><td>16</td></tr><tr><td>29</td><td>虚构明细事项 29</td><td>2</td></tr><tr><td>30</td><td>虚构明细事项 30</td><td>5</td></tr><tr><td>31</td><td>虚构明细事项 31</td><td>8</td></tr><tr><td>32</td><td>虚构明细事项 32</td><td>11</td></tr><tr><td>33</td><td>虚构明细事项 33</td><td>14</td></tr><tr><td>34</td><td>虚构明细事项 34</td><td>0</td></tr><tr><td>35</td><td>虚构明细事项 35</td><td>3</td></tr><tr><td>36</td><td>虚构明细事项 36</td><td>6</td></tr><tr><td>37</td><td>虚构明细事项 37</td><td>9</td></tr><tr><td>38</td><td>虚构明细事项 38</td><td>12</td></tr><tr><td>39</td><td>虚构明细事项 39</td><td>15</td></tr><tr><td>40</td><td>虚构明细事项 40</td><td>1</td></tr><tr><td>41</td><td>虚构明细事项 41</td><td>4</td></tr><tr><td>42</td><td>虚构明细事项 42</td><td>7</td></tr><tr><td>43</td><td>虚构明细事项 43</td><td>10</td></tr><tr><td>44</td><td>虚构明细事项 44</td><td>13</td></tr><tr><td>45</td><td>虚构明细事项 45</td><td>16</td></tr><tr><td>46</td><td>虚构明细事项 46</td><td>2</td></tr><tr><td>47</td><td>虚构明细事项 47</td><td>5</td></tr><tr><td>48</td><td>虚构明细事项 48</td><td>8</td></tr><tr><td>49</td><td>虚构明细事项 49</td><td>11</td></tr><tr><td>50</td><td>虚构明细事项 50</td><td>14</td></tr><tr><td>51</td><td>虚构明细事项 51</td><td>0</td></tr><tr><td>52</td><td>虚构明细事项 52</td><td>3</td></tr><tr><td>53</td><td>虚构明细事项 53</td><td>6</td></tr><tr><td>54</td><td>虚构明细事项 54</td><td>9</td></tr><tr><td>55</td><td>虚构明细事项 55</td><td>12</td></tr><tr><td>56</td><td>虚构明细事项 56</td><td>15</td></tr><tr><td>57</td><td>虚构明细事项 57</td><td>1</td></tr><tr><td>58</td><td>虚构明细事项 58</td><td>4</td></tr><tr><td>59</td><td>虚构明细事项 59</td><td>7</td></tr><tr><td>60</td><td>虚构明细事项 60</td><td>10</td></tr><tr><td>61</td><td>虚构明细事项 61</td><td>13</td></tr><tr><td>62</td><td>虚构明细事项 62</td><td>16</td></tr><tr><td>63</td><td>虚构明细事项 63</td><td>2</td></tr><tr><td>64</td><td>虚构明细事项 64</td><td>5</td></tr><tr><td>65</td><td>虚构明细事项 65</td><td>8</td></tr><tr><td>66</td><td>虚构明细事项 66</td><td>11</td></tr><tr><td>67</td><td>虚构明细事项 67</td><td>14</td></tr><tr><td>68</td><td>虚构明细事项 68</td><td>0</td></tr><tr><td>69</td><td>虚构明细事项 69</td><td>3</td></tr><tr><td>70</td><td>虚构明细事项 70</td><td>6</td></tr></tbody></table>
+
+<h2 id="e5">六、超高图片</h2>
+<figure><img src="images/peers.jpg" alt="一张很高的图片" width="900"><figcaption>图 6-1 · 宽 900 的竖图，高度超过一张 Sheet（虚构）</figcaption></figure>
+
+<h2 id="e6">七、超长段落</h2>
+<p id="long-para">第 1 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 2 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 3 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 4 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 5 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 6 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 7 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 8 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 9 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 10 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 11 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 12 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 13 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 14 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 15 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 16 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 17 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 18 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 19 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 20 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 21 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 22 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 23 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 24 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 25 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 26 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 27 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 28 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 29 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 30 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 31 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 32 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 33 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 34 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 35 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 36 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 37 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 38 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 39 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 40 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 41 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 42 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 43 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 44 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 45 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 46 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 47 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 48 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 49 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 50 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 51 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 52 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 53 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 54 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 55 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 56 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 57 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 58 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 59 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 60 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 61 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 62 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 63 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 64 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 65 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 66 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 67 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 68 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 69 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 70 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 71 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 72 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 73 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 74 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 75 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 76 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 77 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 78 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 79 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 80 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 81 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 82 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 83 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 84 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 85 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 86 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 87 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 88 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 89 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 90 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 91 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 92 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 93 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 94 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 95 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 96 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 97 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 98 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 99 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 100 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 101 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 102 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 103 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 104 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 105 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 106 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 107 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 108 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 109 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 110 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 111 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 112 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 113 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 114 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 115 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 116 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 117 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 118 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 119 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。第 120 句：这是一段刻意写得很长的虚构文字，用来验证单个段落高于一张 Sheet 时的行为。</p>
+
+<h2 id="e7">八、宽表与不可断行的长串</h2>
+<table class="compact"><thead><tr><th>列 1</th><th>列 2</th><th>列 3</th><th>列 4</th><th>列 5</th><th>列 6</th><th>列 7</th><th>列 8</th><th>列 9</th></tr></thead><tbody>
+  <tr><td>a1</td><td>a2</td><td>a3</td><td>a4</td><td>a5</td><td>a6</td><td>a7</td><td>a8</td><td>https://example.com/a/very/long/unbreakable/url/that/does/not/wrap/at/all/0123456789</td></tr>
+  <tr><td>b1</td><td>b2</td><td>b3</td><td>b4</td><td>b5</td><td>b6</td><td>b7</td><td>b8</td><td><span class="gap">[DATA NEEDED: 第九列]</span></td></tr>
+</tbody></table>
+
+<h2 id="e8">九、图表标签很长</h2>
+<figure><!--CHART:long-labels--><figcaption>图 9-1 · 类别名称很长的横向条形图（虚构）</figcaption></figure>
+<p data-fake="repeat">这句话在报告里出现三次，用来检验批注按引文重新定位时能区分重复短语。</p>
+
+<h2 id="e9">十、最后一个元素是标题</h2>
+<h3>10.1 文末小节（后面没有正文）</h3>
+</main>
+
+<!--JC:SCRIPTS-->
+</body>
+</html>

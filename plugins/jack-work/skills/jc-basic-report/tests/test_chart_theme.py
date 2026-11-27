@@ -54,7 +54,10 @@ def check_charts(path):
 def test_the_chart_check_passes_on_a_built_report_and_catches_a_hand_recoloured_chart(report_path, tmp_path):
     ok = check_charts(report_path)
     assert ok.returncode == 0, ok.stdout
-    assert ok.stdout.count("matches its data") == 3          # holders, finance, revenue in the sample
+    from conftest import FIXTURE
+    charts_in_sample = (FIXTURE / "report.src.html").read_text("utf-8").count("<!--CHART:")
+    assert charts_in_sample >= 6, "the sample should keep exercising every chart type"
+    assert ok.stdout.count("matches its data") == charts_in_sample
 
     html = report_path.read_text("utf-8")
     edited = tmp_path / "edited.html"

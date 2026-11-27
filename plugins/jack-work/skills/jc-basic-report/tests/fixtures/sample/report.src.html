@@ -69,6 +69,8 @@
   <li><strong>盈利质量待验证。</strong>2026H1 经营现金流 -12.97 亿元，存货 14.32 亿元、预付款 21.96 亿元〔S4〕。</li>
   <li><strong>估值处于高位。</strong>市值约 2,657 亿元，对应 2025 年营收约 162 倍市销率（本报告计算）〔S4〕。</li>
 </ul>
+<p>从样例数据看，公司的叙事可以拆成三件事：第一，产品能不能持续被客户采购，这决定收入的可持续性；第二，每多卖一块卡，毛利率能否随规模提升，这决定亏损何时收窄；第三，上市后的高估值是否已经提前反映了未来三到五年的增长，这决定新进入资金的安全边际。三件事互相牵制：客户集中度高会让第一件事变脆弱，研发投入压力大会拖住第二件事，而估值越高，对前两件事的容错率就越低。读者在翻到后面各章时，可以带着这三个问题去核对：每一章的数据到底在回答哪一件事，又有哪些口径需要向管理层确认。</p>
+<p class="note" data-fake="repeat">以上为样例数据，仅用于测试与演示，不作投资依据。</p>
 
 <h2 id="s1">一、关键概念及定义</h2>
 <p>本章假设读者不了解 AI 芯片，从“为什么需要 GPU”讲到“沐曦的产品处在哪个位置”，分三层说明。</p>
@@ -77,13 +79,24 @@
 <figure><img src="images/gpu-cores.png" alt="GPU 并行计算单元示意" width="560"><figcaption>图 1-1 · GPU 用大量小核心并行计算（示意，相对路径 PNG）</figcaption></figure>
 <h3>1.2 第二层：通用 GPU 与专用芯片</h3>
 <p>通用 GPU（GPGPU）可以运行多种算法，生态兼容性好；专用芯片针对特定算法优化，能效更高但灵活性较差。两者的竞争焦点是软件生态与性能功耗比。</p>
-<h3>1.3 术语表</h3>
+<h3>1.3 第三层：沐曦的产品处在哪个位置</h3>
+<p>按用途，AI 芯片可以分成训练、推理和图形三类；按路线，可以分成通用 GPU 和专用加速器。沐曦的主力产品属于通用 GPU 路线中的训推一体型，同时布局推理和图形，这意味着它既要和国际龙头比软件生态，又要和国内同行比交付速度。</p>
+<ul>
+  <li><strong>训练：</strong>把大模型从零教会，需要大量卡长时间并行运行，对互联带宽要求高。</li>
+  <li><strong>推理：</strong>让训练好的模型回答问题，更看重单位成本和延迟。</li>
+  <li><strong>图形：</strong>渲染画面，客户群与前两者不同，但可复用部分硬件设计。</li>
+</ul>
+<h3>1.4 术语表</h3>
 <table class="compact glossary">
   <thead><tr><th>术语</th><th>解释</th></tr></thead>
   <tbody>
     <tr><td>GPGPU</td><td>通用图形处理器，既能做图形渲染，也能做通用并行计算</td></tr>
     <tr><td>训推一体</td><td>同一款芯片既用于模型训练，也用于推理</td></tr>
     <tr><td>回片点亮</td><td>芯片流片后拿回样片，首次通电运行成功</td></tr>
+    <tr><td>流片</td><td>把芯片设计交给晶圆厂试生产，一次费用可达数千万元</td></tr>
+    <tr><td>算力生态</td><td>驱动、编译器、框架适配等软件栈，决定硬件能否被客户真正用起来</td></tr>
+    <tr><td>互联带宽</td><td>多卡之间交换数据的速度，影响大模型训练的扩展效率</td></tr>
+    <tr><td>市销率</td><td>市值除以年度营收，亏损公司常用的估值参照</td></tr>
   </tbody>
 </table>
 
@@ -110,6 +123,19 @@
   </tbody>
 </table>
 
+<h3>2.3 招股书关键主张核验</h3>
+<table class="compact">
+  <thead><tr><th style="width:30%">主张</th><th style="width:14%">状态</th><th>证据与说明</th></tr></thead>
+  <tbody>
+    <tr><td>国内成立较早的通用 GPU 公司之一</td><td>部分核验</td><td>成立时间来自工商信息；“较早”为相对说法，缺少同行成立时间的系统对比。</td></tr>
+    <tr><td>C500 已部署于多个国家级或省级智算中心</td><td>无法核验</td><td>仅见招股书与媒体转述，未见客户或中标公告；<span class="gap">[DATA NEEDED: 客户名单与采购合同]</span></td></tr>
+    <tr><td>2025 年营收同比增长 121.26%</td><td>已核验</td><td>7.43 → 16.44 亿元，按年报口径复算一致〔S3〕。</td></tr>
+    <tr><td>核心团队来自国际大厂</td><td>部分核验</td><td>履历来自招股书和媒体，未逐项向前雇主求证。</td></tr>
+    <tr><td>2026H1 利润转正</td><td>矛盾</td><td>归母净利润为正，但扣非仍为负，转正主要靠公允价值变动收益；与“经营改善”的表述不一致〔S4〕。</td></tr>
+  </tbody>
+</table>
+<p class="note" data-fake="repeat">以上为样例数据，仅用于测试与演示，不作投资依据。</p>
+
 <h2 id="s3">三、业务与产品</h2>
 <h3>3.1 产品线</h3>
 <table class="compact">
@@ -121,7 +147,13 @@
   </tbody>
 </table>
 <figure><img src="data:image/png;base64,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" alt="产品线示意" width="420"><figcaption>图 3-1 · 产品线示意（data URI PNG）</figcaption></figure>
-<h3>3.2 评判产品的核心技术指标</h3>
+<h3>3.2 收入结构</h3>
+<p>样例数据显示，曦云 C 系列贡献了大部分收入，其余产品线仍处于投入期。收入结构越集中，对单一产品的依赖越大。</p>
+<div class="two-col">
+<figure><!--CHART:mix--><figcaption>图 3-2 · 曦云 C 系列占收入七成，单一产品依赖度高（样例数据）</figcaption></figure>
+<figure><!--CHART:quarterly--><figcaption>图 3-3 · 季度营收逐季爬升，研发投入仍高于营收（样例数据）</figcaption></figure>
+</div>
+<h3>3.3 评判产品的核心技术指标</h3>
 <p>读规格书时先弄清方向：<span class="dir up">↑ 越大越好</span>，<span class="dir down">↓ 越小越好</span>，<span class="dir mid">◎ 越接近目标越好</span>。</p>
 <table class="compact spec">
   <thead><tr><th style="width:14%">指标</th><th style="width:34%">通俗解释</th><th style="width:12%">方向</th><th>沐曦</th></tr></thead>
@@ -129,6 +161,17 @@
     <tr><td>算力（TFLOPS）</td><td>每秒能做多少万亿次浮点运算，相当于发动机马力</td><td><span class="dir up">↑ 越大越好</span></td><td><span class="gap">[DATA NEEDED]</span></td></tr>
     <tr><td>显存带宽</td><td>芯片读写数据的速度，决定算力能否跑满</td><td><span class="dir up">↑ 越大越好</span></td><td><span class="gap">[DATA NEEDED]</span></td></tr>
     <tr><td>功耗</td><td>运行时耗电量，影响机房电费与散热</td><td><span class="dir down">↓ 越小越好</span></td><td><span class="gap">[DATA NEEDED]</span></td></tr>
+  </tbody>
+</table>
+
+<h3>3.4 客户与下游</h3>
+<table class="compact nums">
+  <thead><tr><th>客户类型</th><th>占比（样例）</th><th>代表场景</th><th>集中度风险</th></tr></thead>
+  <tbody>
+    <tr><td>智算中心 / 政府项目</td><td>46%</td><td>国产算力集群建设</td><td>采购节奏受政策影响</td></tr>
+    <tr><td>互联网与云厂商</td><td>29%</td><td>推理与训练外包</td><td>议价能力强，单客户可占 10% 以上</td></tr>
+    <tr><td>金融、能源、运营商</td><td>17%</td><td>行业大模型落地</td><td>验证周期长</td></tr>
+    <tr class="total"><td>其他</td><td>8%</td><td>科研、教育、渠道</td><td>—</td></tr>
   </tbody>
 </table>
 
@@ -146,6 +189,20 @@
 <figure><img src="images/peers.jpg" alt="竞争格局示意" width="300"><figcaption>图 4-1 · 竞争格局示意（相对路径 JPG，竖图）</figcaption></figure>
 <p>国产 GPU 赛道的头部公司已陆续上市，竞争重点正从“能否流片”转向软件生态、量产交付和盈利质量。</p>
 
+<h3>4.2 可比公司估值</h3>
+<figure><!--CHART:peers-ps--><figcaption>图 4-2 · 沐曦市销率高于全部可比公司和行业中位数（样例数据）</figcaption></figure>
+<table class="compact nums">
+  <thead><tr><th>公司</th><th>路线</th><th>市销率（样例）</th><th>已披露的盈利状态</th></tr></thead>
+  <tbody>
+    <tr><td>沐曦股份</td><td>通用 GPU</td><td>162 倍</td><td>扣非亏损</td></tr>
+    <tr><td>摩尔线程</td><td>全功能 GPU</td><td>95 倍</td><td>亏损</td></tr>
+    <tr><td>寒武纪</td><td>专用 AI 芯片</td><td>70 倍</td><td>已转盈</td></tr>
+    <tr><td>壁仞科技</td><td>通用 GPU</td><td>58 倍</td><td>亏损</td></tr>
+    <tr><td>燧原科技</td><td>专用 AI 芯片</td><td>45 倍</td><td>亏损</td></tr>
+    <tr class="total"><td>行业中位数</td><td>—</td><td>20 倍</td><td>—</td></tr>
+  </tbody>
+</table>
+
 <h2 id="s5">五、团队</h2>
 <table class="compact">
   <thead><tr><th style="width:16%">姓名 / 职务</th><th>履历</th><th style="width:22%">核验情况</th></tr></thead>
@@ -153,6 +210,10 @@
     <tr><td><strong>陈维良</strong><br>董事长、总经理</td><td>此前在 AMD 约 13 年，任全球 GPGPU 设计总负责人</td><td>部分核验（媒体转述）</td></tr>
     <tr><td><strong>彭莉</strong><br>CTO（硬件）</td><td>此前为 AMD Fellow</td><td>部分核验（媒体转述）</td></tr>
     <tr><td><strong>杨建</strong><br>CTO（软件）</td><td>此前为 AMD 大中华区 Fellow，早年任职海思</td><td>部分核验（媒体转述）</td></tr>
+    <tr><td><strong>张某某</strong><br>首席科学家</td><td>样例人物。曾任某国际大厂架构师，主导过多代 GPU 微架构设计，在顶级会议发表论文十余篇。</td><td>无法核验</td></tr>
+    <tr><td><strong>李某某</strong><br>CFO</td><td>样例人物。曾任大型半导体上市公司财务负责人，经历两次再融资和一次并购整合。</td><td>已核验</td></tr>
+    <tr><td><strong>王某某</strong><br>销售负责人</td><td>样例人物。此前负责服务器 CPU 的互联网客户，熟悉大客户采购流程。</td><td>部分核验</td></tr>
+    <tr><td><strong>赵某某</strong><br>生态负责人</td><td>样例人物。负责框架适配与开发者社区，团队规模约 200 人。</td><td><span class="gap">[DATA NEEDED: 团队规模核验]</span></td></tr>
   </tbody>
 </table>
 
@@ -171,14 +232,47 @@
 </table>
 <p class="note">来源：〔S3, S4〕。2023 年数据另有媒体口径为营收 1.07 亿元、亏损 8.46 亿元，本样例未采用。</p>
 
+<h3>6.2 净利润桥接</h3>
+<figure><!--CHART:bridge--><figcaption>图 6-3 · 2026H1 利润转正中，公允价值变动贡献最大（样例拆分）</figcaption></figure>
+<h3>6.3 里程碑</h3>
+<table class="compact">
+  <thead><tr><th style="width:16%">时间</th><th>事件</th><th style="width:18%">状态</th></tr></thead>
+  <tbody>
+    <tr><td>2020-09</td><td>公司成立</td><td>已核验</td></tr>
+    <tr><td>2021-08</td><td>A 轮融资约 10 亿元</td><td>部分核验</td></tr>
+    <tr><td>2022 年</td><td>首款产品回片点亮</td><td>部分核验</td></tr>
+    <tr><td>2023 年</td><td>首批客户导入</td><td>无法核验</td></tr>
+    <tr><td>2024-12</td><td>整体变更为股份公司</td><td>已核验</td></tr>
+    <tr><td>2025-02/03</td><td>Pre-IPO 两次增资</td><td>已核验</td></tr>
+    <tr><td>2025-12</td><td>科创板上市</td><td>已核验</td></tr>
+    <tr><td>2026-09</td><td>首批限售股解禁</td><td>已核验</td></tr>
+    <tr><td>2027 年（计划）</td><td>下一代产品流片</td><td><span class="gap">[DATA NEEDED: 流片进度]</span></td></tr>
+  </tbody>
+</table>
+<p class="note" data-fake="repeat">以上为样例数据，仅用于测试与演示，不作投资依据。</p>
+
 <h2 id="s7">七、估值与交易</h2>
 <p>Pre-IPO 投后估值 210.71 亿元〔S5〕，2026 年 9 月市值约 2,657 亿元〔S4〕，约为 Pre-IPO 估值的 12.6 倍（本报告计算）。按 2025 年营收计算，市销率约 162 倍（本报告计算）。</p>
+
+<h3>7.1 敏感性：市销率与营收假设</h3>
+<table class="compact nums">
+  <thead><tr><th>2027E 营收（亿元）</th><th>30 倍</th><th>50 倍</th><th>80 倍</th><th>120 倍</th></tr></thead>
+  <tbody>
+    <tr><td>25</td><td>750</td><td>1,250</td><td>2,000</td><td>3,000</td></tr>
+    <tr><td>40</td><td>1,200</td><td>2,000</td><td>3,200</td><td>4,800</td></tr>
+    <tr><td>60</td><td>1,800</td><td>3,000</td><td>4,800</td><td>7,200</td></tr>
+    <tr class="total"><td>当前市值（亿元）</td><td colspan="4">约 2,657（2026-09）</td></tr>
+  </tbody>
+</table>
+<p class="note">表中为市值（亿元）= 营收 × 市销率，按“本报告计算”，仅用于说明估值对假设的敏感度。</p>
 
 <h2 id="s8">八、风险与合规</h2>
 <div class="risk-grid">
   <div class="risk-item"><div class="risk-label">盈利能力</div><div class="risk-desc">扣非仍亏损，2026H1 盈利依赖 8.87 亿元公允价值变动收益〔S4〕。</div></div>
   <div class="risk-item"><div class="risk-label">现金流与资产质量</div><div class="risk-desc">2026H1 经营现金流 -12.97 亿元；存货 14.32 亿元、预付款 21.96 亿元，存在减值风险〔S4〕。</div></div>
   <div class="risk-item"><div class="risk-label">解禁与估值</div><div class="risk-desc">2026-09-17 首批解禁占股本 3.49%，2028 年有大额解禁〔S4〕。</div></div>
+  <div class="risk-item"><div class="risk-label">客户集中</div><div class="risk-desc">智算中心与互联网客户合计约七成（样例数据），单一客户波动会直接影响收入。</div></div>
+  <div class="risk-item"><div class="risk-label">技术迭代</div><div class="risk-desc">下一代产品流片时间未披露，若迟于同行，现有产品窗口期会缩短。</div></div>
   <div class="risk-item"><div class="risk-label">数据口径</div><div class="risk-desc">2023 年财务存在两种媒体口径，需以招股书原文为准。</div></div>
 </div>
 
@@ -191,10 +285,23 @@
   </dl>
 </div>
 
+<div class="page-break"></div>
 <h2 id="sa">附录 A：管理层访谈问题清单</h2>
 <ol class="qa">
   <li>A 轮与 Pre-IPO 各轮的金额与估值。</li>
   <li>主要产品的算力、显存带宽与功耗实测值。</li>
+  <li>前五大客户的名称、金额、合同期限，以及是否存在关联关系。</li>
+  <li>存货 14.32 亿元与预付款 21.96 亿元的构成，减值测试的方法与结论。</li>
+  <li>2026H1 公允价值变动收益 8.87 亿元的来源，是否可能在下半年回吐。</li>
+  <li>扣非净利润转正的时间表，以及对应的毛利率和费用率假设。</li>
+  <li>研发投入的资本化比例，与同行相比的会计政策差异。</li>
+  <li>下一代产品的流片计划、预计量产时间与良率目标。</li>
+  <li>软件生态的适配进度：主流框架与大模型的覆盖情况。</li>
+  <li>核心技术人员的竞业限制与股权激励安排。</li>
+  <li>2028 年大额解禁的具体规模，大股东是否有减持计划。</li>
+  <li>募投项目的资金使用进度，是否存在变更用途的可能。</li>
+  <li>海外制裁与供应链风险：晶圆代工与先进封装的替代方案。</li>
+  <li>2023 年两种财务口径差异的原因，应以哪一版为准。</li>
 </ol>
 <h2 id="sb">附录 B：数据来源</h2>
 <ol class="sources">
@@ -204,7 +311,35 @@
   <li id="S4">〔S4〕腾讯新闻，沐曦股份 2026 年半年报分析，2026-09-03</li>
   <li id="S5">〔S5〕搜狐 / AI 资本局，沐曦 IPO 分析，2025-10-19</li>
   <li id="S6">〔S6〕同花顺，国产 GPU 公司上市进展，2026-09-09</li>
+  <li id="S7">〔S7〕样例来源 7，行业研究报告摘要，2026-06-01（样例）</li>
+  <li id="S8">〔S8〕样例来源 8，交易所问询函回复，2025-11-20（样例）</li>
+  <li id="S9">〔S9〕样例来源 9，公司投资者关系记录，2026-04-12（样例）</li>
 </ol>
+<h2 id="sc">附录 C：财务明细（样例数据）</h2>
+<table class="compact financial">
+  <thead><tr><th>亿元</th><th>2023</th><th>2024</th><th>2025</th><th>2026H1</th></tr></thead>
+  <tbody>
+    <tr><td>营业收入</td><td>0.53</td><td>7.43</td><td>16.44</td><td>13.24</td></tr>
+    <tr><td>营业成本</td><td>0.41</td><td>3.80</td><td>8.90</td><td>6.50</td></tr>
+    <tr><td>毛利</td><td>0.12</td><td>3.63</td><td>7.54</td><td>6.74</td></tr>
+    <tr><td>销售费用</td><td>0.30</td><td>0.90</td><td>1.60</td><td>1.10</td></tr>
+    <tr><td>管理费用</td><td>0.80</td><td>1.50</td><td>2.10</td><td>1.20</td></tr>
+    <tr><td>研发费用</td><td>8.20</td><td>13.00</td><td>13.70</td><td>7.50</td></tr>
+    <tr><td>其他收益</td><td>0.10</td><td>0.30</td><td>0.60</td><td>0.40</td></tr>
+    <tr><td>公允价值变动收益</td><td>0.00</td><td>0.00</td><td>0.00</td><td>8.87</td></tr>
+    <tr><td>营业利润</td><td>-8.88</td><td>-14.07</td><td>-7.86</td><td>6.15</td></tr>
+    <tr><td>利润总额</td><td>-8.88</td><td>-14.07</td><td>-7.86</td><td>6.15</td></tr>
+    <tr><td>所得税</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+    <tr><td>归母净利润</td><td>-8.71</td><td>-14.09</td><td>-7.89</td><td>6.12</td></tr>
+    <tr><td>经营现金流</td><td>-6.20</td><td>-10.50</td><td>-9.80</td><td>-12.97</td></tr>
+    <tr><td>投资现金流</td><td>-1.10</td><td>-2.30</td><td>-30.20</td><td>-5.60</td></tr>
+    <tr><td>筹资现金流</td><td>9.00</td><td>14.00</td><td>41.97</td><td>0.00</td></tr>
+    <tr><td>存货</td><td>0.80</td><td>3.50</td><td>9.90</td><td>14.32</td></tr>
+    <tr><td>预付款</td><td>1.20</td><td>6.00</td><td>15.80</td><td>21.96</td></tr>
+    <tr><td>总资产</td><td>12.0</td><td>28.0</td><td>75.0</td><td>80.0</td></tr>
+  </tbody>
+</table>
+<p class="note" data-fake="repeat">以上为样例数据，仅用于测试与演示，不作投资依据。</p>
 <p class="note">数据说明：标注“本报告计算”的数字由所列输入推导得出；<span class="gap legend">[DATA NEEDED]</span> 表示信息缺口。</p>
 
 <div class="report-footer">
