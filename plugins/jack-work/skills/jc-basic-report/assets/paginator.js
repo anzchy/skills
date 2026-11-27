@@ -31,6 +31,15 @@
     }
     function overflows() { return body.scrollHeight > body.clientHeight + 1; }
     function isHeading(n) { return n.nodeType === 1 && /^H[1-6]$/.test(n.tagName); }
+    // An explicit page break is an empty, zero-height marker that opens a Sheet. It is not content: a Sheet
+    // holding only the marker would print blank.
+    function isBreakMarker(el) {
+      return getComputedStyle(el).breakBefore === 'page' && el.getBoundingClientRect().height === 0;
+    }
+    function hasContentBefore(el) {
+      for (var p = el.previousElementSibling; p; p = p.previousElementSibling) if (!isBreakMarker(p)) return true;
+      return false;
+    }
     // Nodes that must move with Block n: n itself, plus the headings (and the text between them)
     // directly above it, so no heading is stranded at the bottom of a Sheet.
     function withLeadingHeadings(n) {
@@ -38,7 +47,7 @@
       for (var p = n.previousSibling; p; p = p.previousSibling) {
         if (p.nodeType === 1) { if (!isHeading(p)) break; start = p; }
       }
-      if (!start.previousElementSibling) return null;   // nothing would stay behind: the Block cannot move
+      if (!hasContentBefore(start)) return null;   // nothing real would stay behind: the Block cannot move
       var run = [];
       for (var q = start; q; q = q.nextSibling) run.push(q);
       return run;

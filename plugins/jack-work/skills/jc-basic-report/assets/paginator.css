@@ -11,6 +11,8 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, .18), 0 6px 22px rgba(0, 0, 0, .10);
   }
   #report .sheet-body { display: flow-root; height: 100%; overflow: hidden; }
+  /* A picture wider than the Sheet body (e.g. a width attribute of 900) would be clipped by overflow:hidden: scale it down, in proportion. */
+  #report .sheet-body img { max-width: 100%; height: auto; }
   /* Oversized table：单独一张 Sheet，按内容长高，不截断 */
   #report .sheet.sheet--oversized { height: auto; min-height: var(--sheet-h); }
   #report .sheet--oversized .sheet-body { height: auto; overflow: visible; }

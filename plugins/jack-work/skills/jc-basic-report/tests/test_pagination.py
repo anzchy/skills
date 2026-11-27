@@ -178,6 +178,34 @@ def test_a_table_that_fits_a_sheet_alone_but_not_with_its_headings_is_not_oversi
         "the headings stay with the table, or sit on their own Sheet just before it"
 
 
+def test_an_explicit_page_break_before_headings_that_must_move_does_not_leave_a_blank_sheet(context, tmp_path):
+    """The break marker is an empty, zero-height Block. When the headings after it cannot share a Sheet with
+    their table, they used to be carried off alone and the marker stayed behind as a Sheet with nothing visible."""
+    out = build_sample(tmp_path, extra_body=NEAR_FULL_TABLE)
+    page = open_report(context, out)
+
+    blank = page.evaluate("""() => [...document.querySelectorAll('#report .sheet')].filter(s =>
+        ![...s.querySelector('.sheet-body').children].some(c => c.getBoundingClientRect().height > 1)).length""")
+    got = page.evaluate("""() => { const at = id => document.getElementById(id), sheets = [...document.querySelectorAll('#report .sheet')];
+        return {h2: sheets.indexOf(at('s-near').closest('.sheet')), table: sheets.indexOf(at('near-full').closest('.sheet'))}; }""")
+
+    assert blank == 0, "no Sheet may be left with only an empty break marker"
+    assert got["table"] == got["h2"] + 1, got           # the table still starts the Sheet after its headings
+
+
+def test_an_image_wider_than_the_sheet_is_scaled_down_not_clipped(context, tmp_path):
+    out = build_sample(tmp_path, extra_body='<figure id="wide"><img src="images/gpu-cores.png" width="1400" '
+                                            'alt="宽图"><figcaption>图 · 宽 1400 的图片</figcaption></figure>')
+    page = open_report(context, out)
+
+    got = page.evaluate("""() => { const i = document.querySelector('#wide img'), b = i.closest('.sheet-body').getBoundingClientRect(),
+        r = i.getBoundingClientRect(); return {over: r.right - b.right, ratio: (r.width / r.height).toFixed(2),
+        natural: (i.naturalWidth / i.naturalHeight).toFixed(2)}; }""")
+
+    assert got["over"] <= 1, got
+    assert got["ratio"] == got["natural"], "scaled proportionally, not squeezed"
+
+
 def tall_png() -> bytes:
     import io
     from PIL import Image
