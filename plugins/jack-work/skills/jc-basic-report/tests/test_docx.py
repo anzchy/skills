@@ -5,10 +5,13 @@ Run: uv run --with pytest --with playwright --with python-docx --with pymupdf py
 """
 import re
 
+import pytest
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 from docx.text.paragraph import Paragraph
+
+from conftest import build_fixture_with_settings, export_docx
 
 BRAND, STONE = RGBColor.from_string("1B365D"), RGBColor.from_string("6B6A64")
 
@@ -179,3 +182,92 @@ def test_pictures_are_inline_in_order_and_fit_the_text_width(doc, source_html):
     assert seen == expected
     for shape in doc.inline_shapes:
         assert shape.width <= Cm(17), shape.width
+
+
+# ---------- Page chrome and Print palette (read from the Settings inlined in the Report) ----------
+def page_background(doc):
+    bg = doc.element.find(qn("w:background"))
+    return bg.get(qn("w:color")).upper() if bg is not None else None
+
+
+def test_page_background_follows_the_default_print_palette_white(doc):
+    # Settings default: print.palette = "white" -> a white page, not the screen's parchment
+    assert page_background(doc) == "FFFFFF"
+
+
+@pytest.fixture(scope="module")
+def doc_with_override(tmp_path_factory):
+    """The fixture exported after the author overrides Print palette and the header template."""
+    from docx import Document
+    tmp = tmp_path_factory.mktemp("override")
+    report = build_fixture_with_settings(tmp, {
+        "defaultTheme": "black",
+        "pagination": {"enabled": True},
+        "print": {"palette": "beige"},
+        "chrome": {"headerTemplate": "{company} · 尽调底稿"},
+    })
+    wd = tmp / "docx"
+    wd.mkdir()
+    return Document(str(export_docx(report, wd)))
+
+
+def test_page_background_follows_an_overridden_print_palette(doc_with_override):
+    # settings.json { "print": { "palette": "beige" } } -> the beige theme's page colour (Kami parchment)
+    assert page_background(doc_with_override) == "F5F4ED"
+
+
+def test_every_page_but_the_first_carries_the_settings_header(doc):
+    # fixture <title>沐曦股份 · 项目基本信息报告（样例）</title>: {company} is the part before " · ";
+    # default chrome.headerTemplate "{company} · 项目基本信息报告"; the first page (title block) has no header
+    for s in doc.sections:
+        assert s.different_first_page_header_footer
+        assert s.header.paragraphs[0].text == "沐曦股份 · 项目基本信息报告"
+        assert not "".join(p.text for p in s.first_page_header.paragraphs).strip()
+
+
+def footer_tokens(para):
+    """A footer paragraph as Word evaluates it: literal text, and {FIELD} for each field instruction."""
+    tokens, in_result = [], False
+    for el in para._p.iter():
+        tag = el.tag.split("}")[1]
+        if tag == "fldSimple":
+            tokens.append("{%s}" % el.get(qn("w:instr")).split()[0])
+        elif tag == "fldChar":
+            kind = el.get(qn("w:fldCharType"))
+            in_result = kind == "separate"
+        elif tag == "instrText":
+            tokens.append("{%s}" % el.text.split()[0])
+        elif tag == "t" and not in_result and el.getparent().getparent().tag != qn("w:fldSimple"):
+            tokens.append(el.text)
+    return "".join(tokens)
+
+
+def test_every_page_footer_is_a_centred_word_page_count(doc):
+    # default chrome.footerTemplate "第 {page} 页 共 {pages} 页" -> Word PAGE / NUMPAGES fields, so Word
+    # computes its own numbering; the first page has no header but is counted, so it carries the footer too
+    for s in doc.sections:
+        for footer in (s.footer, s.first_page_footer):
+            para = footer.paragraphs[0]
+            assert footer_tokens(para) == "第 {PAGE} 页 共 {NUMPAGES} 页"
+            assert para.paragraph_format.alignment == WD_ALIGN_PARAGRAPH.CENTER
+
+
+def test_export_ignores_the_screen_sheets_and_the_dark_theme(doc_with_override):
+    # The author's Report opens paginated in the black theme. The docx is laid out by Word, so the export
+    # must not carry the screen Sheets' page chrome into the text, and charts must not be dark pictures.
+    import io
+    from PIL import Image
+    body = "\n".join(p.text for p in all_paragraphs(doc_with_override))
+    assert not re.search(r"第 \d+ 页 共 \d+ 页", body)
+    assert "沐曦股份 · 尽调底稿" not in body
+    for shape in doc_with_override.inline_shapes:
+        rid = shape._inline.graphic.graphicData.pic.blipFill.blip.embed
+        img = Image.open(io.BytesIO(doc_with_override.part.related_parts[rid].blob)).convert("L")
+        w, h = img.size
+        corners = [img.getpixel(xy) for xy in ((1, 1), (w - 2, 1), (1, h - 2), (w - 2, h - 2))]
+        assert min(corners) > 200, corners
+
+
+def test_the_header_reads_an_overridden_template(doc_with_override):
+    for s in doc_with_override.sections:
+        assert s.header.paragraphs[0].text == "沐曦股份 · 尽调底稿"

@@ -191,16 +191,31 @@ def source_html(report_path) -> str:
     return report_path.read_text(encoding="utf-8")
 
 
-@pytest.fixture(scope="session")
-def docx_path(report_path, tmp_path_factory) -> Path:
-    """Convert the report the way a user would: prep.py, then build_docx.py."""
-    wd = tmp_path_factory.mktemp("docx")
+def export_docx(report: Path, wd: Path) -> Path:
+    """Convert a built report the way a user would: prep.py, then build_docx.py."""
     out = wd / "report.docx"
-    for cmd in ([sys.executable, str(DOCX / "prep.py"), str(report_path), str(wd)],
+    for cmd in ([sys.executable, str(DOCX / "prep.py"), str(report), str(wd)],
                 [sys.executable, str(DOCX / "build_docx.py"), str(wd), str(out)]):
         res = subprocess.run(cmd, capture_output=True, text=True)
         assert res.returncode == 0, f"{cmd[1]} failed:\n{res.stdout}\n{res.stderr}"
     return out
+
+
+def build_fixture_with_settings(tmp: Path, override: dict) -> Path:
+    """The bundled fixture, rebuilt with an author's settings.json override next to report.src.html."""
+    import shutil
+    src_dir = tmp / "src"
+    shutil.copytree(FIXTURE, src_dir)
+    (src_dir / "settings.json").write_text(json.dumps(override, ensure_ascii=False), encoding="utf-8")
+    out = tmp / "report.html"
+    res = run_build(src_dir / "report.src.html", out)
+    assert res.returncode == 0, f"fixture build failed:\n{res.stdout}\n{res.stderr}"
+    return out
+
+
+@pytest.fixture(scope="session")
+def docx_path(report_path, tmp_path_factory) -> Path:
+    return export_docx(report_path, tmp_path_factory.mktemp("docx"))
 
 
 @pytest.fixture(scope="session")

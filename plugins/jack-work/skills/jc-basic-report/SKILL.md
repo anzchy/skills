@@ -99,6 +99,7 @@ uv run --with playwright --with pymupdf --with pillow python <skill>/scripts/doc
 
 - 依赖 pandoc、Chrome、LibreOffice。仓耳今楷 TsangerJinKai02 必须装在 `~/Library/Fonts`，否则 Chrome 和 Word 都会换成别的字体。详见 `references/docx.md`。
 - 打开 `compare.py` 生成的逐页并排图，检查图表是否完整、表格是否跨页、页数与 HTML 是否接近。
+- docx 的页眉（首页不同）、页脚页码（Word 的 `PAGE`/`NUMPAGES` 域）和页面底色都读报告里内联的 Settings：`chrome.headerTemplate`、`chrome.footerTemplate`、`print.palette`（默认白底）。
 
 ### 8. 交付
 
