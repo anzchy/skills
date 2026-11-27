@@ -42,11 +42,13 @@
 
 ## 示意图
 
-“产品在下游的位置”这类示意图需要手写 SVG，配色只用：
-- 墨蓝 `#1B365D`，用于目标公司的产品；
-- 浅墨蓝 `#2D5A8A`、标签底 `#E4ECF5`；
-- 象牙 `#faf9f5`、边线 `#e8e6dc` / `#d4d3cd`；
-- 深色块 `#30302e`。
+“产品在下游的位置”这类示意图需要手写 SVG。颜色一律写成 CSS 变量加 Kami 字面量回退值，切换 **Theme**（白 / 黑 / 米）时示意图与数据图表一起换色；不要写裸的十六进制色，否则黑色主题下会变成一块亮框。只用下面这些：
+- 底色 `var(--chart-parchment, #f5f4ed)`，文字 `var(--chart-near-black, #141413)`，次要文字 `var(--chart-stone, #6b6a64)`；
+- 墨蓝 `var(--chart-brand, #1B365D)`，用于目标公司的产品；浅墨蓝 `var(--brand-mid, #2D5A8A)`、标签底 `var(--chart-brand-tint, #EEF2F7)`；
+- 象牙块 `var(--ivory, #faf9f5)`、边线 `var(--chart-grid, #e8e7e1)` / `var(--chart-mist, #d4d3cd)`；
+- 深色块 `var(--chart-charcoal, #4d4c48)`，块上文字用 `var(--chart-parchment, #f5f4ed)`（黑色主题下二者自动反转，仍可读）。
+
+`--chart-*` 是图表色板，每个 Theme 的取值来自 Settings 的 `themes.<主题>.chart`（键名 `near_black` 对应变量 `--chart-near-black`）；`--ivory`、`--brand-mid` 是页面 token。示例：`<rect fill="var(--chart-brand, #1B365D)"/>`。
 
 文字用 `font-family="TsangerJinKai02, 'Source Han Serif SC', 'Songti SC', serif"`，图注写明“示意图，本报告绘制”。
 

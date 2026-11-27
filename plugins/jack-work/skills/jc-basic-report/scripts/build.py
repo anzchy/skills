@@ -18,7 +18,7 @@ SKILL = Path(__file__).resolve().parent.parent
 ASSETS = SKILL / "assets"
 VENDOR = ASSETS / "vendor"
 sys.path.insert(0, str(SKILL / "scripts"))
-from chart import render_chart  # noqa: E402  (kami chart generator, MIT)
+from chart import palette_css, render_chart  # noqa: E402  (kami chart generator, MIT)
 from settings import SettingsError, load_settings, settings_block  # noqa: E402
 
 CHART_MARKER = re.compile(r"<!--CHART:([\w-]+)-->")
@@ -68,6 +68,11 @@ def theme_script() -> str:
     return f"<script>/* jc-basic-report theme */\n{js}</script>\n"
 
 
+def chart_palettes(settings: dict) -> str:
+    """Settings themes.*.chart as --chart-* CSS variables; after the theme styles so they win."""
+    return "<style>/* chart palettes from Settings */\n" + palette_css(settings) + "</style>\n"
+
+
 def scripts() -> str:
     parts = [
         ("/* jc-basic-report Paginator (runs before tocbot / recogito) */", read(ASSETS / "paginator.js")),
@@ -98,7 +103,8 @@ def build(src: Path, out: Path, draft: bool = False) -> int:
             print("  " + r, file=sys.stderr)
         return 1
     html = embed_images(html, src.parent)
-    html = html.replace("<!--JC:CSS-->", settings_block(settings) + theme_script() + styles())
+    html = html.replace("<!--JC:CSS-->", settings_block(settings) + theme_script() + styles()
+                        + chart_palettes(settings))
     html = html.replace("<!--JC:SCRIPTS-->", scripts())
     html = embed_charts(html, src.parent / "charts")
     out.write_text(html, encoding="utf-8")
