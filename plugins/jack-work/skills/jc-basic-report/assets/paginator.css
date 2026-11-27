@@ -1,0 +1,13 @@
+  /* ========== Sheet：Paginator 排出的 A4 纸（几何来自 Settings，见 paginator.js） ========== */
+  @media screen {
+    html.jc-paginated, html.jc-paginated body { background: color-mix(in srgb, var(--parchment) 90%, var(--near-black)); }
+    html.jc-paginated body { max-width: var(--sheet-w); padding: 14px 0 40px; }
+  }
+  #report .sheet {
+    position: relative; box-sizing: border-box; overflow: hidden;
+    width: var(--sheet-w); height: var(--sheet-h);
+    padding: var(--sheet-mt) var(--sheet-mr) var(--sheet-mb) var(--sheet-ml);
+    margin: 0 auto 14px; background: var(--parchment);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .18), 0 6px 22px rgba(0, 0, 0, .10);
+  }
+  #report .sheet-body { display: flow-root; height: 100%; overflow: hidden; }

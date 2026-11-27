@@ -55,13 +55,14 @@ def read(path: Path) -> str:
 
 
 def styles() -> str:
-    return ("<style>\n" + read(ASSETS / "report.css") + read(ASSETS / "ui.css") + "</style>\n"
+    return ("<style>\n" + read(ASSETS / "report.css") + read(ASSETS / "ui.css") + read(ASSETS / "paginator.css") + "</style>\n"
             "<style>/* @recogito/text-annotator 4.3.7 · BSD-3-Clause · (c) Pelagios Network */\n"
             + read(VENDOR / "recogito-text-annotator-4.3.7.css") + "</style>")
 
 
 def scripts() -> str:
     parts = [
+        ("/* jc-basic-report Paginator (runs before tocbot / recogito) */", read(ASSETS / "paginator.js")),
         ("/*! tocbot 4.36.8 · MIT · (c) Tim Scanlin */", read(VENDOR / "tocbot-4.36.8.min.js")),
         ("/*! @recogito/text-annotator 4.3.7 · BSD-3-Clause · (c) Pelagios Network */\n"
          "if(!window.process){window.process={env:{NODE_ENV:\"production\"}};}",
