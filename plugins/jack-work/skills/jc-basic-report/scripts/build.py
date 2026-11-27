@@ -18,7 +18,7 @@ SKILL = Path(__file__).resolve().parent.parent
 ASSETS = SKILL / "assets"
 VENDOR = ASSETS / "vendor"
 sys.path.insert(0, str(SKILL / "scripts"))
-from chart import palette_css, render_chart  # noqa: E402  (kami chart generator, MIT)
+from chart import palette_css, palette_declarations, render_chart  # noqa: E402  (kami chart generator, MIT)
 from settings import SettingsError, load_settings, settings_block  # noqa: E402
 
 CHART_MARKER = re.compile(r"<!--CHART:([\w-]+)-->")
@@ -68,9 +68,28 @@ def theme_script() -> str:
     return f"<script>/* jc-basic-report theme */\n{js}</script>\n"
 
 
+def theme_tokens(name: str) -> str:
+    """The page tokens of one Theme as theme.css declares them for the screen. Beige is the
+    base :root of report.css + theme.css, so it has no override block and returns ""."""
+    css = re.sub(r"/\*.*?\*/", "", read(ASSETS / "theme.css"), flags=re.S)
+    m = re.search(r'html\[data-theme="%s"\]\s*\{([^{}]*)\}' % re.escape(name), css)
+    return " ".join(m.group(1).split()) if m else ""
+
+
+def print_palette_css(settings: dict) -> str:
+    """Print and PDF use the Print palette from Settings, whatever Theme is on screen: its page
+    tokens and its chart palette, applied to :root under @media print (the screen Theme blocks
+    are screen-only, so nothing else competes)."""
+    name = settings["print"]["palette"]
+    decls = " ".join(d for d in (theme_tokens(name), palette_declarations(settings["themes"][name]["chart"])) if d)
+    return f"  /* Print palette: {name} */\n  @media print {{ :root {{ {decls} }} }}\n"
+
+
 def chart_palettes(settings: dict) -> str:
-    """Settings themes.*.chart as --chart-* CSS variables; after the theme styles so they win."""
-    return "<style>/* chart palettes from Settings */\n" + palette_css(settings) + "</style>\n"
+    """Settings themes.*.chart as --chart-* CSS variables, plus the Print palette; after the
+    theme styles so they win."""
+    return ("<style>/* chart palettes and Print palette from Settings */\n" + palette_css(settings)
+            + print_palette_css(settings) + "</style>\n")
 
 
 def scripts() -> str:

@@ -19,3 +19,22 @@
     background: var(--ivory); color: #A4442B; font-size: 10pt; line-height: 1.5;
   }
   @media print { .jc-pagination-warning { display: none !important; } }
+  /* ========== 打印：每张 Sheet 正好一页纸，底色为 Print palette（见 build.py） ==========
+     @page 必须写在顶层（Chrome 忽略 @media print 里的 @page）。Sheet 已自带页边距，
+     所以纸张无边距、也不画 report.css 旧的底部计数器（页码由 Page chrome 画）。 */
+  @page jc-sheet {
+    size: A4; margin: 0;
+    @bottom-center { content: none; }
+  }
+  @media print {
+    html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html.jc-paginated body { max-width: none; margin: 0 !important; padding: 0; }
+    /* Chrome rounds a 297mm block up and spills it onto a second page: print a hair shorter. */
+    #report .sheet {
+      page: jc-sheet; margin: 0; box-shadow: none;
+      height: calc(var(--sheet-h) - 0.6mm); break-inside: avoid;
+    }
+    #report .sheet.sheet--oversized { height: auto; break-inside: auto; }
+    /* A break before every Sheet but the first; never `:last-child` (the annotator appends to #report). */
+    #report .sheet + .sheet { break-before: page; }
+  }
