@@ -273,6 +273,13 @@ def test_every_page_footer_is_a_centred_word_page_count(doc):
             assert para.paragraph_format.alignment == WD_ALIGN_PARAGRAPH.CENTER
 
 
+def test_company_in_the_footer_template_is_filled_from_the_title(doc_with_short_hex):
+    # chrome.footerTemplate "{company} · 第 {page} 页"; fixture title "沐曦股份 · 项目基本信息报告（样例）"
+    for s in doc_with_short_hex.sections:
+        for footer in (s.footer, s.first_page_footer):
+            assert footer_tokens(footer.paragraphs[0]) == "沐曦股份 · 第 {PAGE} 页"
+
+
 def test_export_ignores_the_screen_sheets_and_the_dark_theme(doc_with_override):
     # The author's Report opens paginated in the black theme. The docx is laid out by Word, so the export
     # must not carry the screen Sheets' page chrome into the text, and charts must not be dark pictures.

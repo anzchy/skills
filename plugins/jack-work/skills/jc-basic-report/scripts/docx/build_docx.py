@@ -375,7 +375,8 @@ def page_count_footer(footer):
     """footerTemplate, e.g. "第 {page} 页 共 {pages} 页", with {page} / {pages} as PAGE / NUMPAGES fields."""
     para = footer.paragraphs[0]
     chrome_paragraph(para, WD_ALIGN_PARAGRAPH.CENTER)
-    for part in re.split(r"(\{page\}|\{pages\})", SETTINGS["chrome"]["footerTemplate"]):
+    template = SETTINGS["chrome"]["footerTemplate"].replace("{company}", company_from(meta.get("title", "")))
+    for part in re.split(r"(\{page\}|\{pages\})", template):
         if part == "{page}":
             field_run(para, "PAGE")
         elif part == "{pages}":
