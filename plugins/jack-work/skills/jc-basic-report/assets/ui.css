@@ -42,6 +42,13 @@
   .js-toc a.is-active-link { color: var(--brand); background: var(--tag-bg); font-weight: 500; }
   .js-toc .is-collapsible { max-height: 1200px; overflow: hidden; transition: max-height 220ms ease; }
   .js-toc .is-collapsed { max-height: 0; }
+  /* 目录页码（ui.js 按 Sheet 回填 data-page）；在 .side-pane 内，侧栏收起时随之隐藏 */
+  .js-toc a.toc-link[data-page] { padding-right: 34px; }
+  .js-toc a.toc-link[data-page]::after {
+    content: attr(data-page); position: absolute; right: 8px; top: 3px;
+    color: var(--stone); font-size: 11.5px; font-weight: 400; font-variant-numeric: tabular-nums;
+  }
+  html.side-collapsed .js-toc a.toc-link[data-page]::after { display: none; }
 
   /* 批注列表 */
   .ann-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
