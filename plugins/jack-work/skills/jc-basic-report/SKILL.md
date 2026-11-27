@@ -19,7 +19,7 @@ version: 0.1.2
 | `references/charts.md` | 图表 JSON 规格 |
 | `references/docx.md` | 导出 docx：依赖、字体、样式与 CSS 的对应、排错 |
 | `assets/template.html` | 脱敏后的报告骨架，含全部组件和 `{{占位符}}` |
-| `assets/report.css`, `assets/ui.css`, `assets/ui.js`, `assets/paginator.js`, `assets/paginator.css`, `assets/vendor/` | 构建时内联进 HTML，不要手改生成后的文件 |
+| `assets/report.css`, `assets/ui.css`, `assets/ui.js`, `assets/paginator.js`, `assets/paginator.css`, `assets/chrome.js`, `assets/chrome.css`, `assets/vendor/` | 构建时内联进 HTML，不要手改生成后的文件 |
 | `assets/settings.default.json` | 默认 Settings：默认主题、纸张与页边距、页眉页码模板、目录页码、Print palette、各主题图表色板、分页开关 |
 | `scripts/build.py` | 源文件 + 图表规格 + Settings → 单文件 HTML |
 | `scripts/chart.py` | Kami 图表生成器（MIT），由 build.py 调用 |
@@ -67,6 +67,7 @@ python3 <skill>/scripts/build.py report.src.html -o <公司>-项目基本信息�
 - 有未填占位符时构建失败并列出它们；`--draft` 只用于预览。
 - 需要改默认 Settings 时，在 `report.src.html` 旁放 `settings.json`，只写要改的键（如 `{"defaultTheme": "white", "chrome": {"headerTemplate": "{company} · 尽调底稿"}}`）。构建时与 `assets/settings.default.json` 深度合并，覆盖优先；未知键、非法主题名、负页边距、缺失必填键等都会让构建失败并逐条列出。合并结果内联进报告，报告仍是单个文件。
 - 打开报告时，Paginator 把正文整块排进 A4 Sheet：段落、列表、表格、图不跨 Sheet，标题与其后的 Block 同页，`<div class="page-break"></div>` 强制换页。高度超过一张 Sheet 的表格（Oversized table）单独成页且不截断，页面顶部和控制台会给出警告，请把它拆成多张表。`settings.json` 里 `{"pagination": {"enabled": false}}` 回退到连续滚动。
+- 每张 Sheet 带 Page chrome：页眉按 `chrome.headerTemplate` 渲染，`{company}` 取文档 `<title>` 第一个「·」之前的部分，「·」左边靠左、右边靠右；第一张 Sheet 无页眉但计入页码；页脚居中按 `chrome.footerTemplate`（`{page}`/`{pages}`）显示「第 X 页 共 Y 页」。页眉页脚画在页边距里，不进入可批注的文本；关闭分页时不显示。
 - 构建成功后会输出 `GAP n` 和缺口清单，把它们并入附录 A「管理层访谈问题清单」。
 
 ### 5. 测试
