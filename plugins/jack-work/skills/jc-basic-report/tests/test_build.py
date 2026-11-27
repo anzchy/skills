@@ -146,3 +146,31 @@ def test_without_an_override_the_report_carries_the_skill_default_settings(tmp_p
     assert set(s["themes"]) == {"white", "black", "beige"}
     assert s["themes"]["beige"]["chart"]["parchment"] == "#f5f4ed"   # current Kami chart colours
     assert s["themes"]["beige"]["chart"]["brand"] == "#1B365D"
+
+
+def write_override(tmp_path: Path, override) -> None:
+    """The per-report override file the author places next to report.src.html."""
+    text = override if isinstance(override, str) else json.dumps(override, ensure_ascii=False)
+    (tmp_path / "settings.json").write_text(text, encoding="utf-8")
+
+
+def test_a_partial_override_wins_and_every_other_key_keeps_its_default(tmp_path):
+    src = write_src(tmp_path)
+    write_override(tmp_path, {
+        "defaultTheme": "black",
+        "paper": {"marginMm": {"top": 25}},
+        "chrome": {"headerTemplate": "{company} · 尽调底稿"},
+        "themes": {"black": {"chart": {"brand": "#ff8800"}}},
+    })
+    out = tmp_path / "report.html"
+
+    res = run_build(src, out)
+
+    assert res.returncode == 0, res.stderr
+    s = inlined_settings(out)
+    assert s["defaultTheme"] == "black"
+    assert s["paper"] == {"size": "A4", "marginMm": {"top": 25, "right": 18, "bottom": 18, "left": 18}}
+    assert s["chrome"] == {"headerTemplate": "{company} · 尽调底稿", "footerTemplate": "第 {page} 页 共 {pages} 页"}
+    assert s["themes"]["black"]["chart"]["brand"] == "#ff8800"
+    assert s["themes"]["black"]["chart"]["parchment"] == "#16161a"   # sibling colour untouched
+    assert s["print"] == {"palette": "white"}
