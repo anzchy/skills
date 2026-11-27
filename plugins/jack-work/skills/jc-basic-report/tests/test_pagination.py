@@ -259,3 +259,44 @@ def test_pagination_leaves_the_annotatable_text_flow_unchanged(context, tmp_path
 
     assert paged.locator("#report .sheet").count() >= 3
     assert report_text(paged) == report_text(flat)
+
+
+# Fault injection: the first layout query the Paginator makes after it has started moving Blocks throws.
+BREAK_PAGINATION = """(() => { const real = window.getComputedStyle; let armed = true;
+    window.getComputedStyle = function (el) {
+      if (armed && document.documentElement.classList.contains('jc-paginated')) {
+        armed = false; throw new Error('injected layout failure'); }
+      return real.apply(this, arguments); }; })()"""
+
+
+def test_if_pagination_fails_the_report_falls_back_to_continuous_scroll_with_a_working_sidebar(context, report_path):
+    page = context.new_page()
+    errors = []
+    page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
+    page.add_init_script(BREAK_PAGINATION)
+    page.goto(report_path.as_uri(), wait_until="domcontentloaded")
+    page.wait_for_selector("html[data-pagination='off']", state="attached", timeout=10000)
+
+    page.wait_for_selector(".js-toc a", state="attached", timeout=5000)
+    assert page.locator("#report .sheet").count() == 0, "no half-built Sheets are left behind"
+    assert mm(page.evaluate("document.getElementById('report').getBoundingClientRect().height")) > 2 * 297
+    assert page.evaluate("typeof window.__report === 'object'"), "annotations started"
+    assert any("injected layout failure" in e for e in errors), errors
+
+
+# A page script whose readiness callback throws, registered before chrome.js and ui.js.
+EARLY_THROWING_CALLBACK = """(() => { let api;
+    Object.defineProperty(window, 'JCPaginator', { configurable: true,
+      get() { return api; },
+      set(v) { api = v; v.whenReady(() => { throw new Error('callback failure'); }); } }); })()"""
+
+
+def test_one_failing_readiness_callback_does_not_stop_the_others(context, report_path):
+    page = context.new_page()
+    page.add_init_script(EARLY_THROWING_CALLBACK)
+    page.goto(report_path.as_uri(), wait_until="domcontentloaded")
+    page.wait_for_selector("html[data-pagination='done']", state="attached", timeout=10000)
+
+    page.wait_for_selector(".js-toc a", state="attached", timeout=5000)
+    assert page.locator("#report .sheet .sheet-footer").count() >= 3, "page chrome still drawn"
+    assert page.evaluate("typeof window.__report === 'object'"), "annotations started"

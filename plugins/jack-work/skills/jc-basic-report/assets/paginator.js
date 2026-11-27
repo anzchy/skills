@@ -103,8 +103,19 @@
     root.setAttribute('data-pagination', state);
     settled = true;
     resolveReady(api);
-    waiting.splice(0).forEach(function (fn) { fn(api); });
+    waiting.splice(0).forEach(function (fn) {   // one failing script must not stop the ones after it
+      try { fn(api); } catch (err) { console.error(err); }
+    });
     document.dispatchEvent(new CustomEvent('jc:paginated', { detail: api }));
+  }
+
+  // Undo a half-done pagination: the original nodes back in #report, in order, and no Sheet geometry.
+  function unpaginate(original) {
+    original.forEach(function (n) { report.appendChild(n); });
+    Array.prototype.slice.call(report.querySelectorAll(':scope > .sheet')).forEach(function (s) { s.remove(); });
+    root.classList.remove('jc-paginated');
+    ['--sheet-w', '--sheet-h', '--sheet-mt', '--sheet-mr', '--sheet-mb', '--sheet-ml']
+      .forEach(function (p) { root.style.removeProperty(p); });
   }
 
   if (!S.pagination.enabled) { settle('off'); return; }   // fallback: the original continuous scroll
@@ -126,7 +137,15 @@
     var timeout = new Promise(function (r) { setTimeout(r, 8000); });
     Promise.race([Promise.all(loads.concat([fonts])), timeout]).then(function () {
       setTimeout(function () {                   // leave the promise chain: errors stay visible
-        api.sheets = paginate();
+        var original = Array.prototype.slice.call(report.childNodes);
+        try {
+          api.sheets = paginate();
+        } catch (err) {                          // never leave a dead Report: fall back to continuous scroll
+          console.error('[jc-basic-report] pagination failed, showing the Report as one continuous page:', err);
+          unpaginate(original);
+          settle('off');
+          return;
+        }
         showWarnings();
         settle('done');
       }, 0);
