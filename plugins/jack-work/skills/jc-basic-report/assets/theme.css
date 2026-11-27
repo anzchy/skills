@@ -1,6 +1,6 @@
 /* ========== Theme（白色 / 黑色 / 米色） ==========
    米色 = report.css 里的 :root 原 token（Kami 羊皮纸），不需要覆盖。
-   白色、黑色只在屏幕上生效：打印走 Print palette（见 #19），不跟随 Theme。
+   白色、黑色只在屏幕上生效：打印走 Print palette（build.py 的 print_palette_css 从这里取同名主题的 token），不跟随 Theme。
    所有颜色都写成 token；新增颜色请在这里给三种主题各配一份，不要在别处写死。 */
 
   :root {

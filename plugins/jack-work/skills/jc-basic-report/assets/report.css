@@ -20,10 +20,12 @@
     font-style: normal;
   }
 
+  /* 不分页（pagination.enabled=false）时的打印页；底色跟随 Print palette（var(--parchment)，见 build.py）。
+     分页时每张 Sheet 用 paginator.css 的 @page jc-sheet：无页边距、无此计数器（页码由 Page chrome 画）。 */
   @page {
     size: A4;
     margin: 16mm 18mm 18mm 18mm;
-    background: #f5f4ed;
+    background: var(--parchment);
 
     @bottom-center {
       content: counter(page) "  ·  项目基本信息报告";
