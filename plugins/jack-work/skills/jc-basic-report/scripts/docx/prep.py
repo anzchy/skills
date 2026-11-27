@@ -1,9 +1,11 @@
 """Step A: render charts to PNG and rewrite the report DOM into pandoc-friendly HTML.
 
 Usage: python prep.py <report.html> <outdir>
-Writes <outdir>/main.html, <outdir>/imgs/chartN.png, <outdir>/meta.json
+Writes <outdir>/main.html, <outdir>/imgs/chartN.png, <outdir>/meta.json (incl. the Report's inlined Settings)
+The Report is opened from a working copy whose Settings say "no pagination, light theme" (see below).
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -12,6 +14,29 @@ from playwright.sync_api import sync_playwright
 src = Path(sys.argv[1]).resolve()
 out = Path(sys.argv[2]).resolve()
 (out / "imgs").mkdir(parents=True, exist_ok=True)
+
+# ---- Settings: the merged copy build.py inlined into the Report (older Reports: the skill defaults) ----
+SETTINGS_RE = re.compile(r'(<script type="application/json" id="jc-settings">)(.*?)(</script>)', re.S)
+report_html = src.read_text(encoding="utf-8")
+m = SETTINGS_RE.search(report_html)
+if m:
+    settings = json.loads(m.group(2))
+else:
+    settings = json.loads((Path(__file__).resolve().parents[2] / "assets" / "settings.default.json")
+                          .read_text(encoding="utf-8"))
+
+# ---- export mode: no pagination, light theme ----
+# Word lays out its own pages, so the Report must open as one continuous scroll (no screen Sheets, no
+# page chrome in the text) and in a light Theme: the Print palette (the docx page colour) unless that is
+# "black", then white. A fresh browser has no stored Theme choice, so defaultTheme decides.
+light = settings["print"]["palette"] if settings["print"]["palette"] != "black" else "white"
+export_settings = {**settings, "defaultTheme": light, "pagination": {**settings["pagination"], "enabled": False}}
+if m:
+    page_src = out / "report.export.html"      # a working copy; the author's Report is left untouched
+    page_src.write_text(report_html[:m.start(2)] + json.dumps(export_settings, ensure_ascii=False).replace("</", "<\\/")
+                        + report_html[m.end(2):], encoding="utf-8")
+else:
+    page_src = src
 
 TRANSFORM = r"""
 () => {
@@ -115,7 +140,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(channel="chrome")
     pg = b.new_page(viewport={"width": 1440, "height": 1000}, device_scale_factor=3)
     pg.route("**/*.ttf", lambda r: r.abort())
-    pg.goto(src.as_uri(), wait_until="load")
+    pg.goto(page_src.as_uri(), wait_until="load")
     pg.wait_for_timeout(800)
     # grow each svg's viewBox to its painted content so overflowing labels are not cropped
     pg.evaluate("""() => document.querySelectorAll('#report svg').forEach(s => {
@@ -153,7 +178,8 @@ with sync_playwright() as p:
 (out / "main.html").write_text(
     '<!doctype html><html><head><meta charset="utf-8"></head><body>' + res["html"] + "</body></html>",
     encoding="utf-8")
-(out / "meta.json").write_text(json.dumps({"title": res["title"], "charts": charts, "tables": res["tables"]}, ensure_ascii=False, indent=1),
+(out / "meta.json").write_text(json.dumps({"title": res["title"], "charts": charts, "tables": res["tables"],
+                "settings": settings}, ensure_ascii=False, indent=1),
                                encoding="utf-8")
 print(f"charts={len(charts)} tables={len(res['tables'])}")
 print([t["kind"] for t in res["tables"]])
