@@ -21,11 +21,59 @@ def deep_merge(base: dict, over: dict) -> dict:
     return out
 
 
+class SettingsError(Exception):
+    def __init__(self, reasons: list[str]):
+        super().__init__("\n".join(reasons))
+        self.reasons = reasons
+
+
+THEMES = ("white", "black", "beige")
+CHART_KEYS = ("parchment", "near_black", "charcoal", "olive", "stone", "light_stone", "mist",
+              "brand", "brand_tint", "grid")
+
+
+def _any(path, v):
+    return []
+
+
+SCHEMA = {
+    "defaultTheme": _any,
+    "pagination": {"enabled": _any},
+    "paper": {"size": _any, "marginMm": {side: _any for side in ("top", "right", "bottom", "left")}},
+    "chrome": {"headerTemplate": _any, "footerTemplate": _any},
+    "toc": {"pageNumbers": _any},
+    "print": {"palette": _any},
+    "themes": {t: {"chart": {k: _any for k in CHART_KEYS}} for t in THEMES},
+}
+
+
+def _check(schema: dict, value: dict, path: str) -> list[str]:
+    errors = []
+    for k in value:
+        if k not in schema:
+            errors.append(f"未知键 {path}{k}")
+    for k, rule in schema.items():
+        if k not in value:
+            continue
+        if isinstance(rule, dict):
+            errors += _check(rule, value[k], f"{path}{k}.")
+        else:
+            errors += rule(f"{path}{k}", value[k])
+    return errors
+
+
+def validate(settings: dict) -> None:
+    errors = _check(SCHEMA, settings, "")
+    if errors:
+        raise SettingsError(errors)
+
+
 def load_settings(src_dir: Path) -> dict:
     settings = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     override = src_dir / OVERRIDE_NAME
     if override.is_file():
         settings = deep_merge(settings, json.loads(override.read_text(encoding="utf-8")))
+    validate(settings)
     return settings
 
 

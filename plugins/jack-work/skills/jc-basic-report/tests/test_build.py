@@ -174,3 +174,18 @@ def test_a_partial_override_wins_and_every_other_key_keeps_its_default(tmp_path)
     assert s["themes"]["black"]["chart"]["brand"] == "#ff8800"
     assert s["themes"]["black"]["chart"]["parchment"] == "#16161a"   # sibling colour untouched
     assert s["print"] == {"palette": "white"}
+
+
+def build_with_override(tmp_path: Path, override):
+    src = write_src(tmp_path)
+    write_override(tmp_path, override)
+    out = tmp_path / "report.html"
+    return run_build(src, out), out
+
+
+def test_an_unknown_settings_key_fails_the_build_and_is_named(tmp_path):
+    res, out = build_with_override(tmp_path, {"chrome": {"headerTemplte": "typo"}})
+
+    assert res.returncode != 0
+    assert "chrome.headerTemplte" in res.stderr
+    assert not out.exists()
