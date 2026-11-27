@@ -11,7 +11,9 @@ PAGE_BG = {"white": "rgb(255, 255, 255)", "black": "rgb(22, 22, 26)", "beige": "
 
 
 def page_bg(reader) -> str:
-    return reader.page.evaluate("() => getComputedStyle(document.body).backgroundColor")
+    # The paper the reader reads on: a Sheet once paginated, the body when pagination is off.
+    return reader.page.evaluate(
+        "() => getComputedStyle(document.querySelector('#report .sheet') || document.body).backgroundColor")
 
 
 def choose(reader, theme: str):
@@ -135,7 +137,7 @@ MARKS = """() => {
   const mode = getComputedStyle(layer).mixBlendMode;
   const B = { normal: (b, s) => s, multiply: (b, s) => b * s / 255, screen: (b, s) => 255 - (255 - b) * (255 - s) / 255 }[mode];
   const over = (back, src) => back.map((b, i) => (1 - src.a) * b + src.a * B(b, src.c[i]));
-  const page = rgb(getComputedStyle(document.body).backgroundColor).c;
+  const page = rgb(getComputedStyle(document.querySelector("#report .sheet") || document.body).backgroundColor).c;
   const text = rgb(getComputedStyle(document.body).color).c;   // body text colour
   return [...layer.querySelectorAll('.r6o-annotation')].map(m => {
     const cs = getComputedStyle(m), fill = rgb(cs.backgroundColor), out = { mode };
@@ -150,14 +152,14 @@ MARKS = """() => {
 
 
 def test_highlights_underlines_and_note_marks_stay_visible_in_every_theme(reader):
-    reader.select_text("#report > p", 0)
+    reader.select_text("#report p", 0)
     reader.toolbar("yellow")
-    reader.select_text("#report > p", 1)
+    reader.select_text("#report p", 1)
     reader.toolbar("underline")
-    reader.select_text("#report > p", 2)
+    reader.select_text("#report p", 2)
     reader.write_note("核实")                             # a note mark: tinted fill + dashed line
 
-    reader.page.locator("#report > p").nth(1).scroll_into_view_if_needed()
+    reader.page.locator("#report p").nth(1).scroll_into_view_if_needed()
     reader.page.wait_for_timeout(200)
     for theme in THEMES:              # switched after marking, without scrolling: marks must repaint
         choose(reader, theme)
