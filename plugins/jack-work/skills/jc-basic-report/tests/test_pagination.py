@@ -146,6 +146,38 @@ def test_an_oversized_table_gets_its_own_sheet_and_a_visible_warning(context, tm
     assert "9.9 超长明细" in banner.inner_text()
 
 
+# Starts a fresh Sheet, then H2 + H3 + a ~245 mm table: it fits a 263 mm Sheet body alone, not with its headings.
+NEAR_FULL_TABLE = ('<div class="page-break"></div>\n<h2 id="s-near">九、近满页表格</h2>\n<h3 id="ss-near">9.1 明细</h3>\n'
+                   '<table id="near-full"><thead><tr><th>序号</th><th>事项</th></tr></thead><tbody>'
+                   + "".join(f'<tr style="height:10mm"><td>{i}</td><td>明细第 {i} 行</td></tr>' for i in range(1, 24))
+                   + "</tbody></table>\n<p id=\"after-near\">近满页表格之后的一段正文。</p>")
+
+
+def test_a_table_that_fits_a_sheet_alone_but_not_with_its_headings_is_not_oversized(context, tmp_path):
+    out = build_sample(tmp_path, extra_body=NEAR_FULL_TABLE)
+    page = context.new_page()
+    warnings = []
+    page.on("console", lambda m: warnings.append(m.text) if m.type == "warning" else None)
+    page.goto(out.as_uri(), wait_until="domcontentloaded")
+    page.wait_for_selector("html[data-pagination='done']", state="attached", timeout=10000)
+    m = page.evaluate("JSON.parse(document.getElementById('jc-settings').textContent).paper.marginMm")
+
+    got = page.evaluate("""() => {
+        const sheets = [...document.querySelectorAll('#report .sheet')], at = id => document.getElementById(id);
+        const t = at('near-full'), s = t.closest('.sheet'), r = t.getBoundingClientRect(), sr = s.getBoundingClientRect();
+        return {table: sheets.indexOf(s), h2: sheets.indexOf(at('s-near').closest('.sheet')),
+                h3: sheets.indexOf(at('ss-near').closest('.sheet')), oversized: s.classList.contains('sheet--oversized'),
+                height: r.height, room: sr.bottom - r.bottom, top: r.top - sr.top}; }""")
+
+    assert 230 < mm(got["height"]) < 263 - 5, got     # ~90 % of the Sheet body, so it really fits alone
+    assert not got["oversized"]
+    assert not any("Oversized" in w for w in warnings), warnings
+    assert page.locator("[role='alert']").count() == 0
+    assert mm(got["room"]) >= m["bottom"] - 0.5, "the table sits whole on its Sheet"
+    assert got["h2"] == got["h3"] and got["h3"] in (got["table"], got["table"] - 1), \
+        "the headings stay with the table, or sit on their own Sheet just before it"
+
+
 def tall_png() -> bytes:
     import io
     from PIL import Image

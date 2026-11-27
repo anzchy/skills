@@ -56,6 +56,13 @@
         newSheet();
         run.forEach(function (x) { body.appendChild(x); });
       }
+      if (!overflows()) return;
+      // The Block fits a Sheet alone but not together with its headings: the headings keep this Sheet,
+      // the Block starts the next one. Only a Block taller than a whole Sheet body is Oversized.
+      if (body.firstElementChild !== n && n.getBoundingClientRect().height <= body.clientHeight) {
+        newSheet();
+        body.appendChild(n);
+      }
       if (overflows()) { oversized(n, sheets[sheets.length - 1], body); closeSheet = true; }
     });
     return sheets;
