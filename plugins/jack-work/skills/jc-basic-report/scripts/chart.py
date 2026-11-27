@@ -27,9 +27,13 @@ labels), "decimals", "source" (footnote), "lang" ("cn", "en", "ko"; inferred
 from the labels when absent), "title" (accessible name only, never drawn;
 the document's figure caption carries the takeaway).
 
+Colours: every mark references a palette CSS variable with its Kami literal as
+fallback (fill="var(--chart-brand, #1B365D)"); build.py emits each Theme's
+palette from Settings themes.<name>.chart, so the Theme recolours charts live.
+
 Usage:
-    python3 scripts/build.py --chart spec.json [-o chart.svg]
-    python3 scripts/build.py --check-charts filled.html
+    python3 scripts/chart.py spec.json [-o chart.svg]
+    python3 scripts/chart.py --check-charts report.html
 """
 from __future__ import annotations
 
@@ -782,6 +786,8 @@ def check_charts(argv: list[str]) -> int:
 
 def main(argv: list[str]) -> int:
     args = list(argv)
+    if args and args[0] == "--check-charts":
+        return check_charts(args[1:])
     out = None
     if "-o" in args:
         i = args.index("-o")

@@ -2,6 +2,8 @@
 
 图表一律由数据生成，不手画柱子、点或扇区。每张图写一个 `charts/<名称>.json`，正文放 `<!--CHART:名称-->`，`build.py` 会调用 `scripts/chart.py` 生成内联 SVG。要改数字就改 JSON 再构建。
 
+图表颜色不写在 JSON 里：生成的 SVG 每个颜色都是 `var(--chart-<名称>, <Kami 色>)`，切换 Theme 即换色；要改某个主题的色板，在报告旁的 `settings.json` 里覆盖 `themes.<white|black|beige>.chart.<键>`（如 `{"themes": {"black": {"chart": {"brand": "#8fb4e8"}}}}`）。构建后可用 `python3 scripts/chart.py --check-charts report.html` 核对每张图仍与其规格一致。
+
 ```json
 {"type": "bar", "categories": ["2023", "2024", "2025"],
  "series": [{"name": "营收", "values": [0.53, 7.43, 16.44]},
