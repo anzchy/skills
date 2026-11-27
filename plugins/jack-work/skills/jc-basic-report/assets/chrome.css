@@ -1,0 +1,17 @@
+  /* ========== Page chrome：每张 Sheet 的页眉与居中页码（文字见 chrome.js，画在页边距里） ========== */
+  /* Text comes from attr() so it stays out of the annotatable text flow and cannot be selected. */
+  #report .sheet-header, #report .sheet-footer {
+    position: absolute; left: var(--sheet-ml); right: var(--sheet-mr);
+    display: flex; align-items: center; box-sizing: border-box;
+    font-size: 8.5pt; line-height: 1.2; color: var(--stone);
+    user-select: none; pointer-events: none;
+  }
+  #report .sheet-header {
+    top: 0; height: var(--sheet-mt); justify-content: space-between; padding-top: 2mm;
+  }
+  #report .sheet-header::before { content: attr(data-left); }
+  #report .sheet-header::after { content: attr(data-right); }
+  #report .sheet-footer {
+    bottom: 0; height: var(--sheet-mb); justify-content: center; padding-bottom: 2mm;
+  }
+  #report .sheet-footer::before { content: attr(data-text); }

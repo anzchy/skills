@@ -27,9 +27,13 @@ labels), "decimals", "source" (footnote), "lang" ("cn", "en", "ko"; inferred
 from the labels when absent), "title" (accessible name only, never drawn;
 the document's figure caption carries the takeaway).
 
+Colours: every mark references a palette CSS variable with its Kami literal as
+fallback (fill="var(--chart-brand, #1B365D)"); build.py emits each Theme's
+palette from Settings themes.<name>.chart, so the Theme recolours charts live.
+
 Usage:
-    python3 scripts/build.py --chart spec.json [-o chart.svg]
-    python3 scripts/build.py --check-charts filled.html
+    python3 scripts/chart.py spec.json [-o chart.svg]
+    python3 scripts/chart.py --check-charts report.html
 """
 from __future__ import annotations
 
@@ -41,16 +45,48 @@ import sys
 import unicodedata
 from pathlib import Path
 
-PARCHMENT = "#f5f4ed"
-NEAR_BLACK = "#141413"
-CHARCOAL = "#4d4c48"
-OLIVE = "#504e49"
-STONE = "#6b6a64"
-LIGHT_STONE = "#b8b7b0"
-MIST = "#d4d3cd"
-BRAND = "#1B365D"
-BRAND_TINT = "#EEF2F7"
-GRID = "#e8e7e1"
+# Kami colours: the literal fallbacks of the chart palette. Every mark references a CSS
+# variable (--chart-<name>) with its Kami literal as fallback, so one SVG is recoloured by the
+# Theme at once and still draws in Kami colours wherever the variables are absent.
+KAMI = {
+    "parchment": "#f5f4ed", "near_black": "#141413", "charcoal": "#4d4c48", "olive": "#504e49",
+    "stone": "#6b6a64", "light_stone": "#b8b7b0", "mist": "#d4d3cd", "brand": "#1B365D",
+    "brand_tint": "#EEF2F7", "grid": "#e8e7e1",
+}
+
+
+def chart_var(name: str) -> str:
+    """CSS custom property of one palette colour: near_black -> --chart-near-black."""
+    return "--chart-" + name.replace("_", "-")
+
+
+def _ref(name: str) -> str:
+    return f"var({chart_var(name)}, {KAMI[name]})"
+
+
+PARCHMENT = _ref("parchment")
+NEAR_BLACK = _ref("near_black")
+CHARCOAL = _ref("charcoal")
+OLIVE = _ref("olive")
+STONE = _ref("stone")
+LIGHT_STONE = _ref("light_stone")
+MIST = _ref("mist")
+BRAND = _ref("brand")
+BRAND_TINT = _ref("brand_tint")
+GRID = _ref("grid")
+
+
+def palette_declarations(chart: dict) -> str:
+    """One chart palette (Settings themes.<name>.chart) as CSS custom property declarations."""
+    return " ".join(f"{chart_var(k)}: {chart[k]};" for k in KAMI if k in chart)
+
+
+def palette_css(settings: dict) -> str:
+    """Every Theme's chart palette from Settings, keyed on <html data-theme>. Screen only, like
+    the page tokens in theme.css: print keeps the Kami fallbacks until a print block overrides."""
+    rules = [f'    html[data-theme="{name}"] {{ {palette_declarations(theme["chart"])} }}'
+             for name, theme in settings.get("themes", {}).items() if "chart" in theme]
+    return "  @media screen {\n" + "\n".join(rules) + "\n  }\n"
 
 SERIES = (BRAND, OLIVE, STONE, LIGHT_STONE, MIST, BRAND_TINT)
 
@@ -750,6 +786,8 @@ def check_charts(argv: list[str]) -> int:
 
 def main(argv: list[str]) -> int:
     args = list(argv)
+    if args and args[0] == "--check-charts":
+        return check_charts(args[1:])
     out = None
     if "-o" in args:
         i = args.index("-o")

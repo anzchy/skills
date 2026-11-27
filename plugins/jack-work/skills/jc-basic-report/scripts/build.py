@@ -18,7 +18,8 @@ SKILL = Path(__file__).resolve().parent.parent
 ASSETS = SKILL / "assets"
 VENDOR = ASSETS / "vendor"
 sys.path.insert(0, str(SKILL / "scripts"))
-from chart import render_chart  # noqa: E402  (kami chart generator, MIT)
+from chart import palette_css, palette_declarations, render_chart  # noqa: E402  (kami chart generator, MIT)
+from settings import SettingsError, load_settings, settings_block  # noqa: E402
 
 CHART_MARKER = re.compile(r"<!--CHART:([\w-]+)-->")
 PLACEHOLDER = re.compile(r"\{\{[^{}]*\}\}")
@@ -54,13 +55,47 @@ def read(path: Path) -> str:
 
 
 def styles() -> str:
-    return ("<style>\n" + read(ASSETS / "report.css") + read(ASSETS / "ui.css") + "</style>\n"
+    return ("<style>\n" + read(ASSETS / "report.css") + read(ASSETS / "ui.css") + read(ASSETS / "theme.css")
+            + read(ASSETS / "paginator.css") + read(ASSETS / "chrome.css") + "</style>\n"
             "<style>/* @recogito/text-annotator 4.3.7 · BSD-3-Clause · (c) Pelagios Network */\n"
             + read(VENDOR / "recogito-text-annotator-4.3.7.css") + "</style>")
 
 
+def theme_script() -> str:
+    """Theme boot script: runs in <head> so the chosen Theme applies before the first paint."""
+    js = read(ASSETS / "theme.js")
+    assert "</script" not in js
+    return f"<script>/* jc-basic-report theme */\n{js}</script>\n"
+
+
+def theme_tokens(name: str) -> str:
+    """The page tokens of one Theme as theme.css declares them for the screen. Beige is the
+    base :root of report.css + theme.css, so it has no override block and returns ""."""
+    css = re.sub(r"/\*.*?\*/", "", read(ASSETS / "theme.css"), flags=re.S)
+    m = re.search(r'html\[data-theme="%s"\]\s*\{([^{}]*)\}' % re.escape(name), css)
+    return " ".join(m.group(1).split()) if m else ""
+
+
+def print_palette_css(settings: dict) -> str:
+    """Print and PDF use the Print palette from Settings, whatever Theme is on screen: its page
+    tokens and its chart palette, applied to :root under @media print (the screen Theme blocks
+    are screen-only, so nothing else competes)."""
+    name = settings["print"]["palette"]
+    decls = " ".join(d for d in (theme_tokens(name), palette_declarations(settings["themes"][name]["chart"])) if d)
+    return f"  /* Print palette: {name} */\n  @media print {{ :root {{ {decls} }} }}\n"
+
+
+def chart_palettes(settings: dict) -> str:
+    """Settings themes.*.chart as --chart-* CSS variables, plus the Print palette; after the
+    theme styles so they win."""
+    return ("<style>/* chart palettes and Print palette from Settings */\n" + palette_css(settings)
+            + print_palette_css(settings) + "</style>\n")
+
+
 def scripts() -> str:
     parts = [
+        ("/* jc-basic-report Paginator (runs before tocbot / recogito) */", read(ASSETS / "paginator.js")),
+        ("/* jc-basic-report Page chrome (after the Paginator) */", read(ASSETS / "chrome.js")),
         ("/*! tocbot 4.36.8 · MIT · (c) Tim Scanlin */", read(VENDOR / "tocbot-4.36.8.min.js")),
         ("/*! @recogito/text-annotator 4.3.7 · BSD-3-Clause · (c) Pelagios Network */\n"
          "if(!window.process){window.process={env:{NODE_ENV:\"production\"}};}",
@@ -80,8 +115,16 @@ def build(src: Path, out: Path, draft: bool = False) -> int:
         for p in unfilled:
             print("  " + p, file=sys.stderr)
         return 1
+    try:
+        settings = load_settings(src.parent)
+    except SettingsError as e:
+        print(f"ERROR: Settings 校验失败（{len(e.reasons)} 处）：", file=sys.stderr)
+        for r in e.reasons:
+            print("  " + r, file=sys.stderr)
+        return 1
     html = embed_images(html, src.parent)
-    html = html.replace("<!--JC:CSS-->", styles())
+    html = html.replace("<!--JC:CSS-->", settings_block(settings) + theme_script() + styles()
+                        + chart_palettes(settings))
     html = html.replace("<!--JC:SCRIPTS-->", scripts())
     html = embed_charts(html, src.parent / "charts")
     out.write_text(html, encoding="utf-8")

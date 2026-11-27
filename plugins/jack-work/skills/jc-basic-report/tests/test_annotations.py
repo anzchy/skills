@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 
-BODY_P = "#report > p"          # top-level body paragraphs; every report has them
+BODY_P = "#report p"            # body paragraphs, on a Sheet or in the continuous scroll
 
 
 def test_highlighting_a_selection_lists_it_and_it_survives_reopening(reader):

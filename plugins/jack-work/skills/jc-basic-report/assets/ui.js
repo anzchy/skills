@@ -6,11 +6,17 @@
   var KEY_SIDE = 'kami-side-collapsed';
   var SOURCE = 'urn:report:' + RID;
   var KINDS = {
-    'hl-yellow': { label: '黄色高亮', color: '#F3E3A0' },
-    'hl-green':  { label: '绿色高亮', color: '#D5E6C3' },
-    'hl-blue':   { label: '蓝色高亮', color: '#D6E2F0' },
-    'underline': { label: '划线',     color: '#A4442B' }
+    'hl-yellow': { label: '黄色高亮', color: 'var(--hl-yellow, #F3E3A0)' },
+    'hl-green':  { label: '绿色高亮', color: 'var(--hl-green, #D5E6C3)' },
+    'hl-blue':   { label: '蓝色高亮', color: 'var(--hl-blue, #D6E2F0)' },
+    'underline': { label: '划线',     color: 'var(--ul-red, #A4442B)' }
   };
+  var BRAND = 'var(--brand, #1B365D)';
+  /* Mark colours follow the Theme: CSS reads var() directly, the annotator needs the resolved value. */
+  function paint(c) {
+    var m = /^var\((--[\w-]+),\s*([^)]+)\)$/.exec(c);
+    return m ? (getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() || m[2]) : c;
+  }
 
   var root = document.documentElement;
   var report = document.getElementById('report');
@@ -46,6 +52,8 @@
   }
   tabs.forEach(function (t) { t.addEventListener('click', function () { showTab(t.dataset.tab); }); });
 
+  // Sidebar state above is restored at once (no flash); TOC and annotations wait for the final Sheets.
+  (window.JCPaginator ? window.JCPaginator.whenReady : function (fn) { fn(); })(function () {
   /* ---------- 目录（tocbot） ---------- */
   report.querySelectorAll('h2, h3').forEach(function (h, i) { if (!h.id) h.id = 'sec-' + i; });
   // Headings like "〇、投资要点" carry a rating badge (.h2-rating); keep it out of TOC labels.
@@ -70,6 +78,16 @@
     hasInnerContainers: true,
     headingLabelCallback: stripRating
   });
+  /* 目录页码：每项的页码与 tocbot 的点击跳转共用同一个目标（链接指向的标题），页码 = 该标题所在 Sheet 的序号。 */
+  (function tocPageNumbers() {
+    var P = window.JCPaginator, S = JSON.parse(document.getElementById('jc-settings').textContent);
+    if (!P || P.state !== 'done' || !S.toc.pageNumbers) return;   // continuous scroll / switched off: no numbers
+    side.querySelectorAll('.js-toc a.toc-link').forEach(function (a) {
+      var target = document.getElementById(decodeURIComponent(a.hash.slice(1)));
+      var n = target ? P.sheets.indexOf(target.closest('.sheet')) + 1 : 0;
+      if (n > 0) a.setAttribute('data-page', String(n));   // drawn by CSS, so the label text stays unchanged
+    });
+  })();
   side.querySelector('.js-toc').addEventListener('click', function (e) {
     if (e.target.closest('a') && window.innerWidth < 900) setCollapsed(true);
   });
@@ -90,18 +108,69 @@
   }
   function isKept(a) { return !!(kindOf(a) || noteOf(a)); }
 
+  /* ---------- 定位：保存的位置若已不对应引文（报告修订、页面结构变化），按引文重新定位 ---------- */
+  // The annotator revives a target from character offsets alone and never checks the quote, so a
+  // shifted offset would paint the mark on other text. Annotations whose quote is gone are kept
+  // apart (lost) and listed as 「未定位」 instead of being painted anywhere or silently dropped.
+  var lost = [];
+  function annotatableText() {   // the same text the annotator counts offsets in
+    var w = document.createTreeWalker(report, NodeFilter.SHOW_TEXT, function (n) {
+      return n.parentElement && n.parentElement.closest('.not-annotatable') ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT;
+    });
+    var t = '';
+    for (var n = w.nextNode(); n; n = w.nextNode()) t += n.data;
+    return t;
+  }
+  function common(a, b, fromEnd) {
+    var i = 0, n = Math.min(a.length, b.length);
+    while (i < n && (fromEnd ? a[a.length - 1 - i] === b[b.length - 1 - i] : a[i] === b[i])) i++;
+    return i;
+  }
+  function anchorTarget(t, text) {
+    var sels = Array.isArray(t.selector) ? t.selector : [t.selector || {}];
+    var q = sels.find(function (s) { return s.type === 'TextQuoteSelector'; });
+    var pos = sels.find(function (s) { return s.type === 'TextPositionSelector'; });
+    if (!q || !q.exact) return pos ? t : null;
+    if (pos && text.slice(pos.start, pos.end) === q.exact) return t;
+    var len = q.exact.length, from = pos ? pos.start : 0, best = -1, bestScore = -1;
+    for (var at = text.indexOf(q.exact); at >= 0; at = text.indexOf(q.exact, at + 1)) {
+      var score = common(text.slice(Math.max(0, at - (q.prefix || '').length), at), q.prefix || '', true) +
+                  common(text.slice(at + len, at + len + (q.suffix || '').length), q.suffix || '', false);
+      if (score > bestScore || (score === bestScore && Math.abs(at - from) < Math.abs(best - from))) { best = at; bestScore = score; }
+    }
+    if (best < 0) return null;
+    var moved = { type: 'TextPositionSelector', start: best, end: best + len };
+    return Object.assign({}, t, { selector: sels.filter(function (s) { return s !== pos; }).concat([moved]) });
+  }
+  // The Annotation placed on the current text, or null when its quote is no longer in the Report.
+  function anchor(a, text) {
+    var many = Array.isArray(a.target), ts = (many ? a.target : [a.target]).map(function (t) { return anchorTarget(t || {}, text); });
+    if (ts.some(function (t) { return !t; })) return null;
+    return Object.assign({}, a, { target: many ? ts : ts[0] });
+  }
+  // Split stored Annotations into the ones to hand to the annotator and the lost ones.
+  function place(arr) {
+    var text = annotatableText(), ok = [];
+    arr.forEach(function (a) {
+      var placed = anchor(a, text);
+      lost = lost.filter(function (x) { return x.id !== a.id; });
+      if (placed) ok.push(placed); else lost.push(a);
+    });
+    return ok;
+  }
+
   function styleFn(a, state) {
     var kind = kindOf(a), note = noteOf(a), sel = state && state.selected;
-    if (!kind && !note) return { fill: '#1B365D', fillOpacity: 0.16 };
+    if (!kind && !note) return { fill: paint(BRAND), fillOpacity: 0.16 };
     var s;
     if (kind === 'underline') {
-      s = { fill: '#A4442B', fillOpacity: sel ? 0.10 : 0, underlineColor: '#A4442B', underlineThickness: 2, underlineOffset: 1 };
+      s = { fill: paint(KINDS.underline.color), fillOpacity: sel ? 0.10 : 0, underlineColor: paint(KINDS.underline.color), underlineThickness: 2, underlineOffset: 1 };
     } else {
-      s = { fill: KINDS[kind || 'hl-blue'].color, fillOpacity: sel ? 1 : 0.85 };
+      s = { fill: paint(KINDS[kind || 'hl-blue'].color), fillOpacity: sel ? 1 : 0.85 };
       if (!kind) s.fillOpacity = sel ? 0.6 : 0.35;
     }
     if (note && kind !== 'underline') {
-      s.underlineColor = '#1B365D'; s.underlineStyle = 'dashed'; s.underlineThickness = 1.5; s.underlineOffset = 1;
+      s.underlineColor = paint(BRAND); s.underlineStyle = 'dashed'; s.underlineThickness = 1.5; s.underlineOffset = 1;
     }
     return s;
   }
@@ -113,8 +182,10 @@
     dismissOnNotAnnotatable: function (e) { return !e.target.closest('.ann-pop, .side'); }
   });
 
+  document.addEventListener('jc:themechange', function () { anno.setStyle(styleFn); });
+
   function save() {
-    var keep = anno.getAnnotations().filter(isKept);
+    var keep = anno.getAnnotations().filter(isKept).concat(lost);
     store.set(KEY_ANN, JSON.stringify(keep));
     renderList();
   }
@@ -290,22 +361,25 @@
       var i = selectorInfo(a);
       return { a: a, quote: i.quote, start: i.start };
     }).sort(function (x, y) { return x.start - y.start; });
+    items = items.concat(lost.map(function (a) { return { a: a, quote: selectorInfo(a).quote, lost: true }; }));
     count.textContent = items.length ? '（' + items.length + '）' : '';
     if (!items.length) {
       list.innerHTML = '<p class="ann-hint">暂无批注。</p>';
       return;
     }
     list.innerHTML = items.map(function (it) {
-      var k = kindOf(it.a), n = noteOf(it.a), sec = sectionOf(it.a);
+      var k = kindOf(it.a), n = noteOf(it.a), sec = it.lost ? '' : sectionOf(it.a);
       var sw = k ? '<span class="ann-swatch" style="background:' + KINDS[k].color + '"></span>' : '';
-      return '<div class="ann-item" data-id="' + esc(it.a.id) + '" tabindex="0">' +
+      var meta = it.lost ? '<span class="ann-lost" title="原文已找不到这段文字，批注仍保留">未定位</span>' : esc(sec);
+      return '<div class="ann-item' + (it.lost ? ' ann-item--lost' : '') + '" data-id="' + esc(it.a.id) + '" tabindex="0">' +
         '<div class="ann-quote">' + sw + esc(it.quote) + '</div>' +
         (n ? '<div class="ann-note">' + esc(n) + '</div>' : '') +
-        (sec ? '<div class="ann-meta">' + esc(sec) + '</div>' : '') +
+        (meta ? '<div class="ann-meta">' + meta + '</div>' : '') +
       '</div>';
     }).join('');
   }
   function jump(id) {
+    if (lost.some(function (a) { return a.id === id; })) return;   // nowhere to scroll to
     anno.scrollIntoView(id);
     setTimeout(function () { anno.setSelected(id); }, 350);
     if (window.innerWidth < 900) setCollapsed(true);
@@ -315,7 +389,7 @@
 
   /* ---------- 导出 / 导入 / 清空 ---------- */
   document.getElementById('ann-export').addEventListener('click', function () {
-    var data = { '@context': 'http://www.w3.org/ns/anno.jsonld', source: SOURCE, exported: new Date().toISOString(), annotations: anno.getAnnotations().filter(isKept) };
+    var data = { '@context': 'http://www.w3.org/ns/anno.jsonld', source: SOURCE, exported: new Date().toISOString(), annotations: anno.getAnnotations().filter(isKept).concat(lost) };
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -332,28 +406,32 @@
     f.text().then(function (txt) {
       var data = JSON.parse(txt);
       var arr = Array.isArray(data) ? data : (data.annotations || []);
-      var n = 0;
-      arr.forEach(function (a) {
-        if (!a || !a.id || !a.target) return;
-        if (anno.getAnnotationById(a.id)) anno.updateAnnotation(a); else anno.addAnnotation(a);
-        n++;
+      arr = arr.filter(function (a) { return a && a.id && a.target; });
+      var placed = place(arr);
+      arr.forEach(function (a) {   // an imported copy that cannot be placed replaces the painted one
+        if (!placed.some(function (p) { return p.id === a.id; }) && anno.getAnnotationById(a.id)) anno.removeAnnotation(a.id);
       });
+      placed.forEach(function (a) {
+        if (anno.getAnnotationById(a.id)) anno.updateAnnotation(a); else anno.addAnnotation(a);
+      });
+      var n = arr.length, unplaced = n - placed.length;
       save();
-      alert('已导入 ' + n + ' 条批注。');
+      alert('已导入 ' + n + ' 条批注' + (unplaced ? '，其中 ' + unplaced + ' 条未定位' : '') + '。');
     }).catch(function (err) { alert('导入失败：' + err.message); });
     fileIn.value = '';
   });
   document.getElementById('ann-clear').addEventListener('click', function () {
-    if (!anno.getAnnotations().filter(isKept).length) return;
-    if (confirm('确定清空本报告的全部批注？建议先导出备份。')) { anno.clearAnnotations(); save(); }
+    if (!anno.getAnnotations().filter(isKept).length && !lost.length) return;
+    if (confirm('确定清空本报告的全部批注？建议先导出备份。')) { lost = []; anno.clearAnnotations(); save(); }
   });
 
   /* ---------- 恢复已保存的批注 ---------- */
   try {
     var saved = JSON.parse(store.get(KEY_ANN) || '[]');
-    if (saved.length) anno.setAnnotations(saved);
+    if (saved.length) anno.setAnnotations(place(saved));
   } catch (e) { /* 存储损坏时忽略 */ }
   renderList();
 
   window.__report = { anno: anno, save: save };
+  });
 })();

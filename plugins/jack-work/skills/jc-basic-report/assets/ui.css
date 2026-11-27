@@ -18,7 +18,7 @@
     border: 0; background: transparent; color: var(--olive); font: inherit; font-size: 13px; cursor: pointer;
     width: 28px; height: 28px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; flex: none;
   }
-  .side-btn:hover, .side-btn:focus-visible { background: #e8e6dc; color: var(--near-black); outline: none; }
+  .side-btn:hover, .side-btn:focus-visible { background: var(--control); color: var(--near-black); outline: none; }
   .side-tabs { display: flex; gap: 4px; padding: 8px 12px 0 12px; }
   .side-tab { flex: 1; border: 0; background: transparent; font: inherit; font-size: 13px; color: var(--stone); padding: 6px 0 7px; cursor: pointer; border-bottom: 1.5px solid transparent; }
   .side-tab[aria-selected="true"] { color: var(--brand); border-bottom-color: var(--brand); font-weight: 500; }
@@ -36,23 +36,33 @@
   .js-toc li { list-style: none; margin: 1px 0; }
   .js-toc a.toc-link { display: block; color: var(--olive); text-decoration: none; padding: 3px 8px; border-radius: 3px; position: relative; }
   .js-toc a.toc-link::before { display: none; }
-  .js-toc a.toc-link:hover { background: #f0eee6; color: var(--near-black); }
+  .js-toc a.toc-link:hover { background: var(--wash); color: var(--near-black); }
   .js-toc .node-name--H2 { color: var(--dark-warm); }
   .js-toc .node-name--H3 { font-size: 12.5px; }
   .js-toc a.is-active-link { color: var(--brand); background: var(--tag-bg); font-weight: 500; }
   .js-toc .is-collapsible { max-height: 1200px; overflow: hidden; transition: max-height 220ms ease; }
   .js-toc .is-collapsed { max-height: 0; }
+  /* 目录页码（ui.js 按 Sheet 回填 data-page）；在 .side-pane 内，侧栏收起时随之隐藏 */
+  .js-toc a.toc-link[data-page] { padding-right: 34px; }
+  .js-toc a.toc-link[data-page]::after {
+    content: attr(data-page); position: absolute; right: 8px; top: 3px;
+    color: var(--stone); font-size: 11.5px; font-weight: 400; font-variant-numeric: tabular-nums;
+  }
+  html.side-collapsed .js-toc a.toc-link[data-page]::after { display: none; }
 
   /* 批注列表 */
   .ann-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .ann-tools button { border: 0; background: #e8e6dc; color: var(--dark-warm); font: inherit; font-size: 12px; padding: 4px 9px; border-radius: 3px; cursor: pointer; }
-  .ann-tools button:hover { background: #dedbd0; }
+  .ann-tools button { border: 0; background: var(--control); color: var(--dark-warm); font: inherit; font-size: 12px; padding: 4px 9px; border-radius: 3px; cursor: pointer; }
+  .ann-tools button:hover { background: var(--control-hover); }
   .ann-hint { font-size: 12px; color: var(--stone); line-height: 1.55; margin: 0 0 10px; text-indent: 0; }
   .ann-item { padding: 8px 6px 9px; border-bottom: 0.5pt solid var(--border); cursor: pointer; border-radius: 3px; }
-  .ann-item:hover { background: #f0eee6; }
+  .ann-item:hover { background: var(--wash); }
   .ann-quote { font-size: 12.5px; color: var(--near-black); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .ann-note { font-size: 12px; color: var(--brand); margin-top: 4px; line-height: 1.5; white-space: pre-wrap; }
   .ann-meta { font-size: 11px; color: var(--stone); margin-top: 3px; }
+  .ann-item--lost { cursor: default; }
+  .ann-item--lost .ann-quote { color: var(--stone); }
+  .ann-lost { display: inline-block; font-size: 10.5px; color: var(--negative); border: 0.5pt solid currentColor; border-radius: 2px; padding: 0 4px; line-height: 1.5; }
   .ann-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
 
   /* 选区工具条 */
@@ -93,9 +103,9 @@
   }
   /* 指标方向标签 */
   .dir { text-indent: 0; display: inline-block; font-size: 8.5pt; font-weight: 500; padding: 0 5pt; border-radius: 3pt; white-space: nowrap; }
-  .dir.up { background: #E4ECF5; color: #1B365D; }
-  .dir.down { background: #f0eee6; color: #504e49; }
-  .dir.mid { background: #EEF2F7; color: #2D5A8A; }
+  .dir.up { background: var(--tag-bg); color: var(--brand); }
+  .dir.down { background: var(--wash); color: var(--olive); }
+  .dir.mid { background: var(--tint-mid); color: var(--brand-mid); }
   table.spec td { line-height: 1.45; }
   @media print {
     .side, .ann-pop, .ann-tip { display: none !important; }

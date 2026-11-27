@@ -22,8 +22,21 @@ meta = json.loads((wd / "meta.json").read_text(encoding="utf-8"))
 
 # ---- palette (from the report's CSS) ----
 NEAR_BLACK, DARK_WARM, OLIVE, STONE = "141413", "3d3d3a", "504e49", "6b6a64"
-BRAND, BORDER, PARCHMENT = "1B365D", "d9d6c8", "f5f4ed"
+BRAND, BORDER = "1B365D", "d9d6c8"
 SERIF_LATIN, SERIF_CJK = "Georgia", "TsangerJinKai02"
+
+# ---- Settings (inlined in the Report, carried here by prep.py) ----
+SETTINGS = meta["settings"]
+PRINT_PALETTE = SETTINGS["print"]["palette"]
+
+
+def rrggbb(colour):
+    """Settings accept #rgb or #rrggbb; Word's colour attributes take RRGGBB only."""
+    h = colour.lstrip("#")
+    return "".join(c * 2 for c in h) if len(h) == 3 else h
+
+
+PAGE_COLOR = rrggbb(SETTINGS["themes"][PRINT_PALETTE]["chart"]["parchment"])   # the palette's page colour
 
 # header/metric paragraphs: <p data-k="x"> -> named paragraph style K_x
 html = (wd / "main.html").read_text(encoding="utf-8")
@@ -77,13 +90,13 @@ def style(name, kind=WD_STYLE_TYPE.PARAGRAPH):
         return doc.styles.add_style(name, kind)
 
 
-# ---- page: A4, 2 cm margins, parchment page colour ----
+# ---- page: A4, 2 cm margins, page colour from the Print palette (default white) ----
 for s in doc.sections:
     s.page_width, s.page_height = Cm(21), Cm(29.7)
     s.left_margin = s.right_margin = Cm(2)
     s.top_margin = s.bottom_margin = Cm(2)
 bg = OxmlElement("w:background")
-bg.set(qn("w:color"), PARCHMENT)
+bg.set(qn("w:color"), PAGE_COLOR)
 doc.element.insert(0, bg)
 settings = doc.settings.element
 if settings.find(qn("w:displayBackgroundShape")) is None:
@@ -322,6 +335,68 @@ for p_el in doc.element.body.iter(qn("w:p")):          # includes paragraphs ins
         para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         para.paragraph_format.first_line_indent = Pt(0)
         para.paragraph_format.line_spacing = 1.0   # a fixed line box would clip the picture
+
+# ---- Page chrome: Settings header (first page differs: none), centred Word PAGE / NUMPAGES footer ----
+def company_from(title):
+    """{company} is the document title up to its first "·" (e.g. "沐曦股份 · 项目基本信息报告" -> "沐曦股份")."""
+    return title.split("·", 1)[0].strip()
+
+
+def chrome_paragraph(para, align):
+    para.style = style("Normal")
+    pf = para.paragraph_format
+    pf.alignment = align
+    pf.first_line_indent = Pt(0)
+    pf.space_before = pf.space_after = Pt(0)
+    pf.line_spacing = 1.0
+    pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
+
+def chrome_run(para, text):
+    run = para.add_run(text)
+    set_fonts(run, size=9, color=STONE)
+    return run
+
+
+def field_run(para, instr):
+    """A complex Word field (PAGE / NUMPAGES): Word and LibreOffice compute its value on render."""
+    run = chrome_run(para, "")
+    for kind, text in (("begin", None), (None, f" {instr} "), ("separate", None), (None, "1"), ("end", None)):
+        if kind:
+            fc = OxmlElement("w:fldChar"); fc.set(qn("w:fldCharType"), kind); run._r.append(fc)
+        elif text == "1":
+            t = OxmlElement("w:t"); t.text = text; run._r.append(t)
+        else:
+            it = OxmlElement("w:instrText"); it.set(qn("xml:space"), "preserve"); it.text = text
+            run._r.append(it)
+
+
+def page_count_footer(footer):
+    """footerTemplate, e.g. "第 {page} 页 共 {pages} 页", with {page} / {pages} as PAGE / NUMPAGES fields."""
+    para = footer.paragraphs[0]
+    chrome_paragraph(para, WD_ALIGN_PARAGRAPH.CENTER)
+    template = SETTINGS["chrome"]["footerTemplate"].replace("{company}", company_from(meta.get("title", "")))
+    for part in re.split(r"(\{page\}|\{pages\})", template):
+        if part == "{page}":
+            field_run(para, "PAGE")
+        elif part == "{pages}":
+            field_run(para, "NUMPAGES")
+        elif part:
+            chrome_run(para, part)
+
+
+header_text = SETTINGS["chrome"]["headerTemplate"].replace("{company}", company_from(meta.get("title", "")))
+for s in doc.sections:
+    s.header_distance = s.footer_distance = Cm(1)
+    s.different_first_page_header_footer = True     # the title page: no header, but counted
+    s.header.is_linked_to_previous = False
+    s.first_page_header.is_linked_to_previous = False   # an explicit, empty first-page header
+    hp = s.header.paragraphs[0]
+    chrome_paragraph(hp, WD_ALIGN_PARAGRAPH.LEFT)
+    chrome_run(hp, header_text)
+    s.footer.is_linked_to_previous = False
+    page_count_footer(s.footer)
+    page_count_footer(s.first_page_footer)
 
 doc.core_properties.title = meta.get("title", "")
 doc.core_properties.author = ""

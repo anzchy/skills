@@ -20,10 +20,12 @@
     font-style: normal;
   }
 
+  /* 不分页（pagination.enabled=false）时的打印页；底色跟随 Print palette（var(--parchment)，见 build.py）。
+     分页时每张 Sheet 用 paginator.css 的 @page jc-sheet：无页边距、无此计数器（页码由 Page chrome 画）。 */
   @page {
     size: A4;
     margin: 16mm 18mm 18mm 18mm;
-    background: #f5f4ed;
+    background: var(--parchment);
 
     @bottom-center {
       content: counter(page) "  ·  项目基本信息报告";
@@ -341,7 +343,7 @@
   p { text-indent: 2em; }
   .note, .verdict-lead, .callout p, td p { text-indent: 0; }
   .note { font-size: 9pt; color: var(--stone); line-height: 1.45; margin-top: -2pt; }
-  .gap { background: #f0eee6; color: var(--olive); font-size: 8.5pt; padding: 0 4pt; border-radius: 2pt; white-space: nowrap; }
+  .gap { background: var(--wash); color: var(--olive); font-size: 8.5pt; padding: 0 4pt; border-radius: 2pt; white-space: nowrap; }
   a { color: var(--brand); text-decoration: none; }
   .toc { background: var(--ivory); border-radius: 4pt; padding: 10pt 14pt; margin: 0 0 6pt; }
   .toc-title { font-size: 9pt; color: var(--brand); letter-spacing: 1.5pt; font-weight: 500; margin-bottom: 4pt; }

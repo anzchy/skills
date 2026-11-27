@@ -27,16 +27,16 @@ def rendered(docx_path, tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def html_pages(report_path, browser, tmp_path_factory):
-    """Pages when Chrome prints the same HTML on A4 with 2cm margins (the docx page setup)."""
+    """Pages when Chrome prints the same HTML as compare.py does: one Sheet per A4 page."""
     import pymupdf
     page = browser.new_page()
     page.route("**/*.ttf", lambda route: route.abort())   # the CDN web font is not under test; as in conftest.context
     page.goto(report_path.as_uri(), wait_until="load")
+    page.wait_for_selector("html[data-pagination]:not([data-pagination='pending'])", state="attached", timeout=15000)
     page.evaluate("() => document.querySelectorAll('script, button, .ann-tools, .ann-save, .ann-hint, #side')"
                   ".forEach(e => e.remove())")
     pdf = tmp_path_factory.mktemp("html") / "html.pdf"
-    page.pdf(path=str(pdf), format="A4", print_background=True,
-             margin={"top": "2cm", "bottom": "2cm", "left": "2cm", "right": "2cm"})
+    page.pdf(path=str(pdf), print_background=True, prefer_css_page_size=True)
     page.close()
     return len(pymupdf.open(str(pdf)))
 
@@ -66,6 +66,66 @@ def test_cjk_text_renders_in_the_report_font(rendered):
 def test_page_count_tracks_the_html(rendered, html_pages):
     import pymupdf
     assert abs(len(pymupdf.open(str(rendered))) - html_pages) <= 1
+
+
+@pytest.fixture()
+def slow_image_server():
+    """A local image server that answers after 1.5 s, so the Paginator settles well after page load."""
+    import http.server
+    import threading
+    import time
+    from test_pagination import tall_png
+    png = tall_png()
+
+    class Slow(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            time.sleep(1.5)
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(png)))
+            self.end_headers()
+            self.wfile.write(png)
+
+        def log_message(self, *a):
+            pass
+
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Slow)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{srv.server_address[1]}"
+    srv.shutdown()
+
+
+def test_compare_prints_one_sheet_per_a4_page_with_its_page_chrome(docx_path, tmp_path, slow_image_server):
+    # references/docx.md: compare.py prints the Report one Sheet per A4 page, with page chrome, even when
+    # pagination finishes late (here a slow image holds it back past page load)
+    import re
+    import pymupdf
+    from test_pagination import build_sample
+    report = build_sample(tmp_path / "src", extra_body=f'<h2>九、晚到的图</h2>\n<figure><img src="{slow_image_server}/late.png" alt="">'
+                                                      "<figcaption>图 9-1 · 晚到的图</figcaption></figure>")
+    out = tmp_path / "cmp"
+    subprocess.run([sys.executable, str(DOCX / "compare.py"), str(report), str(docx_path), str(out)],
+                   check=True, capture_output=True)
+
+    pdf = pymupdf.open(str(out / "html.pdf"))
+    n = len(pdf)
+    assert n >= 3
+    for i, page in enumerate(pdf, start=1):
+        assert abs(page.rect.width * 25.4 / 72 - 210) < 0.5 and abs(page.rect.height * 25.4 / 72 - 297) < 0.5
+        assert re.findall(r"第 \d+ 页 共 \d+ 页", page.get_text()) == [f"第 {i} 页 共 {n} 页"], i
+
+
+def test_rendered_pages_carry_the_header_and_their_own_page_numbers(rendered):
+    # Word fields: every page shows "第 X 页 共 Y 页" with its own X and the real total; the header
+    # (default template, {company} from the title) is on every page except the first
+    import pymupdf
+    pdf = pymupdf.open(str(rendered))
+    total = len(pdf)
+    assert total > 1
+    for i, page in enumerate(pdf, start=1):
+        text = page.get_text().replace("\n", " ")
+        assert f"第 {i} 页 共 {total} 页" in text, (i, text[-80:])
+        assert ("沐曦股份 · 项目基本信息报告" in text) == (i > 1), (i, text[:80])
 
 
 def test_header_figure_stays_on_one_line(rendered, source_html):

@@ -2,6 +2,19 @@
 
 图表一律由数据生成，不手画柱子、点或扇区。每张图写一个 `charts/<名称>.json`，正文放 `<!--CHART:名称-->`，`build.py` 会调用 `scripts/chart.py` 生成内联 SVG。要改数字就改 JSON 再构建。
 
+## 颜色与 Theme
+
+图表颜色不写在 JSON 里。生成的 SVG 里每个颜色都写成 `var(--chart-<名称>, <Kami 色>)`，切换 Theme 时图表跟着换色；变量缺失时用 Kami 米色值兜底。
+
+- 色板来自 Settings 的 `themes.<white|black|beige>.chart`，共 10 个键：`parchment`（底色）、`near_black`（文字）、`charcoal`、`olive`、`stone`（次要文字）、`light_stone`、`mist`、`brand`（墨蓝，强调系列）、`brand_tint`、`grid`（网格线）。键名里的 `_` 换成 `-` 就是变量名，如 `near_black` → `--chart-near-black`。
+- 构建时，每个 Theme 的色板输出为屏幕用的 `html[data-theme="…"]` CSS 变量。打印和 PDF 统一用 `print.palette` 指定主题的色板，与屏幕上的 Theme 无关。
+- 要改某个主题的色板，在报告旁的 `settings.json` 里只覆盖要改的键，如 `{"themes": {"black": {"chart": {"brand": "#8fb4e8"}}}}`。值必须是 hex 颜色，否则构建失败。
+- 手写示意图的配色规则见 `references/design.md`「示意图」。
+
+构建后可用 `python3 <skill>/scripts/chart.py --check-charts <报告>.html` 核对每张图仍与其规格一致。
+
+## 规格
+
 ```json
 {"type": "bar", "categories": ["2023", "2024", "2025"],
  "series": [{"name": "营收", "values": [0.53, 7.43, 16.44]},
