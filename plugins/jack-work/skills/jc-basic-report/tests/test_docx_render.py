@@ -68,6 +68,19 @@ def test_page_count_tracks_the_html(rendered, html_pages):
     assert abs(len(pymupdf.open(str(rendered))) - html_pages) <= 1
 
 
+def test_rendered_pages_carry_the_header_and_their_own_page_numbers(rendered):
+    # Word fields: every page shows "第 X 页 共 Y 页" with its own X and the real total; the header
+    # (default template, {company} from the title) is on every page except the first
+    import pymupdf
+    pdf = pymupdf.open(str(rendered))
+    total = len(pdf)
+    assert total > 1
+    for i, page in enumerate(pdf, start=1):
+        text = page.get_text().replace("\n", " ")
+        assert f"第 {i} 页 共 {total} 页" in text, (i, text[-80:])
+        assert ("沐曦股份 · 项目基本信息报告" in text) == (i > 1), (i, text[:80])
+
+
 def test_header_figure_stays_on_one_line(rendered, source_html):
     # the headline figure (.price-current, 28pt) sits on one line in the HTML; the docx must not wrap it
     import html as htmllib
