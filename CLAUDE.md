@@ -19,3 +19,9 @@ still classify the change (it drives the CHANGELOG wording), but always propose
 `+0.0.1` for the number itself.
 
 A brand-new skill or plugin still starts at `0.1.0`.
+
+## Subagent models
+
+Whenever `/mattpocock-skills:implement-spec` fires, every **implementer subagent**
+it spawns runs on Opus: pass `model: "opus"` explicitly (the session default for
+subagents is Sonnet, which does not apply to implementers here).
