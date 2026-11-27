@@ -19,6 +19,7 @@ ASSETS = SKILL / "assets"
 VENDOR = ASSETS / "vendor"
 sys.path.insert(0, str(SKILL / "scripts"))
 from chart import render_chart  # noqa: E402  (kami chart generator, MIT)
+from settings import load_settings, settings_block  # noqa: E402
 
 CHART_MARKER = re.compile(r"<!--CHART:([\w-]+)-->")
 PLACEHOLDER = re.compile(r"\{\{[^{}]*\}\}")
@@ -80,8 +81,9 @@ def build(src: Path, out: Path, draft: bool = False) -> int:
         for p in unfilled:
             print("  " + p, file=sys.stderr)
         return 1
+    settings = load_settings(src.parent)
     html = embed_images(html, src.parent)
-    html = html.replace("<!--JC:CSS-->", styles())
+    html = html.replace("<!--JC:CSS-->", settings_block(settings) + styles())
     html = html.replace("<!--JC:SCRIPTS-->", scripts())
     html = embed_charts(html, src.parent / "charts")
     out.write_text(html, encoding="utf-8")

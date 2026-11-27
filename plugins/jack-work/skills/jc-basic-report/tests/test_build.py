@@ -116,3 +116,33 @@ def test_local_images_are_embedded_so_the_report_stays_one_file(tmp_path):
     assert len(srcs) == 1
     assert srcs[0].startswith("data:image/png;base64,")
     assert base64.b64decode(srcs[0].split(",", 1)[1]) == PNG_1x1
+
+
+# ---------- Settings: skill defaults + per-report override, validated and inlined ----------
+SETTINGS_BLOCK = re.compile(r'<script type="application/json" id="jc-settings">(.*?)</script>', re.S)
+
+
+def inlined_settings(out: Path) -> dict:
+    blocks = SETTINGS_BLOCK.findall(out.read_text(encoding="utf-8"))
+    assert len(blocks) == 1, "the Report carries exactly one inlined Settings block"
+    return json.loads(blocks[0])
+
+
+def test_without_an_override_the_report_carries_the_skill_default_settings(tmp_path):
+    src = write_src(tmp_path)
+    out = tmp_path / "report.html"
+
+    res = run_build(src, out)
+
+    assert res.returncode == 0, res.stderr
+    s = inlined_settings(out)
+    assert s["defaultTheme"] == "beige"
+    assert s["pagination"] == {"enabled": True}
+    assert s["paper"] == {"size": "A4", "marginMm": {"top": 16, "right": 18, "bottom": 18, "left": 18}}
+    assert s["chrome"]["headerTemplate"] == "{company} · 项目基本信息报告"
+    assert s["chrome"]["footerTemplate"] == "第 {page} 页 共 {pages} 页"
+    assert s["toc"] == {"pageNumbers": True}
+    assert s["print"] == {"palette": "white"}
+    assert set(s["themes"]) == {"white", "black", "beige"}
+    assert s["themes"]["beige"]["chart"]["parchment"] == "#f5f4ed"   # current Kami chart colours
+    assert s["themes"]["beige"]["chart"]["brand"] == "#1B365D"
