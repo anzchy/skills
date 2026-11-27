@@ -204,3 +204,11 @@ def test_the_print_palette_must_name_a_theme(tmp_path):
 
     assert res.returncode != 0
     assert "print.palette" in res.stderr and "sepia" in res.stderr
+
+
+def test_a_negative_page_margin_fails_the_build(tmp_path):
+    res, out = build_with_override(tmp_path, {"paper": {"marginMm": {"left": -5}}})
+
+    assert res.returncode != 0
+    assert "paper.marginMm.left" in res.stderr
+    assert not out.exists()

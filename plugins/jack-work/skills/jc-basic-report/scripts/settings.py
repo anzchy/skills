@@ -40,10 +40,16 @@ def _theme(path, v):
     return [] if v in THEMES else [f"非法主题名 {path} = {v!r}（可选：{' / '.join(THEMES)}）"]
 
 
+def _margin(path, v):
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or v < 0:
+        return [f"页边距必须是非负数（毫米） {path} = {v!r}"]
+    return []
+
+
 SCHEMA = {
     "defaultTheme": _theme,
     "pagination": {"enabled": _any},
-    "paper": {"size": _any, "marginMm": {side: _any for side in ("top", "right", "bottom", "left")}},
+    "paper": {"size": _any, "marginMm": {side: _margin for side in ("top", "right", "bottom", "left")}},
     "chrome": {"headerTemplate": _any, "footerTemplate": _any},
     "toc": {"pageNumbers": _any},
     "print": {"palette": _theme},
