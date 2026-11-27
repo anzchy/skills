@@ -212,3 +212,12 @@ def test_a_negative_page_margin_fails_the_build(tmp_path):
     assert res.returncode != 0
     assert "paper.marginMm.left" in res.stderr
     assert not out.exists()
+
+
+def test_unsetting_a_required_key_fails_the_build_and_names_it(tmp_path):
+    # null in the override removes the key, leaving the merged Settings without it
+    res, out = build_with_override(tmp_path, {"chrome": {"headerTemplate": None}})
+
+    assert res.returncode != 0
+    assert "chrome.headerTemplate" in res.stderr
+    assert not out.exists()

@@ -15,8 +15,12 @@ OVERRIDE_NAME = "settings.json"   # placed next to report.src.html
 
 
 def deep_merge(base: dict, over: dict) -> dict:
+    """Override wins; nested objects merge key by key; null unsets a key."""
     out = dict(base)
     for k, v in over.items():
+        if v is None:
+            out.pop(k, None)
+            continue
         out[k] = deep_merge(base[k], v) if isinstance(v, dict) and isinstance(base.get(k), dict) else v
     return out
 
@@ -64,8 +68,11 @@ def _check(schema: dict, value: dict, path: str) -> list[str]:
             errors.append(f"未知键 {path}{k}")
     for k, rule in schema.items():
         if k not in value:
-            continue
-        if isinstance(rule, dict):
+            errors.append(f"缺少必填键 {path}{k}")
+        elif isinstance(rule, dict):
+            if not isinstance(value[k], dict):
+                errors.append(f"{path}{k} 必须是对象（JSON object）")
+                continue
             errors += _check(rule, value[k], f"{path}{k}.")
         else:
             errors += rule(f"{path}{k}", value[k])
