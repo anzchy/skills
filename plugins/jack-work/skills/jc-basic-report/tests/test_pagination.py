@@ -5,6 +5,7 @@ Geometry is read from the page the way a reader sees it (bounding boxes in CSS p
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -108,6 +109,73 @@ def test_a_heading_is_never_left_alone_at_the_bottom_of_a_sheet(context, report_
         if b["tag"] in ("H2", "H3"):
             nxt = blocks[i + 1] if i + 1 < len(blocks) else None
             assert nxt and nxt["sheet"] == b["sheet"], f"heading {b['text']!r} is stranded on sheet {b['sheet'] + 1}"
+
+
+LONG_TABLE = ("<h3>9.9 超长明细</h3>\n<table class=\"compact\" id=\"long-table\"><thead><tr><th>序号</th><th>事项</th></tr></thead><tbody>"
+              + "".join(f"<tr><td>{i}</td><td>明细第 {i} 行</td></tr>" for i in range(1, 121))
+              + "</tbody></table>\n<p id=\"after-long\">超长表格之后的一段正文。</p>")
+
+
+def test_an_oversized_table_gets_its_own_sheet_and_a_visible_warning(context, tmp_path):
+    out = build_sample(tmp_path, extra_body=LONG_TABLE)
+    page = context.new_page()
+    warnings = []
+    page.on("console", lambda m: warnings.append(m.text) if m.type == "warning" else None)
+    page.goto(out.as_uri(), wait_until="domcontentloaded")
+    page.wait_for_selector("html[data-pagination='done']", state="attached", timeout=10000)
+
+    on_sheet = page.evaluate("""() => {
+        const sheetOf = el => [...document.querySelectorAll('#report .sheet')].indexOf(el.closest('.sheet'));
+        const t = document.getElementById('long-table'), s = t.closest('.sheet');
+        const blocks = [...s.querySelectorAll('h2, h3, p, table, figure')].filter(e => !e.closest('table') || e === t);
+        const last = t.querySelector('tbody tr:last-child td');
+        last.scrollIntoView({block: 'center'});
+        const r = last.getBoundingClientRect(), sr = s.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return {table: sheetOf(t), after: sheetOf(document.getElementById('after-long')),
+                others: blocks.filter(e => e !== t && e.tagName !== 'H3').length,
+                visible: r.bottom <= sr.bottom && hit === last}; }""")
+
+    assert on_sheet["others"] == 0, "the Oversized table has a Sheet to itself (its heading may stay with it)"
+    assert on_sheet["after"] == on_sheet["table"] + 1
+    assert on_sheet["visible"], "the table is not cut off at the Sheet edge"
+    assert any("Oversized table" in w for w in warnings), warnings
+    banner = page.locator("[role='alert']", has_text="Oversized table")
+    assert banner.count() == 1 and banner.is_visible()
+    assert banner.evaluate("b => b.getBoundingClientRect().top + scrollY") < 200, "warned at the top of the page"
+    assert "9.9 超长明细" in banner.inner_text()
+
+
+def tall_png() -> bytes:
+    import io
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new("RGB", (600, 700), (27, 54, 93)).save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def test_sheets_are_measured_only_after_slow_images_have_loaded(context, tmp_path):
+    figs = "".join(f'<figure id="late-{i}"><img src="https://img.jc.test/tall-{i}.png" alt="">'
+                   f"<figcaption>图 9-{i} · 晚到的图</figcaption></figure>\n" for i in range(3))
+    out = build_sample(tmp_path, extra_body="<h2 id=\"s9\">九、晚到的图</h2>\n" + figs)
+    png = tall_png()
+
+    def slow(route):
+        time.sleep(0.6)                                   # the image arrives after the DOM is parsed
+        route.fulfill(status=200, content_type="image/png", body=png)
+    context.route("https://img.jc.test/**", slow)
+    page = open_report(context, out)
+
+    placed = page.evaluate("""() => [0, 1, 2].map(i => {
+        const f = document.getElementById('late-' + i), s = f.closest('.sheet');
+        const r = f.getBoundingClientRect(), sr = s.getBoundingClientRect();
+        return {sheet: [...document.querySelectorAll('#report .sheet')].indexOf(s),
+                height: r.height, room: sr.bottom - r.bottom}; })""")
+    m = page.evaluate("JSON.parse(document.getElementById('jc-settings').textContent).paper.marginMm")
+
+    assert all(mm(p["height"]) > 150 for p in placed), placed
+    assert len({p["sheet"] for p in placed}) == 3, "each 185 mm figure needs its own Sheet"
+    assert all(mm(p["room"]) >= m["bottom"] - 0.5 for p in placed), placed
 
 
 def test_with_pagination_disabled_the_report_scrolls_continuously(context, tmp_path):

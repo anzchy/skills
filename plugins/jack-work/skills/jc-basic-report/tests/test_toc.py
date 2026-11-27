@@ -36,8 +36,8 @@ def visible_toc_labels(reader) -> list[str]:
 def test_clicking_an_entry_jumps_there_marks_it_active_and_expands_only_its_subsections(reader):
     first_h2 = reader.page.locator("#report h2").nth(1)          # a section with sub-sections
     target = first_h2.evaluate("h => h.textContent.trim()")
-    sub = reader.page.locator("#report h2").nth(1).evaluate(
-        "h => { let n = h.nextElementSibling; while (n && n.tagName !== 'H3' && n.tagName !== 'H2') n = n.nextElementSibling;"
+    sub = reader.page.locator("#report h2").nth(1).evaluate(     # next heading in reading order, Sheets or not
+        "h => { const hs = [...document.querySelectorAll('#report h2, #report h3')], n = hs[hs.indexOf(h) + 1];"
         " return n && n.tagName === 'H3' ? n.textContent.trim() : null; }")
     assert sub, "test needs a section with at least one sub-section"
 

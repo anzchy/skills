@@ -46,6 +46,8 @@
   }
   tabs.forEach(function (t) { t.addEventListener('click', function () { showTab(t.dataset.tab); }); });
 
+  // Sidebar state above is restored at once (no flash); TOC and annotations wait for the final Sheets.
+  (window.JCPaginator ? window.JCPaginator.whenReady : function (fn) { fn(); })(function () {
   /* ---------- 目录（tocbot） ---------- */
   report.querySelectorAll('h2, h3').forEach(function (h, i) { if (!h.id) h.id = 'sec-' + i; });
   // Headings like "〇、投资要点" carry a rating badge (.h2-rating); keep it out of TOC labels.
@@ -356,4 +358,5 @@
   renderList();
 
   window.__report = { anno: anno, save: save };
+  });
 })();
