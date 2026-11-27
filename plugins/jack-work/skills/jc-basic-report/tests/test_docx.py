@@ -216,6 +216,27 @@ def test_page_background_follows_an_overridden_print_palette(doc_with_override):
     assert page_background(doc_with_override) == "F5F4ED"
 
 
+@pytest.fixture(scope="module")
+def doc_with_short_hex(tmp_path_factory):
+    """The fixture exported after the author sets the white page colour as 3-digit hex and puts
+    {company} in the footer."""
+    from docx import Document
+    tmp = tmp_path_factory.mktemp("short-hex")
+    report = build_fixture_with_settings(tmp, {
+        "print": {"palette": "white"},
+        "themes": {"white": {"chart": {"parchment": "#fe8"}}},
+        "chrome": {"footerTemplate": "{company} · 第 {page} 页"},
+    })
+    wd = tmp / "docx"
+    wd.mkdir()
+    return Document(str(export_docx(report, wd)))
+
+
+def test_a_three_digit_page_colour_is_written_as_six_digit_hex(doc_with_short_hex):
+    # w:background w:color takes RRGGBB only; "#fe8" means "#ffee88"
+    assert page_background(doc_with_short_hex) == "FFEE88"
+
+
 def test_every_page_but_the_first_carries_the_settings_header(doc):
     # fixture <title>沐曦股份 · 项目基本信息报告（样例）</title>: {company} is the part before " · ";
     # default chrome.headerTemplate "{company} · 项目基本信息报告"; the first page (title block) has no header

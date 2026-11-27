@@ -28,7 +28,15 @@ SERIF_LATIN, SERIF_CJK = "Georgia", "TsangerJinKai02"
 # ---- Settings (inlined in the Report, carried here by prep.py) ----
 SETTINGS = meta["settings"]
 PRINT_PALETTE = SETTINGS["print"]["palette"]
-PAGE_COLOR = SETTINGS["themes"][PRINT_PALETTE]["chart"]["parchment"].lstrip("#")   # the palette's page colour
+
+
+def rrggbb(colour):
+    """Settings accept #rgb or #rrggbb; Word's colour attributes take RRGGBB only."""
+    h = colour.lstrip("#")
+    return "".join(c * 2 for c in h) if len(h) == 3 else h
+
+
+PAGE_COLOR = rrggbb(SETTINGS["themes"][PRINT_PALETTE]["chart"]["parchment"])   # the palette's page colour
 
 # header/metric paragraphs: <p data-k="x"> -> named paragraph style K_x
 html = (wd / "main.html").read_text(encoding="utf-8")
